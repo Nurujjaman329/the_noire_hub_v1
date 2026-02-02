@@ -1,4 +1,4 @@
-package com.example.the_noire_hub_v1
+package com.annadat.tnp
 
 import io.flutter.embedding.android.FlutterActivity
 
