@@ -5,6 +5,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../../../../../core/accountController/account_controller.dart';
+import '../../../../../core/constants/app_assets.dart';
+import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_images.dart';
 import '../../../../../core/widgets/custom_network_image.dart';
@@ -57,7 +59,7 @@ class VendorBillingSection extends StatelessWidget {
                     ),
                     const Spacer(),
                     CustomNetworkImage(
-                      imageUrl: AppImages.appLogo,
+                      imageUrl: AppAssets.appLogo,
                       height: 60.h,
                       width: 150.w,
                       fit: BoxFit.contain,
@@ -200,7 +202,7 @@ class VendorBillingSection extends StatelessWidget {
             fontSize: 12.sp,
             color: Color(0XFF000000),
             // color: AppColors.geryColor,
-            textHeight: 1.4,
+            height: 1.4,
           ),
           SizedBox(height: 25.h),
 

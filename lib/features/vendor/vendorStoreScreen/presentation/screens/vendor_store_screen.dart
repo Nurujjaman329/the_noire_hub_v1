@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../../../core/accountController/account_controller.dart';
+import '../../../../../core/constants/app_assets.dart';
+import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/route_constants.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_images.dart';
@@ -98,7 +100,7 @@ class _VendorStoreScreenState extends State<VendorStoreScreen> {
       child: Stack(
         children: [
           CustomNetworkImage(
-            imageUrl: AppImages.vendorStoreTop,
+            imageUrl: AppAssets.vendorStoreTop,
             height: 240.h,
             width: double.infinity,
             borderRadius: BorderRadius.zero,
@@ -108,7 +110,7 @@ class _VendorStoreScreenState extends State<VendorStoreScreen> {
             top: 0,
             right: 0,
             child: CustomNetworkImage(
-              imageUrl: AppImages.vendorStoreShadow,
+              imageUrl: AppAssets.vendorStoreShadow,
               height: 140.h,
               width: 220.w,
             ),
@@ -162,7 +164,7 @@ class _VendorStoreScreenState extends State<VendorStoreScreen> {
           fontSize: 11.sp,
           color: Color(0x80000000),
           // color: AppColors.geryColor,
-          textHeight: 1.4,
+          height: 1.4,
         ),
         SizedBox(height: 12.h),
 
@@ -348,7 +350,7 @@ class _VendorStoreScreenState extends State<VendorStoreScreen> {
                     text: "Argan Oil Serum",
                     fontSize: 11.sp,
                     fontWeight: FontWeight.bold,
-                    maxLine: 1,
+                    maxLines: 1,
                     color: const Color(0XFF000000),
                   ),
                   SizedBox(height: 4.h),
@@ -462,7 +464,7 @@ class _VendorStoreScreenState extends State<VendorStoreScreen> {
                 textAlign: TextAlign.center,
                 fontSize: 14.sp,
                 color: AppColors.geryColor,
-                textHeight: 1.5,
+                height: 1.5,
               ),
               SizedBox(height: 30.h),
 

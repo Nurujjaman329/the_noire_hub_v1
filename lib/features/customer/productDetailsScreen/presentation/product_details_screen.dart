@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/route_constants.dart';
 import '../../../../core/navigationController/app_navigation_controller.dart';
 import '../../../../core/utils/app_colors.dart';
@@ -377,7 +378,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               borderRadius: BorderRadius.circular(15.r)
           ),
           SizedBox(height: 10.h),
-          CustomText(text: title, fontSize: 10.sp, fontWeight: FontWeight.bold, maxLine: 2),
+          CustomText(text: title, fontSize: 10.sp, fontWeight: FontWeight.bold, maxLines: 2),
           SizedBox(height: 5.h),
           Row(
             children: [

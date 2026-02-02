@@ -5,6 +5,7 @@ import 'package:the_noire_hub_v1/features/customer/customerOrderScreen/presentat
 import 'package:the_noire_hub_v1/features/customer/customerOrderScreen/presentation/screen/widget/complete_order_list.dart';
 import 'package:the_noire_hub_v1/features/customer/customerOrderScreen/presentation/screen/widget/inProgress_order_list.dart';
 import 'package:the_noire_hub_v1/features/customer/customerOrderScreen/presentation/screen/widget/pending_order_list.dart';
+import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/widgets/custom_app_bar.dart';
 import '../../../../../core/widgets/custom_text.dart';

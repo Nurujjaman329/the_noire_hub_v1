@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
+import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/route_constants.dart';
 import '../../../../core/utils/app_colors.dart';
 import '../../../../core/widgets/custom_button.dart';
@@ -87,7 +88,7 @@ class _GmailVerificationScreenState extends State<GmailVerificationScreen> {
                               : "Enter your email address below. We will send you a verification code to confirm your account.",
                           fontSize: 14.sp,
                           color: AppColors.geryColor,
-                          textHeight: 1.5,
+                          height: 1.5,
                         ),
 
                         SizedBox(height: 40.h),

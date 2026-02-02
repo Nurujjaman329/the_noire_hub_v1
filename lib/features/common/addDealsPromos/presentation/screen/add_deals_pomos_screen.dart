@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import '../../../../../core/constants/app_assets.dart';
+import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_images.dart';
 import '../../../../../core/widgets/custom_button.dart';
@@ -12,7 +14,7 @@ class AddDealsPomosScreen extends StatelessWidget {
   const AddDealsPomosScreen({super.key});
 
   // Provided static image link
-  static String vendorStoreTop = AppImages.registration;
+  static String vendorStoreTop = AppAssets.registration;
 
   @override
   Widget build(BuildContext context) {

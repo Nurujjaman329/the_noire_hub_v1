@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:get/get_utils/src/extensions/widget_extensions.dart';
 
+import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/widgets/custom_app_bar.dart';
 import '../../../../../core/widgets/custom_button.dart';

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:get/get.dart';
+import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/route_constants.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/widgets/custom_button.dart';
@@ -325,7 +326,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             SizedBox(height: 5.h),
             CustomText(text: title, fontSize: 12.sp, fontWeight: FontWeight.bold),
             SizedBox(height: 5.h),
-            CustomText(text: desc, fontSize: 9.sp, color: Color(0XFF000000), maxLine: 2,),
+            CustomText(text: desc, fontSize: 9.sp, color: Color(0XFF000000), maxLines: 2,),
             SizedBox(height: 5.h),
             CustomText(text: price, fontSize: 12.sp, fontWeight: FontWeight.bold,color: Color(0XFF000000),),
             if (hasPromo)

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import '../../../../core/constants/app_assets.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/route_constants.dart';
 import '../../../../core/utils/app_colors.dart';
 import '../../../../core/utils/app_images.dart';
@@ -259,8 +261,8 @@ class CustomerServiceScreen extends StatelessWidget {
                       text: description,
                       fontSize: 11.sp,
                       color: Colors.black54,
-                      maxLine: 2,
-                      textOverflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
@@ -305,7 +307,7 @@ class CustomerServiceScreen extends StatelessWidget {
                 BlendMode.srcIn,
               ),
               child: Image.asset(
-                AppImages.appLogo,
+                AppAssets.appLogo,
                 width: 50.w,
                 fit: BoxFit.contain,
               ),
@@ -544,10 +546,10 @@ class CustomerServiceScreen extends StatelessWidget {
     int selectedSubIndex = 0;
 
     final categories = [
-      {"name": "Braids", "img": AppImages.subCategory},
-      {"name": "Faux Locs", "img": AppImages.subCategory},
-      {"name": "Kids", "img": AppImages.subCategory},
-      {"name": "Wig Install", "img": AppImages.subCategory},
+      {"name": "Braids", "img": AppAssets.subCategory},
+      {"name": "Faux Locs", "img": AppAssets.subCategory},
+      {"name": "Kids", "img": AppAssets.subCategory},
+      {"name": "Wig Install", "img": AppAssets.subCategory},
     ];
 
     return SingleChildScrollView(
@@ -689,8 +691,8 @@ class CustomerServiceScreen extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                           fontSize: 13.sp, // Reduced size for better fit
                           color: const Color(0xFF000000),
-                          maxLine: 1, // Prevents text from wrapping to new line
-                          textOverflow: TextOverflow.ellipsis,
+                          maxLines: 1, // Prevents text from wrapping to new line
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       SizedBox(width: 4.w),
@@ -702,8 +704,8 @@ class CustomerServiceScreen extends StatelessWidget {
                           fontSize: 11.sp,
                           color: const Color(0xFF000000),
                           textAlign: TextAlign.end,
-                          maxLine: 1,
-                          textOverflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
@@ -722,8 +724,8 @@ class CustomerServiceScreen extends StatelessWidget {
                               text: distance,
                               fontSize: 11.sp,
                               color: const Color(0xFF000000),
-                              maxLine: 1,
-                              textOverflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                             SizedBox(height: 4.h),
                             CustomText(

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../core/accountController/account_controller.dart';
+import '../../../core/constants/app_assets.dart';
+import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/route_constants.dart';
 import '../../../core/utils/app_colors.dart';
 import '../../../core/utils/app_images.dart';
@@ -25,7 +27,7 @@ class SelectionScreen extends StatelessWidget {
             right: 0,
             height: 0.75.sh,
             child: Image.asset(
-              AppImages.selection,
+              AppAssets.selection,
               fit: BoxFit.cover,
             ),
           ),
@@ -64,7 +66,7 @@ class SelectionScreen extends StatelessWidget {
                 ),
                 Row(
                   children: [
-                    Image.asset(AppImages.appLogo, height: 35.h),
+                    Image.asset(AppAssets.appLogo, height: 35.h),
                     CustomText(
                       text: "Beauty!",
                       fontSize: 28.sp,
@@ -129,11 +131,11 @@ class SelectionScreen extends StatelessWidget {
                       children: [
                         _buildSelectionCard(
                           title: "Vendors",
-                          image: AppImages.vendors,
+                          image: AppAssets.vendors,
                         ),
                         _buildSelectionCard(
                           title: "Beauticians",
-                          image: AppImages.beauticians,
+                          image: AppAssets.beauticians,
                         ),
                       ],
                     ),

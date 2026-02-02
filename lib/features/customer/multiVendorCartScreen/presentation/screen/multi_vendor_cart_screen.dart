@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/route_constants.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/widgets/custom_app_bar.dart';
@@ -108,7 +109,7 @@ class MultiVendorCartScreen extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                     color: Color(0XFF000000),
                     // color: AppColors.textPrimary,
-                    maxLine: 1
+                    maxLines: 1
                 ),
                 CustomText(
                     text: items,
@@ -182,7 +183,7 @@ class MultiVendorCartScreen extends StatelessWidget {
               textAlign: TextAlign.center,
               color: Color(0XFF000000),
               // color: AppColors.textPrimary,
-              maxLine: 2
+              maxLines: 2
           ),
           SizedBox(height: 5.h),
           CustomText(

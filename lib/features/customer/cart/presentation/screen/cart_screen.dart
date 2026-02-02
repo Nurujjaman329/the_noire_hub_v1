@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
+import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/route_constants.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/widgets/custom_app_bar.dart';
@@ -148,7 +149,7 @@ class _CartScreenState extends State<CartScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CustomText(text: title, fontSize: 14.sp, fontWeight: FontWeight.w600, maxLine: 2,color: Color(0XFF000000),),
+                CustomText(text: title, fontSize: 14.sp, fontWeight: FontWeight.w600, maxLines: 2,color: Color(0XFF000000),),
                 SizedBox(height: 10.h),
                 CustomText(text: "\$$price", fontSize: 14.sp, fontWeight: FontWeight.bold,color: Color(0XFF000000),),
               ],
@@ -204,7 +205,7 @@ class _CartScreenState extends State<CartScreen> {
         children: [
           CustomNetworkImage(imageUrl: imgUrl, height: 100.h, width: 110.w, borderRadius: BorderRadius.circular(20.r)),
           SizedBox(height: 10.h),
-          CustomText(text: title, fontSize: 11.sp, fontWeight: FontWeight.bold, textAlign: TextAlign.center, maxLine: 2),
+          CustomText(text: title, fontSize: 11.sp, fontWeight: FontWeight.bold, textAlign: TextAlign.center, maxLines: 2),
           SizedBox(height: 8.h),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,

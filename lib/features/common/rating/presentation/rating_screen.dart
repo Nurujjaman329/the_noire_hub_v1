@@ -3,6 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import '../../../../core/constants/app_assets.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_colors.dart';
 import '../../../../core/utils/app_images.dart';
 import '../../../../core/widgets/custom_network_image.dart';
@@ -37,7 +39,7 @@ class _RatingScreenState extends State<RatingScreen> {
                     bottomRight: Radius.circular(35.r),
                   ),
                   child: CustomNetworkImage(
-                    imageUrl: AppImages.vendorRegistration,
+                    imageUrl: AppAssets.vendorRegistration,
                     height: 300.h, // Adjusted height
                     width: double.infinity,
                   ),

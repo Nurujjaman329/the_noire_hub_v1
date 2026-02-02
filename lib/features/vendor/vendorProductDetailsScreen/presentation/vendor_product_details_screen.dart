@@ -96,7 +96,7 @@ class VendorProductDetailsScreen extends StatelessWidget {
                     text: "Moisture Retainment, Hair Growth Stimulation, All natural ingredients, NDA Approved, Petroleum free",
                     fontSize: 14.sp,
                     color: Colors.black54,
-                    textHeight: 1.4,
+                    height: 1.4,
                   ),
 
                   SizedBox(height: 25.h),

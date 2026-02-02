@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:table_calendar/table_calendar.dart';
+import '../../../../../core/constants/app_assets.dart';
+import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_images.dart';
 import '../../../../../core/widgets/custom_network_image.dart';
@@ -125,7 +127,7 @@ class _VendorAvailabilitySectionState extends State<VendorAvailabilitySection> {
                 ),
               ),
               const Spacer(),
-              CustomNetworkImage(imageUrl: AppImages.appLogo, height: 60.h, width: 150.w, fit: BoxFit.contain),
+              CustomNetworkImage(imageUrl: AppAssets.appLogo, height: 60.h, width: 150.w, fit: BoxFit.contain),
               const Spacer(),
               SizedBox(height: 30.h),
             ],
@@ -284,7 +286,7 @@ class _VendorAvailabilitySectionState extends State<VendorAvailabilitySection> {
                 text: title,
                 color: Colors.white,
                 fontSize: 12.sp,
-                maxLine: 2, // Now this will correctly wrap to 2 lines
+                maxLines: 2, // Now this will correctly wrap to 2 lines
               ),
             ),
           ],

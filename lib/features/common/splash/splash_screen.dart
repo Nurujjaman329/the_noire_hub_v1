@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
+import '../../../core/constants/app_assets.dart';
+import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/route_constants.dart';
 import '../../../core/utils/app_colors.dart';
 import '../../../core/utils/app_images.dart';
@@ -40,7 +42,7 @@ class _SplashScreenState extends State<SplashScreen> {
           // 1. Full Screen Background Image
           Positioned.fill(
             child: Image.asset(
-              AppImages.splashImage,
+              AppAssets.splashImage,
               fit: BoxFit.cover,
             ),
           ),
@@ -52,7 +54,7 @@ class _SplashScreenState extends State<SplashScreen> {
               children: [
                 // App Logo (TNP)
                 Image.asset(
-                  AppImages.appLogo,
+                  AppAssets.appLogo,
                   width: 180.w,
                   fit: BoxFit.contain,
                 ),

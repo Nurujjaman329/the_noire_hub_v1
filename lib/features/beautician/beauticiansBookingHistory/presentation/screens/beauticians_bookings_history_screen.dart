@@ -4,6 +4,7 @@ import 'package:the_noire_hub_v1/features/beautician/beauticiansBookingHistory/p
 import 'package:the_noire_hub_v1/features/beautician/beauticiansBookingHistory/presentation/screens/widget/beauticians_complete_booking_list.dart';
 import 'package:the_noire_hub_v1/features/beautician/beauticiansBookingHistory/presentation/screens/widget/beauticians_inProgress_booking_list.dart';
 import 'package:the_noire_hub_v1/features/beautician/beauticiansBookingHistory/presentation/screens/widget/beauticians_pending_booking_list.dart';
+import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/widgets/custom_app_bar.dart';
 import '../../../../../core/widgets/custom_text.dart';

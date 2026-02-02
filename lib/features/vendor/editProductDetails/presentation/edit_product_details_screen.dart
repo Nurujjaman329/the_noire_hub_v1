@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../../core/constants/app_assets.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/app_colors.dart';
 import '../../../../core/utils/app_images.dart';
 import '../../../../core/widgets/custom_button.dart';
@@ -107,7 +109,7 @@ class EditProductDetailsScreen extends StatelessWidget {
         centerTitle: true,
         background: Center(
           child: CustomNetworkImage(
-              imageUrl: AppImages.appLogo,
+              imageUrl: AppAssets.appLogo,
               height: 60.h,
               width: 150.w,
               fit: BoxFit.contain

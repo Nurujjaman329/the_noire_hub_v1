@@ -110,8 +110,8 @@ class ServiceDealsPromosScreen extends StatelessWidget {
                         text: name,
                         fontSize: 12.sp,
                         fontWeight: FontWeight.w600,
-                        maxLine: 1,
-                        textOverflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     CustomText(

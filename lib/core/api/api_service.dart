@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import '../constants/api_constants.dart';
-import '../exceptions/app_exceptions.dart';
+import 'api_exception.dart';
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();

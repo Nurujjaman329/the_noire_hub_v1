@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../constants/app_colors.dart';
 import '../utils/app_colors.dart';
 import 'custom_text.dart';
 
@@ -57,7 +58,6 @@ class GlobalDialogs {
                 fontSize: 13.sp,
                 color: Color(0xB2000000),
                 // color: AppColors.geryColor,
-                textHeight: 1.5,
               ),
               SizedBox(height: 25.h),
 

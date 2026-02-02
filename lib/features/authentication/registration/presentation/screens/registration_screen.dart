@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import '../../../../../core/constants/app_assets.dart';
+import '../../../../../core/constants/app_colors.dart';
+import '../../../../../core/constants/app_icons.dart';
 import '../../../../../core/constants/route_constants.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_icons.dart';
@@ -39,7 +42,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             right: 0,
             height: 320.h,
             child: Image.asset(
-              AppImages.registration,
+              AppAssets.registration,
               fit: BoxFit.cover,
             ),
           ),

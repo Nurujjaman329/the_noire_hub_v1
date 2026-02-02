@@ -5,6 +5,7 @@ import 'package:the_noire_hub_v1/features/customer/customerBookingList/presentat
 import 'package:the_noire_hub_v1/features/customer/customerBookingList/presentation/screen/widget/complete_bookings.dart';
 import 'package:the_noire_hub_v1/features/customer/customerBookingList/presentation/screen/widget/in_progress_bookings.dart';
 import 'package:the_noire_hub_v1/features/customer/customerBookingList/presentation/screen/widget/pending_bookings.dart';
+import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/navigationController/app_navigation_controller.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/widgets/custom_network_image.dart';

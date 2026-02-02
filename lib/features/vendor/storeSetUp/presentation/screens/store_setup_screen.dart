@@ -4,6 +4,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../../../../../core/accountController/account_controller.dart';
+import '../../../../../core/constants/app_assets.dart';
+import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/route_constants.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_images.dart';
@@ -212,7 +214,7 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
       pinned: true,
       flexibleSpace: FlexibleSpaceBar(
         background: Center(
-          child: CustomNetworkImage(imageUrl: AppImages.appLogo, height: 60.h, width: 150.w, fit: BoxFit.contain),
+          child: CustomNetworkImage(imageUrl: AppAssets.appLogo, height: 60.h, width: 150.w, fit: BoxFit.contain),
         ),
       ),
       leading: IconButton(

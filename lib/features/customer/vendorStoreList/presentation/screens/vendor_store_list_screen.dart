@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import '../../../../../core/constants/app_assets.dart';
 import '../../../../../core/constants/route_constants.dart';
 import '../../../../../core/utils/app_images.dart';
 import '../../../../../core/widgets/custom_network_image.dart';
@@ -20,7 +21,7 @@ class VendorStoreListScreen extends StatelessWidget {
           Stack(
             children: [
               Image.asset(
-                AppImages.vendorStore,
+                AppAssets.vendorStore,
                 height: 280.h,
                 width: double.infinity,
                 fit: BoxFit.cover,
@@ -214,7 +215,7 @@ class VendorStoreListScreen extends StatelessWidget {
               text: title,
               fontSize: 11.sp,
               fontWeight: FontWeight.bold,
-              maxLine: 2,
+              maxLines: 2,
               color: Color(0XFF000000),
             ),
             CustomText(
