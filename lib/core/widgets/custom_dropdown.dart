@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../constants/app_colors.dart';
-import '../utils/app_colors.dart';
 import 'custom_text.dart';
 
 class CustomDropdown<T> extends StatelessWidget {

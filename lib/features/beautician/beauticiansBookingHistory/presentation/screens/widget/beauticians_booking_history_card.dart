@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import '../../../../../../core/constants/route_constants.dart';
 import '../../../../../../core/widgets/custom_network_image.dart';
 import '../../../../../../core/widgets/custom_text.dart';
 

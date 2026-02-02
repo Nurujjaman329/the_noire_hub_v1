@@ -5,7 +5,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/utils/app_colors.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_text.dart';
@@ -109,7 +108,7 @@ class _AddTipScreenState extends State<AddTipScreen> {
               // Using custom padding to match your previous design
               contenpaddingVertical: 12.h,
               onChanged: (val) {
-                if (val != null && val.isNotEmpty) {
+                if (val.isNotEmpty) {
                   setState(() => selectedIndex = -1);
                 }
               },

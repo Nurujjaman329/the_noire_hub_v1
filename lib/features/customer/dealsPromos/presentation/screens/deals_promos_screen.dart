@@ -184,28 +184,5 @@ class DealsPromosScreen extends StatelessWidget {
   }
 
 
-  Widget _buildActionButton(String text) {
-    return GestureDetector(
-      onTap: (){
-        Get.toNamed(RouteConstants.addPromoScreen);
-      },
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.symmetric(vertical: 12.h),
-        decoration: BoxDecoration(
-          color: const Color(0xFFCADA9F), // Accent Sage color from image
-          borderRadius: BorderRadius.circular(30.r),
-        ),
-        child: Center(
-          child: CustomText(
-            text: text,
-            fontSize: 14.sp,
-            fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
-          ),
-        ),
-      ),
-    );
-  }
 }
 

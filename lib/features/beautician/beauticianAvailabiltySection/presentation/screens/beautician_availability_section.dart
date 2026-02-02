@@ -4,8 +4,6 @@ import 'package:get/get.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../../../../core/constants/app_assets.dart';
 import '../../../../../core/constants/app_colors.dart';
-import '../../../../../core/utils/app_colors.dart';
-import '../../../../../core/utils/app_images.dart';
 import '../../../../../core/widgets/custom_network_image.dart';
 import '../../../../../core/widgets/custom_text.dart';
 

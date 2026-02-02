@@ -4,7 +4,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/route_constants.dart';
 import '../../../../core/navigationController/app_navigation_controller.dart';
-import '../../../../core/utils/app_colors.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/widgets/custom_network_image.dart';
 import '../../../../core/widgets/custom_text.dart';
@@ -340,24 +339,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     );
   }
 
-  Widget _buildVariationImage(String url, bool isSelected) {
-    return Container(
-      margin: EdgeInsets.only(right: 15.w),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(15.r),
-        border: Border.all(
-            color: isSelected ? AppColors.primaryDark : Colors.transparent,
-            width: 2
-        ),
-      ),
-      child: CustomNetworkImage(
-          imageUrl: url,
-          height: 80.h,
-          width: 80.w,
-          borderRadius: BorderRadius.circular(13.r)
-      ),
-    );
-  }
 
 
   Widget _buildProductCard(String title, String price, String imgUrl) {

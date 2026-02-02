@@ -5,10 +5,7 @@ import '../../../core/accountController/account_controller.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/route_constants.dart';
-import '../../../core/utils/app_colors.dart';
-import '../../../core/utils/app_images.dart';
 import '../../../core/widgets/custom_text.dart';
-import '../../../core/widgets/custom_button.dart';
 
 class SelectionScreen extends StatelessWidget {
   const SelectionScreen({super.key});

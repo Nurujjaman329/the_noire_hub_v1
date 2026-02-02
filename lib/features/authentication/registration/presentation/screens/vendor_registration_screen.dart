@@ -7,8 +7,6 @@ import '../../../../../core/accountController/account_controller.dart';
 import '../../../../../core/constants/app_assets.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/route_constants.dart';
-import '../../../../../core/utils/app_colors.dart';
-import '../../../../../core/utils/app_images.dart';
 import '../../../../../core/widgets/custom_button.dart';
 import '../../../../../core/widgets/custom_text.dart';
 import '../../../../../core/widgets/custom_text_field.dart';
@@ -21,7 +19,7 @@ class VendorRegistrationScreen extends StatefulWidget {
 }
 
 class _VendorRegistrationScreenState extends State<VendorRegistrationScreen> {
-  String _accountType = "Vendors"; // Default to Vendors
+// Default to Vendors
 
   @override
   void initState() {
@@ -29,7 +27,6 @@ class _VendorRegistrationScreenState extends State<VendorRegistrationScreen> {
     // Get the account type from the arguments passed from SelectionScreen
     final args = Get.arguments;
     if (args != null && args is String) {
-      _accountType = args;
     }
   }
   final TextEditingController nameController = TextEditingController();

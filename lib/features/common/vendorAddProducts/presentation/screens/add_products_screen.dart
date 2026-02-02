@@ -7,22 +7,11 @@ import '../../../../../core/accountController/account_controller.dart';
 import '../../../../../core/constants/app_assets.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/route_constants.dart';
-import '../../../../../core/utils/app_colors.dart';
-import '../../../../../core/utils/app_images.dart';
 import '../../../../../core/widgets/custom_network_image.dart';
 import '../../../../../core/widgets/custom_text.dart';
 import '../../../../../core/widgets/custom_button.dart';
 import '../../../../beautician/beauticiansVariantAdd/presentation/beauticians_add_variant_sheet.dart';
 import '../../../../vendor/vendorAddVariant/vendor_add_variant_sheet.dart';
-import '../widget/add_variant_sheet.dart';
-
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ProductEntry {
   String? subCategory;

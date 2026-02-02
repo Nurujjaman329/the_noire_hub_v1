@@ -3,7 +3,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 
 import '../constants/app_colors.dart';
-import '../utils/app_colors.dart';
 
 
 class CustomPinCodeTextField extends StatelessWidget {

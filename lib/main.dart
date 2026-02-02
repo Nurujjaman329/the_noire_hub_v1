@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'core/services/cache_service.dart';
-import 'core/di/dependency_injection.dart';
 import 'app.dart';
 
 void main() async {

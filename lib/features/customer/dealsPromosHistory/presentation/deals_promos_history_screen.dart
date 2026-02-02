@@ -3,10 +3,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/route_constants.dart';
-import '../../../../core/utils/app_colors.dart';
-import '../../../../core/utils/app_images.dart';
-import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_network_image.dart';
 import '../../../../core/widgets/custom_text.dart';
 
@@ -118,40 +114,6 @@ class DealsPromosHistoryScreen extends StatelessWidget {
     );
   }
 
-  // Success Dialog Function
-  void _showSuccessDialog(String promoName) {
-    Get.defaultDialog(
-      title: "", // Empty title to use custom content
-      contentPadding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-      radius: 20.r,
-      content: Column(
-        children: [
-
-          CustomText(
-            text: "Hooray!",
-            fontSize: 22.sp,
-            fontWeight: FontWeight.bold,
-            color: const Color(0xFF9BB575),
-          ),
-          SizedBox(height: 10.h),
-          CustomText(
-            text: "$promoName is applied to your account",
-            fontSize: 14.sp,
-            textAlign: TextAlign.center,
-            color: Colors.black54,
-          ),
-          SizedBox(height: 25.h),
-          CustomButton(
-            color: const Color(0xFF9BB575),
-            text: "Start Shopping",
-            onTap: () {
-              // Get.offAllNamed(RouteConstants.customerMainContainer);
-            },
-          ),
-        ],
-      ),
-    );
-  }
 
 
 }

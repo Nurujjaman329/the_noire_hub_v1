@@ -10,7 +10,6 @@ import 'package:get/get.dart';
 import '../../../vendor/vendorStoreScreen/presentation/screens/vendor_store_screen.dart';
 import '../../dashboardScreen/presentation/screens/dashboard_screen.dart';
 import '../../profile/presentation/profile_screen.dart';
-import '../../storeScreen/presentation/screens/store_screen.dart';
 
 
 

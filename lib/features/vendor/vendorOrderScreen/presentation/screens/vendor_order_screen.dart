@@ -7,14 +7,8 @@ import 'package:the_noire_hub_v1/features/vendor/vendorOrderScreen/presentation/
 import 'package:the_noire_hub_v1/features/vendor/vendorOrderScreen/presentation/screens/widget/vendor_inProgress_order_list.dart';
 import 'package:the_noire_hub_v1/features/vendor/vendorOrderScreen/presentation/screens/widget/vendor_pending_order_list.dart';
 import '../../../../../core/constants/app_colors.dart';
-import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/widgets/custom_app_bar.dart';
-import '../../../../../core/widgets/custom_button.dart';
-import '../../../../../core/widgets/custom_network_image.dart';
 import '../../../../../core/widgets/custom_text.dart';
-
-import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class VendorOrdersScreen extends StatefulWidget {
   const VendorOrdersScreen({super.key});

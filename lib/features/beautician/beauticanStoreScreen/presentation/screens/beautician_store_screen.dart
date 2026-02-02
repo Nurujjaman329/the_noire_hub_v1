@@ -5,8 +5,6 @@ import '../../../../../core/accountController/account_controller.dart';
 import '../../../../../core/constants/app_assets.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/route_constants.dart';
-import '../../../../../core/utils/app_colors.dart';
-import '../../../../../core/utils/app_images.dart';
 import '../../../../../core/widgets/custom_network_image.dart';
 import '../../../../../core/widgets/custom_text.dart';
 import '../../../../../core/widgets/dialog_helper.dart';
@@ -426,94 +424,7 @@ class _BeauticianStoreScreenState extends State<BeauticianStoreScreen> {
     );
   }
 
-  void _showActionRequiredDialog() {
-    Get.dialog(
-      Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 30.h),
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(20.r),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Close Button
-              Align(
-                alignment: Alignment.topRight,
-                child: GestureDetector(
-                  onTap: () => Get.back(),
-                  child: Icon(Icons.close, color: AppColors.primaryDark, size: 20.sp),
-                ),
-              ),
 
-              // Title - Using secondaryVariant for the Olive Green
-              CustomText(
-                text: "Action Required",
-                fontSize: 24.sp,
-                fontWeight: FontWeight.bold,
-                color: AppColors.secondaryVariant,
-              ),
-              SizedBox(height: 20.h),
-
-              // Subtitle - Using geryColor
-              CustomText(
-                text: "You have to verify your business and set up order fulfillment before going live",
-                textAlign: TextAlign.center,
-                fontSize: 14.sp,
-                color: AppColors.geryColor,
-              ),
-              SizedBox(height: 30.h),
-
-              // Verify Now Button - Olive Green
-              _dialogButton(
-                text: "Verify Now",
-                bgColor: AppColors.secondaryVariant,
-                onTap: () {
-                  Get.back();
-                  // Add navigation to verification screen
-                },
-              ),
-              SizedBox(height: 15.h),
-
-              // Go to Order Fulfillment Button - Deep Green
-              _dialogButton(
-                text: "Go to Order Fulfillment",
-                bgColor: AppColors.primaryDark,
-                onTap: () {
-                  Get.back();
-                  Get.toNamed(RouteConstants.orderFullFillMent);
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _dialogButton({required String text, required Color bgColor, required VoidCallback onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: double.infinity,
-        padding: EdgeInsets.symmetric(vertical: 12.h),
-        decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(15.r),
-        ),
-        child: Center(
-          child: CustomText(
-            text: text,
-            color: AppColors.white, // Using AppColors.white
-            fontSize: 14.sp,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-  }
 
 
 }

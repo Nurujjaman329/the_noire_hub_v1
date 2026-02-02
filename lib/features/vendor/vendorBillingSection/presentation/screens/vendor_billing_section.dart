@@ -7,11 +7,8 @@ import 'package:get/get.dart';
 import '../../../../../core/accountController/account_controller.dart';
 import '../../../../../core/constants/app_assets.dart';
 import '../../../../../core/constants/app_colors.dart';
-import '../../../../../core/utils/app_colors.dart';
-import '../../../../../core/utils/app_images.dart';
 import '../../../../../core/widgets/custom_network_image.dart';
 import '../../../../../core/widgets/custom_text.dart';
-import '../../../../../core/widgets/dialog_helper.dart';
 
 class VendorBillingSection extends StatelessWidget {
   const VendorBillingSection({super.key});

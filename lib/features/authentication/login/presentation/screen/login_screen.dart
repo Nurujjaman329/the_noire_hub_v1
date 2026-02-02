@@ -8,9 +8,6 @@ import '../../../../../core/constants/app_assets.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_icons.dart';
 import '../../../../../core/constants/route_constants.dart';
-import '../../../../../core/utils/app_colors.dart';
-import '../../../../../core/utils/app_icons.dart';
-import '../../../../../core/utils/app_images.dart';
 import '../../../../../core/widgets/custom_button.dart';
 import '../../../../../core/widgets/custom_text.dart';
 import '../../../../../core/widgets/custom_text_field.dart';
@@ -265,33 +262,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildUserTypeOption(String label, String type) {
-    bool isSelected = userType == type;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            userType = type;
-          });
-        },
-        child: Container(
-          padding: EdgeInsets.symmetric(vertical: 12.h),
-          decoration: BoxDecoration(
-            color: isSelected ? AppColors.primaryDark : Colors.transparent,
-            borderRadius: BorderRadius.circular(8.r),
-          ),
-          child: Center(
-            child: CustomText(
-              text: label,
-              fontSize: 14.sp,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              color: isSelected ? Colors.white : Colors.grey.shade600,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _socialButton(String label, String iconPath) {
     return Container(

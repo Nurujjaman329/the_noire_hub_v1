@@ -141,24 +141,6 @@ class ServiceDetailsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildVariantTile(String size, String price) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 10.h),
-      padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 12.h),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF9F9F4),
-        borderRadius: BorderRadius.circular(10.r),
-        border: Border.all(color: const Color(0xFF9BB575).withOpacity(0.3)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          CustomText(text: size, fontSize: 15.sp, fontWeight: FontWeight.bold, color: Colors.black87),
-          CustomText(text: price, fontSize: 15.sp, fontWeight: FontWeight.bold, color: Colors.black87),
-        ],
-      ),
-    );
-  }
 
   Widget _buildOptionGrid(List<Map<String, String>> options) {
     return Row(
