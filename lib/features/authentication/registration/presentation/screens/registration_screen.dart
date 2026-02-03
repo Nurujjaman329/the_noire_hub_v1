@@ -75,7 +75,36 @@ class RegistrationScreen extends GetView<RegistrationController> {
                     CustomButton(
                       text: "Continue",
                       color: const Color(0XFF1D3826),
-                      onTap: () => Get.toNamed(RouteConstants.customerAddAddress),
+                      onTap: () {
+
+                        if (controller.fullNameController.text.isEmpty ||
+                            controller.emailController.text.isEmpty ||
+                            controller.passwordController.text.isEmpty) {
+                          Get.snackbar(
+                            "Required Fields",
+                            "Please fill in all details",
+                            backgroundColor: Colors.orange,
+                            colorText: Colors.white,
+                            snackPosition: SnackPosition.BOTTOM,
+                          );
+                          return;
+                        }
+
+                        // 2. Check if passwords match
+                        if (controller.passwordController.text != controller.confirmPasswordController.text) {
+                          Get.snackbar(
+                            "Password Mismatch",
+                            "Passwords do not match. Please check again.",
+                            backgroundColor: Colors.redAccent,
+                            colorText: Colors.white,
+                            snackPosition: SnackPosition.BOTTOM,
+                          );
+                          return;
+                        }
+
+                        Get.toNamed(RouteConstants.customerAddAddress);
+
+                      },
                     ),
 
                     _buildDivider("Or"),
