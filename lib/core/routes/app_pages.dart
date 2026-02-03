@@ -2,7 +2,6 @@
 import 'package:get/get.dart';
 import 'package:the_noire_hub_v1/core/constants/route_constants.dart';
 import 'package:the_noire_hub_v1/features/authentication/registration/presentation/bindings/registration_bindings.dart';
-import '../../features/authentication/gmailVerification/presentation/bindings/gmail_verification_bindings.dart';
 import '../../features/authentication/gmailVerification/presentation/screen/gmail_verification_screen.dart';
 import '../../features/authentication/login/presentation/bindings/login_binding.dart';
 import '../../features/authentication/login/presentation/screen/login_screen.dart';
@@ -89,11 +88,13 @@ class AppPages {
     GetPage(
       name: RouteConstants.vendorRegistration,
       page: () => const VendorRegistrationScreen(),
+      binding: RegistrationBinding(),
       transition: Transition.cupertino,
     ),
     GetPage(
       name: RouteConstants.selection,
       page: () => const SelectionScreen(),
+      binding: RegistrationBinding(),
       transition: Transition.cupertino,
     ),
     GetPage(
@@ -191,6 +192,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.storeSetUp,
       page: () => const StoreSetupScreen(),
+      binding: RegistrationBinding(),
       transition: Transition.cupertino,
     ),
     GetPage(

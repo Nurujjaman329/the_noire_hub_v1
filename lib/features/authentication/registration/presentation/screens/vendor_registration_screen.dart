@@ -2,63 +2,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-
-import '../../../../../core/accountController/account_controller.dart';
 import '../../../../../core/constants/app_assets.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/route_constants.dart';
 import '../../../../../core/widgets/custom_button.dart';
 import '../../../../../core/widgets/custom_text.dart';
 import '../../../../../core/widgets/custom_text_field.dart';
+import '../controller/registration_controller.dart';
 
-class VendorRegistrationScreen extends StatefulWidget {
+class VendorRegistrationScreen extends GetView<RegistrationController> {
   const VendorRegistrationScreen({super.key});
-
-  @override
-  State<VendorRegistrationScreen> createState() => _VendorRegistrationScreenState();
-}
-
-class _VendorRegistrationScreenState extends State<VendorRegistrationScreen> {
-// Default to Vendors
-
-  @override
-  void initState() {
-    super.initState();
-    // Get the account type from the arguments passed from SelectionScreen
-    final args = Get.arguments;
-    if (args != null && args is String) {
-    }
-  }
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController businessController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController phoneController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
-
-  bool isLoading = false;
-
   @override
   Widget build(BuildContext context) {
-    final AccountController controller = Get.find<AccountController>();
 
-    debugPrint("Registration Screen loaded for: ${controller.userType.value}");
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
           // 1. Top Background Image
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 300.h,
-            child: Image.asset(
-              AppAssets.vendorRegistration,
-              fit: BoxFit.cover,
-            ),
-          ),
+          Positioned(top: 0, left: 0, right: 0, height: 300.h, child: Image.asset(AppAssets.vendorRegistration, fit: BoxFit.cover)),
 
           // 2. Logo and Tagline (Stacked on the image)
           Positioned(
@@ -108,109 +71,45 @@ class _VendorRegistrationScreenState extends State<VendorRegistrationScreen> {
             top: 260.h,
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 24.w),
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(40.r),
-                  topRight: Radius.circular(40.r),
-                ),
-              ),
+              decoration: BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.only(topLeft: Radius.circular(40.r), topRight: Radius.circular(40.r))),
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SizedBox(height: 30.h),
-
-                    // Header Row with Camera Icon
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-
-                        Obx(() {
-                          // --- NESTED DEBUG PRINT ---
-                          debugPrint("Obx Rebuilding Header for: ${controller.userType.value}");
-
-                          return CustomText(
-                            text: "Join TNP ${controller.userType.value}",
-                            fontSize: 22.sp,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0XFF000000),
-                            // color: AppColors.textPrimary,
-                            textAlign: TextAlign.left,
-                          );
-                        }),
-
-                        Container(
-                          height: 50.w,
-                          width: 50.w,
-                          decoration: const BoxDecoration(
-                            color: Color(0XFFB5B475),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(Icons.camera_alt_outlined, color: Colors.white, size: 24.sp),
+                        CustomText(text: "Join TNP ${controller.userRole.value.capitalizeFirst}", fontSize: 22.sp, fontWeight: FontWeight.bold),
+                        GestureDetector(
+                          onTap: () => controller.pickShopImage(),
+                          child: Obx(() => Container(
+                            height: 50.w, width: 50.w,
+                            decoration: BoxDecoration(color: const Color(0XFFB5B475), shape: BoxShape.circle,
+                                image: controller.selectedShopImage.value != null
+                                    ? DecorationImage(image: FileImage(controller.selectedShopImage.value!), fit: BoxFit.cover) : null),
+                            child: controller.selectedShopImage.value == null ? Icon(Icons.camera_alt_outlined, color: Colors.white, size: 24.sp) : null,
+                          )),
                         ),
                       ],
                     ),
-
                     SizedBox(height: 30.h),
-
-                    // Input Fields using your updated CustomTextField (prefixIcon support)
-                    CustomTextField(
-                      controller: nameController,
-                      labelText: "Full Name",
-                      prefixIcon: Icons.person_outline,
-                    ),
+                    CustomTextField(controller: controller.fullNameController, labelText: "Full Name", prefixIcon: Icons.person_outline),
                     SizedBox(height: 25.h),
-                    CustomTextField(
-                      controller: businessController,
-                      labelText: "Business Name",
-                      prefixIcon: Icons.business_outlined,
-                    ),
+                    CustomTextField(controller: controller.businessNameController, labelText: "Business Name", prefixIcon: Icons.business_outlined),
                     SizedBox(height: 25.h),
-                    CustomTextField(
-                      controller: emailController,
-                      labelText: "Email",
-                      prefixIcon: Icons.email_outlined,
-                    ),
+                    CustomTextField(controller: controller.emailController, labelText: "Email", prefixIcon: Icons.email_outlined),
                     SizedBox(height: 25.h),
-                    CustomTextField(
-                      controller: phoneController,
-                      labelText: "Phone",
-                      prefixIcon: Icons.phone_android_outlined,
-                    ),
+                    CustomTextField(controller: controller.phoneController, labelText: "Phone", prefixIcon: Icons.phone_android_outlined),
                     SizedBox(height: 25.h),
-                    CustomTextField(
-                      controller: passwordController,
-                      labelText: "Create Password",
-                      isPassword: true,
-                      prefixIcon: Icons.lock_outline,
-                    ),
+                    CustomTextField(controller: controller.passwordController, labelText: "Create Password", isPassword: true, prefixIcon: Icons.lock_outline),
                     SizedBox(height: 25.h),
-                    CustomTextField(
-                      controller: confirmPasswordController,
-                      labelText: "Confirm Password",
-                      isPassword: true,
-                      prefixIcon: Icons.lock_reset_outlined,
-                    ),
-
+                    CustomTextField(controller: controller.confirmPasswordController, labelText: "Confirm Password", isPassword: true, prefixIcon: Icons.lock_reset_outlined),
                     SizedBox(height: 40.h),
-
-                    // Create Account Button using CustomButton
                     CustomButton(
                       text: "Continue",
-                      color: Color(0XFF1D3826),
-                      // color: AppColors.primaryDark,
-                      loading: isLoading,
-                      onTap: () {
-                        // setState(() => isLoading = true);
-                        // // Registration logic here
-                        // Future.delayed(const Duration(seconds: 2), () {
-                        //   setState(() => isLoading = false);
-                        // });
-                        // Navigate to vendor main container after registration
-                        Get.toNamed(RouteConstants.storeSetUp);
-                      },
+                      color: const Color(0XFF1D3826),
+                      onTap: () => Get.toNamed(RouteConstants.storeSetUp),
                     ),
 
                     SizedBox(height: 20.h),

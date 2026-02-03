@@ -8,13 +8,15 @@ import 'package:dio/dio.dart' as dio_instance;
 
 mixin MapSearchMixin on GetxController {
   final searchController = TextEditingController();
-  static const String _googleApiKey = String.fromEnvironment(
-      'GOOGLE_MAPS_API_KEY',
-      defaultValue: 'KEY_NOT_FOUND'
-  );
+  final String googleApiKey = "AIzaSyCrmEOP4JyFCozu7n85BIZqn_8LarJq_iI";
 
-
-  final String googleApiKey = _googleApiKey;
+  // static const String _googleApiKey = String.fromEnvironment(
+  //     'GOOGLE_MAPS_API_KEY',
+  //     defaultValue: 'KEY_NOT_FOUND'
+  // );
+  //
+  //
+  // final String googleApiKey = _googleApiKey;
 
   GoogleMapController? mapController;
   var selectedLatLng = const LatLng(23.8311, 90.4243).obs;

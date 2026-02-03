@@ -117,6 +117,7 @@ class RegistrationController extends GetxController with MapSearchMixin {
       email: emailController.text.trim(),
       password: passwordController.text.trim(),
       businessName: businessNameController.text.trim(),
+      phoneNumber: phoneController.text.trim(),
       bio: bioController.text.trim(),
       addresses: addresses,
       selectedCategories: selectedCategories,

@@ -6,13 +6,13 @@ import '../../../core/constants/app_assets.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/route_constants.dart';
 import '../../../core/widgets/custom_text.dart';
+import '../../authentication/registration/presentation/controller/registration_controller.dart';
 
 class SelectionScreen extends StatelessWidget {
   const SelectionScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final AccountController controller = Get.find<AccountController>();
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Stack(
@@ -149,18 +149,9 @@ class SelectionScreen extends StatelessWidget {
   Widget _buildSelectionCard({required String title, required String image}) {
     return GestureDetector(
       onTap: () {
-        // 2. Access the controller to save the state
-        final AccountController controller = Get.find<AccountController>();
-
-        // --- DEBUG PRINT ADDED HERE ---
-        debugPrint("User selected account type: $title");
-
-        controller.setUserType(title.toLowerCase());
-
-        // Double check the controller updated correctly
-        debugPrint("Controller current value: ${controller.userType.value}");
-
-        // 3. Navigate to registration
+        final regController = Get.find<RegistrationController>();
+        // Assign role based on card title
+        regController.userRole.value = (title == "Vendors") ? 'vendor' : 'beautician';
         Get.toNamed(RouteConstants.vendorRegistration);
       },
       child: Container(

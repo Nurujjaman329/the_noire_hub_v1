@@ -2,117 +2,133 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-
-import '../../../../../core/accountController/account_controller.dart';
 import '../../../../../core/constants/app_assets.dart';
 import '../../../../../core/constants/app_colors.dart';
-import '../../../../../core/constants/route_constants.dart';
 import '../../../../../core/widgets/custom_network_image.dart';
+import '../../../../../core/extensions/string_extensions.dart';
 import '../../../../../core/widgets/custom_text.dart';
 import '../../../../../core/widgets/custom_button.dart';
 import '../../../../../core/widgets/custom_text_field.dart';
+import '../../../../authentication/registration/data/registration_post_body_model.dart';
+import '../../../../authentication/registration/presentation/controller/registration_controller.dart';
+import '../../../../common/category/presentation/controller/category_controller.dart';
+import '../../../../common/subCategories/presentation/controller/sub_categories_controller.dart';
 
-class StoreSetupScreen extends StatefulWidget {
+
+class StoreSetupScreen extends GetView<RegistrationController> {
   const StoreSetupScreen({super.key});
 
   @override
-  State<StoreSetupScreen> createState() => _StoreSetupScreenState();
-}
-
-class _StoreSetupScreenState extends State<StoreSetupScreen> {
-  // Controllers for the CustomTextFields
-  final TextEditingController addressController = TextEditingController();
-  final TextEditingController bioController = TextEditingController();
-
-  String selectedCategory = "Hair";
-  List<String> selectedSubCategories = [];
-
-  final Map<String, List<String>> categoryData = {
-    "Hair": ["Shampoo", "Extensions", "Wigs", "Conditioner", "Oils"],
-    "Make Up": ["Lipstick", "Foundation", "Brushes", "Eyeliner"],
-    "Nails": ["Polish", "Acrylic", "Gel", "Nail Art"],
-    "Hair Removal": ["Wax", "Lasers", "Creams", "Razors"],
-  };
-
-  final AccountController accountController = Get.find<AccountController>();
-
-  @override
   Widget build(BuildContext context) {
+    final catCtrl = Get.find<CategoryController>();
+    final subCtrl = Get.find<SubCategoryController>();
 
-    final String typeLabel = accountController.isVendor ? "Product" : "Service";
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      catCtrl.loadCategories(categoryType: controller.userRole.value);
+    });
+
     return Scaffold(
       backgroundColor: AppColors.primaryDark,
       body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
         slivers: [
           _buildSliverAppBar(),
           SliverToBoxAdapter(
             child: Container(
-              width: double.infinity,
               decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(50.r),
-                  topRight: Radius.circular(50.r),
-                ),
-              ),
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(50.r),
+                      topRight: Radius.circular(50.r))),
               child: Padding(
                 padding: EdgeInsets.all(25.w),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Center(
-                      child: CustomText(
-                        text: "Ada's Body Shop",
-                        fontSize: 24.sp,
-                        fontWeight: FontWeight.bold,
-                        // color: AppColors.background,
-                        color: Color(0XFF1D3826),
-                      ),
-                    ),
-                    SizedBox(height: 30.h),
+                        child: CustomText(
+                            text: controller.businessNameController.text.isEmpty
+                                ? "Your Shop"
+                                : controller.businessNameController.text,
+                            fontSize: 24.sp,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0XFF1D3826))),
 
-                    // --- ADDRESS SECTION ---
-                    _buildSectionTitle("Add Business Address", "Add the exact location of your business"),
+                    _buildSectionTitle("Add Business Address", "Set your primary location"),
+
+                    // --- MAP SEARCH FIELD ---
                     CustomTextField(
-                      controller: addressController,
-                      hintText: "72 Poplar Ave NW",
+                      controller: controller.searchController, // Using mixin controller
+                      hintText: "Search address...",
                       prefixIcon: Icons.location_on_outlined,
+                      onChanged: (val) => controller.onSearchChanged(val),
                     ),
 
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        CustomText(text: "Same as order fulfillment origin?", fontSize: 10.sp, color: AppColors.background),
-                        Transform.scale(
-                          scale: 0.8,
-                          child: Checkbox(value: false, onChanged: (v) {}, activeColor: AppColors.secondaryVariant),
-                        ),
-                      ],
-                    ),
+                    // --- SEARCH SUGGESTIONS OVERLAY ---
+                    Obx(() => controller.placePredictions.isNotEmpty
+                        ? Container(
+                      constraints: BoxConstraints(maxHeight: 200.h),
+                      margin: EdgeInsets.only(top: 5.h),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10.r),
+                        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 5)],
+                      ),
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        padding: EdgeInsets.zero,
+                        itemCount: controller.placePredictions.length,
+                        itemBuilder: (context, index) {
+                          final prediction = controller.placePredictions[index];
+                          return ListTile(
+                            dense: true,
+                            title: Text(prediction['description'] ?? "",
+                                style: TextStyle(fontSize: 12.sp)),
+                            onTap: () async {
+                              await controller.selectPrediction(prediction);
+                              // Set the address in the main controller
+                              controller.addAddress(
+                                controller.selectedCountry.value,
+                                controller.selectedCity.value,
+                                controller.selectedLatLng.value.latitude,
+                                controller.selectedLatLng.value.longitude,
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    )
+                        : const SizedBox.shrink()),
 
-                    _buildSectionTitle("$typeLabel Category", "Select your primary business type"),
-                    _buildSpecialtiesList(),
+                    _buildSectionTitle("Category", "Select primary industry"),
+                    _buildDynamicCategories(catCtrl, subCtrl),
 
-                    SizedBox(height: 25.h),
+                    _buildSectionTitle("Choose Subcategories", "Select your specifics"),
+                    _buildDynamicSubCategories(subCtrl),
 
-                    _buildSectionTitle("Choose Subcategories", "Select specific items you sell in $selectedCategory"),
-                    _buildSubCategoryGrid(),
-
-                    SizedBox(height: 25.h),
-
-                    // --- BIO SECTION ---
-                    _buildSectionTitle("Bio", "Tell potential buyers a little bit about your store"),
+                    _buildSectionTitle("Bio", "Tell buyers about your store"),
                     CustomTextField(
-                      controller: bioController,
-                      hintText: "Tell potential buyers a little bit about your store",
-                      maxLines: 4, // Makes it a large text area
-                    ),
+                        controller: controller.bioController,
+                        hintText: "Bio description",
+                        maxLines: 4),
 
                     SizedBox(height: 40.h),
 
-                    _buildFooterButtons(),
-                    SizedBox(height: 20.h),
+                    Obx(() => CustomButton(
+                      text: "Create Account",
+                      loading: controller.isLoading.value,
+                      onTap: () {
+                        // Safety check: if user typed but didn't click prediction, we use what we have
+                        if (controller.addresses.isEmpty && controller.selectedLatLng.value != null) {
+                          controller.addAddress(
+                            controller.selectedCountry.value,
+                            controller.selectedCity.value,
+                            controller.selectedLatLng.value.latitude,
+                            controller.selectedLatLng.value.longitude,
+                          );
+                        }
+                        controller.register();
+                      },
+                    )),
                   ],
                 ),
               ),
@@ -123,84 +139,68 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
     );
   }
 
-  // --- SubCategory Chips ---
-  Widget _buildSubCategoryGrid() {
-    List<String> subCats = categoryData[selectedCategory] ?? [];
-    return Wrap(
-      spacing: 10.w,
-      runSpacing: 10.h,
-      children: subCats.map((name) {
-        bool isSelected = selectedSubCategories.contains(name);
-        return GestureDetector(
-          onTap: () {
-            setState(() {
-              isSelected ? selectedSubCategories.remove(name) : selectedSubCategories.add(name);
-            });
-          },
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
-            decoration: BoxDecoration(
-              color: isSelected ? AppColors.secondaryVariant : AppColors.primary.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(20.r),
-              border: Border.all(color: isSelected ? AppColors.secondaryVariant : AppColors.primary),
-            ),
-            child: CustomText(
-              text: name,
-              fontSize: 12.sp,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              color: isSelected ? Colors.white : AppColors.textPrimary,
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  // --- Main Category Cards ---
-  Widget _buildSpecialtiesList() {
-    return SingleChildScrollView(
+  Widget _buildDynamicCategories(CategoryController catCtrl, SubCategoryController subCtrl) {
+    return Obx(() => SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      physics: const BouncingScrollPhysics(),
       child: Row(
-        children: categoryData.keys.map((cat) {
-          return _specialtyCard(
-              cat,
-              "https://cdn-icons-png.flaticon.com/512/1940/1940922.png", // Replace with real icons
-              selectedCategory == cat ? AppColors.secondaryVariant : AppColors.primary,
-              selectedCategory == cat ? Colors.white : AppColors.textPrimary
+        children: catCtrl.categories.map((cat) {
+          bool isSelected = controller.selectedCategories.any((c) => c.category == cat.id);
+          return GestureDetector(
+            onTap: () {
+              controller.selectedCategories.assignAll([
+                SelectedCategoryRequest(category: cat.id, subcategories: [])
+              ]);
+              subCtrl.fetchSubCategories(categoryId: cat.id);
+            },
+            child: _specialtyCard(cat.name, cat.image, isSelected),
           );
         }).toList(),
       ),
-    );
+    ));
   }
 
-  Widget _specialtyCard(String title, String imageUrl, Color bg, Color textColor) {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          selectedCategory = title;
-          selectedSubCategories.clear();
-        });
-      },
-      child: Container(
-        width: 110.w,
-        height: 120.h,
-        margin: EdgeInsets.only(right: 15.w),
-        decoration: BoxDecoration(
-            color: bg,
-            borderRadius: BorderRadius.circular(30.r),
-            boxShadow: bg == AppColors.secondaryVariant ? [
-              BoxShadow(color: bg.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 5))
-            ] : null
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(height: 50.h, child: Image.network(imageUrl, fit: BoxFit.contain)),
-            CustomText(text: title, fontSize: 12.sp, fontWeight: FontWeight.bold, color: textColor, top: 8.h),
-          ],
-        ),
+  Widget _buildDynamicSubCategories(SubCategoryController subCtrl) {
+    return Obx(() => Wrap(
+      spacing: 10.w,
+      children: subCtrl.subCategories.map((sub) {
+        bool isSelected = controller.selectedCategories.isNotEmpty &&
+            controller.selectedCategories.first.subcategories.contains(sub.id);
+        return FilterChip(
+          label: Text(sub.name),
+          selected: isSelected,
+          onSelected: (val) {
+            if (controller.selectedCategories.isEmpty) return;
+            var currentSubKeys = controller.selectedCategories.first.subcategories;
+            val ? currentSubKeys.add(sub.id) : currentSubKeys.remove(sub.id);
+            controller.selectedCategories.refresh();
+          },
+        );
+      }).toList(),
+    ));
+  }
+
+  Widget _specialtyCard(String title, String imageUrl, bool isSelected) {
+    return Container(
+      width: 110.w,
+      height: 120.h,
+      margin: EdgeInsets.only(right: 15.w),
+      decoration: BoxDecoration(
+        color: isSelected ? AppColors.secondaryVariant : AppColors.primary.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(30.r),
+        border: Border.all(color: isSelected ? Colors.transparent : AppColors.primary),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CustomNetworkImage(imageUrl: imageUrl.toFullUrl, height: 50.h, width: 50.h),
+          CustomText(
+              text: title,
+              fontSize: 12.sp,
+              fontWeight: FontWeight.bold,
+              color: isSelected ? Colors.white : AppColors.textPrimary,
+              top: 8.h
+          ),
+        ],
       ),
     );
   }
@@ -211,36 +211,32 @@ class _StoreSetupScreenState extends State<StoreSetupScreen> {
       backgroundColor: AppColors.primaryDark,
       pinned: true,
       flexibleSpace: FlexibleSpaceBar(
-        background: Center(
-          child: CustomNetworkImage(imageUrl: AppAssets.appLogo, height: 60.h, width: 150.w, fit: BoxFit.contain),
-        ),
+          background: Center(
+              child: CustomNetworkImage(
+                  imageUrl: AppAssets.appLogo,
+                  height: 60.h,
+                  width: 150.w,
+                  fit: BoxFit.contain
+              )
+          )
       ),
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-        onPressed: () => Get.back(),
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+          onPressed: () => Get.back()
       ),
-    );
-  }
-
-  Widget _buildFooterButtons() {
-    return CustomButton(
-        text: "Create Account",
-        textColor: Colors.white,
-        onTap: () => Get.toNamed(RouteConstants.otpVerifyScreen)
-      // onTap: () => Get.toNamed(RouteConstants.vendorMainContainer)
     );
   }
 
   Widget _buildSectionTitle(String title, String sub) {
     return Padding(
-      padding: EdgeInsets.only(top: 15.h, bottom: 8.h),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CustomText(text: title, fontSize: 18.sp, fontWeight: FontWeight.bold,  color: Color(0XFF1D3826),),
-          CustomText(text: sub, fontSize: 11.sp, color: Color(0x4D000000),),
-        ],
-      ),
+        padding: EdgeInsets.only(top: 15.h, bottom: 8.h),
+        child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CustomText(text: title, fontSize: 18.sp, fontWeight: FontWeight.bold, color: const Color(0XFF1D3826)),
+              CustomText(text: sub, fontSize: 11.sp, color: const Color(0x4D000000)),
+            ]
+        )
     );
   }
 }

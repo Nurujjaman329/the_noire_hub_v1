@@ -40,6 +40,7 @@ class RegistrationService {
     required String email,
     required String password,
     required String businessName,
+    required String phoneNumber,
     required String bio,
     required List<AddressRequest> addresses,
     required List<SelectedCategoryRequest> selectedCategories,
@@ -47,8 +48,8 @@ class RegistrationService {
   }) async {
 
     // 1. Prepare data
-    final addressData = addresses.map((e) => e.toJson()).toList();
-    final categoryData = selectedCategories.map((e) => e.toJson()).toList();
+    final addressJson = jsonEncode(addresses.map((e) => e.toJson()).toList());
+    final categoryJson = jsonEncode(selectedCategories.map((e) => e.toJson()).toList());
 
     // 2. Create FormData
     FormData formData = FormData.fromMap({
@@ -57,9 +58,10 @@ class RegistrationService {
       "password": password,
       "role": "vendor",
       "businessName": businessName,
+      "phoneNumber" : phoneNumber,
       "bio": bio,
-      "addresses": addressData,
-      "selectedCategories": categoryData,
+      "addresses": addressJson,           // Send as Stringified JSON
+      "selectedCategories": categoryJson, // Send as Stringified JSON
       "shopImage": await MultipartFile.fromFile(
         shopImage.path,
         filename: shopImage.path.split('/').last,
@@ -73,8 +75,9 @@ class RegistrationService {
     debugPrint('email: $email');
     debugPrint('role: vendor');
     debugPrint('businessName: $businessName');
-    debugPrint('addresses: ${jsonEncode(addressData)}');
-    debugPrint('categories: ${jsonEncode(categoryData)}');
+    debugPrint('📂 [Encoded Vendor Form Fields]:');
+    debugPrint('addresses: $addressJson');
+    debugPrint('categories: $categoryJson');
     debugPrint('imagePath: ${shopImage.path}');
 
     return await _apiClient.postFormData(ApiConstants.registration, data: formData);
