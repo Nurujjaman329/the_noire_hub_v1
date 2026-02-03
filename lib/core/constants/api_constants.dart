@@ -9,10 +9,12 @@ class ApiConstants {
     'Accept': 'application/json',
   };
 
-  static const String registration = "${baseUrl}auth/register";
-  static const String login = "${baseUrl}auth/login";
-  static const String categories = "${baseUrl}categories";
+  static const String registration = "auth/register";
+  static const String login = "auth/login";
+  static const String categories = "categories";
   static const String subCategories = "subcategories";
+  static const String verifyOtp = "auth/verify-email";
+  static const String resendOtp = "";
 
   //customer
 

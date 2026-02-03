@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/route_constants.dart';
-import '../../../../core/widgets/custom_button.dart';
-import '../../../../core/widgets/custom_text.dart';
-import '../../../../core/widgets/custom_text_field.dart';
+import '../../../../../core/constants/app_colors.dart';
+import '../../../../../core/constants/route_constants.dart';
+import '../../../../../core/widgets/custom_button.dart';
+import '../../../../../core/widgets/custom_text.dart';
+import '../../../../../core/widgets/custom_text_field.dart';
 
 
 class GmailVerificationScreen extends StatefulWidget {

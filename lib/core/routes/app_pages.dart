@@ -2,8 +2,12 @@
 import 'package:get/get.dart';
 import 'package:the_noire_hub_v1/core/constants/route_constants.dart';
 import 'package:the_noire_hub_v1/features/authentication/registration/presentation/bindings/registration_bindings.dart';
+import '../../features/authentication/gmailVerification/presentation/bindings/gmail_verification_bindings.dart';
+import '../../features/authentication/gmailVerification/presentation/screen/gmail_verification_screen.dart';
 import '../../features/authentication/login/presentation/bindings/login_binding.dart';
 import '../../features/authentication/login/presentation/screen/login_screen.dart';
+import '../../features/authentication/otpVerify/presentation/bindings/otp_verification_bindings.dart';
+import '../../features/authentication/otpVerify/presentation/screen/otp_verify_screen.dart';
 import '../../features/authentication/registration/presentation/screens/customer_address_add_screen.dart';
 import '../../features/authentication/registration/presentation/screens/registration_screen.dart';
 import '../../features/authentication/registration/presentation/screens/vendor_registration_screen.dart';
@@ -19,10 +23,8 @@ import '../../features/common/bottomNavBar/customer/customer_main_container.dart
 import '../../features/common/bottomNavBar/vendor/vendor_main_container.dart';
 import '../../features/common/changePassword/presentation/screen/change_password_screen.dart';
 import '../../features/common/editProfile/presentation/edit_profile_screen.dart';
-import '../../features/common/gmailVerification/presentation/gmail_verification_screen.dart';
 import '../../features/common/help/presentation/help_screen.dart';
 import '../../features/common/inviteFriends/presentation/invite_friends_screen.dart';
-import '../../features/common/otpVerify/presentation/screen/otp_verify_screen.dart';
 import '../../features/common/personalInfo/presentation/personal_info_screen.dart';
 import '../../features/common/profile/presentation/profile_screen.dart';
 import '../../features/common/rating/presentation/rating_screen.dart';
@@ -277,6 +279,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.otpVerifyScreen,
       page: () => const OtpVerificationScreen(),
+      binding: OtpVerificationBindings(),
       transition: Transition.cupertino,
     ),
     GetPage(
