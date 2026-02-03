@@ -8,6 +8,11 @@
         android:label="the_noire_place"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyCrmEOP4JyFCozu7n85BIZqn_8LarJq_iI"/>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

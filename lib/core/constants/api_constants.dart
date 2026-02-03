@@ -1,4 +1,6 @@
 class ApiConstants {
+  //common
+
   static const String baseUrl = 'http://10.10.11.88:3000/api/v1/';
 
   static Map<String, String> get headers => {
@@ -9,5 +11,13 @@ class ApiConstants {
 
   static const String registration = "${baseUrl}auth/register";
   static const String login = "${baseUrl}auth/login";
+  static const String categories = "${baseUrl}categories";
 
+  //customer
+
+
+
+  //beauticians
+
+  //vendor
 }
