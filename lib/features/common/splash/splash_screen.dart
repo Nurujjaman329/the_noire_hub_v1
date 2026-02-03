@@ -25,6 +25,9 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void _navigateAfterDelay() async {
+    // Initialize local storage first
+    await LocalStorage.init();
+
     // Wait for 3 seconds for branding
     await Future.delayed(const Duration(seconds: 3));
 
