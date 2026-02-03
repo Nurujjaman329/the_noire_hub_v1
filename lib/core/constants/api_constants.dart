@@ -12,6 +12,7 @@ class ApiConstants {
   static const String registration = "${baseUrl}auth/register";
   static const String login = "${baseUrl}auth/login";
   static const String categories = "${baseUrl}categories";
+  static const String subCategories = "subcategories";
 
   //customer
 
