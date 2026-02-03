@@ -1,5 +1,5 @@
 class ApiConstants {
-  static const String baseUrl = 'http://10.10.11.88:3000/api/v1/';
+  static const String baseUrl = '7';
 
   static Map<String, String> get headers => {
     'Content-Type': 'application/json',

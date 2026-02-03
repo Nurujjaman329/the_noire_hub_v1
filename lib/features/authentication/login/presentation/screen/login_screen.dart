@@ -12,6 +12,7 @@ import '../../../../../core/widgets/custom_button.dart';
 import '../../../../../core/widgets/custom_text.dart';
 import '../../../../../core/widgets/custom_text_field.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../controller/login_controller.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -23,9 +24,14 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  late final LoginController _loginController;
   bool rememberMe = false;
-  bool isLoading = false; // Added for CustomButton state
-  String userType = 'customer'; // Default to customer
+
+  @override
+  void initState() {
+    super.initState();
+    _loginController = Get.find(); // Get the LoginController instance
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -182,33 +188,33 @@ class _LoginScreenState extends State<LoginScreen> {
                     SizedBox(height: 25.h),
 
                     // Sign In Button
-                    CustomButton(
+                    Obx(() => CustomButton(
                       text: "Sign in",
                       color: Color(0XFF1D3826),
                       // color: AppColors.primaryDark,
-                      loading: isLoading,
+                      loading: _loginController.isLoading.value,
                       onTap: () {
-                        setState(() => isLoading = true);
-                        // Mock login process - in a real app, this would depend on user type
-                        Future.delayed(const Duration(seconds: 2), () {
-                          setState(() => isLoading = false);
-
-                          // Get the account controller
-                          final accountCtrl = Get.find<AccountController>();
-
-                          // Navigate based on selected user type
-                          if (userType == 'vendor' || userType == 'beautician') {
-                            // Set the account type before navigating
-                            accountCtrl.setUserType(userType);
-                            Get.offAllNamed(RouteConstants.vendorMainContainer);
-                          } else {
-                            // Explicitly set user type to customer for customer login
-                            accountCtrl.setUserType('customer');
-                            Get.offAllNamed(RouteConstants.customerMainContainer);
-                          }
-                        });
+                        _loginController.login(
+                          emailController.text.trim(),
+                          passwordController.text.trim(),
+                        );
                       },
-                    ),
+                    )),
+
+                    // Show error message if there's an error
+                    Obx(() {
+                      if (_loginController.errorMessage.isNotEmpty) {
+                        return Padding(
+                          padding: EdgeInsets.only(top: 10.h),
+                          child: CustomText(
+                            text: _loginController.errorMessage.value,
+                            color: Colors.red,
+                            fontSize: 14.sp,
+                          ),
+                        );
+                      }
+                      return SizedBox.shrink();
+                    }),
 
                     SizedBox(height: 20.h),
 
