@@ -3,42 +3,46 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'core/services/cache_service.dart';
 import 'app.dart';
+import 'core/storage/local_storage.dart';
 
 void main() async {
+  // Ensure Flutter is ready before calling native code (SystemChrome/Storage)
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize cache service
+  // 1. Initialize Storage/Cache first (Critical for Interceptors)
   await CacheService().init();
+  await LocalStorage.init();
 
-  // Initialize dependency injection
-  // await DependencyInjection.init();
-
-  // Pre-cache Roboto font - downloads once and caches for offline use
+  // 2. Font Management
   GoogleFonts.config.allowRuntimeFetching = true;
+  _preCacheFonts();
 
-  // Pre-load Roboto font to cache it on first run
-  try {
-    await Future.wait([
-      GoogleFonts.pendingFonts([GoogleFonts.roboto()]),
-    ]);
-  } catch (e) {
-    // If offline or font loading fails, app will use fallback fonts
-    debugPrint('Font pre-caching failed: $e');
-  }
-
-  // Set preferred orientations
+  // 3. UI Configuration
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
 
-  // Set system UI overlay style
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light, // For iOS
     ),
   );
 
   runApp(const MyApp());
 }
+
+// Separate font logic to keep main clean
+Future<void> _preCacheFonts() async {
+  try {
+    await GoogleFonts.pendingFonts([
+      GoogleFonts.roboto(),
+      GoogleFonts.outfit(), // You used Outfit in your theme below!
+    ]);
+  } catch (e) {
+    debugPrint('Font pre-caching failed: $e');
+  }
+}
+
