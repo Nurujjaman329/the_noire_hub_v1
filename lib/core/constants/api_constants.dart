@@ -8,5 +8,6 @@ class ApiConstants {
   };
 
   static const String registration = "${baseUrl}auth/register";
+  static const String login = "${baseUrl}auth/login";
 
 }
