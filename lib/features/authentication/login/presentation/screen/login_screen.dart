@@ -2,8 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-
-import '../../../../../core/accountController/account_controller.dart';
 import '../../../../../core/constants/app_assets.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_icons.dart';
@@ -14,24 +12,9 @@ import '../../../../../core/widgets/custom_text_field.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../controller/login_controller.dart';
 
-class LoginScreen extends StatefulWidget {
+
+class LoginScreen extends GetView<LoginController> {
   const LoginScreen({super.key});
-
-  @override
-  State<LoginScreen> createState() => _LoginScreenState();
-}
-
-class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  late final LoginController _loginController;
-  bool rememberMe = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _loginController = Get.find(); // Get the LoginController instance
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,30 +22,18 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          // 1. Header Background Image
+          // 1. Header Background
           Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 350.h,
-            child: Image.asset(
-              AppAssets.logInMan,
-              fit: BoxFit.cover,
-            ),
+            top: 0, left: 0, right: 0, height: 350.h,
+            child: Image.asset(AppAssets.logInMan, fit: BoxFit.cover),
           ),
 
-          // 2. Logo and Tagline (Stacked on the image)
+          // 2. Logo and Tagline
           Positioned(
-            top: 110.h,
-            left: 0,
-            right: 0,
+            top: 110.h, left: 0, right: 0,
             child: Column(
               children: [
-                Image.asset(
-                  AppAssets.appLogo,
-                  width: 150.w,
-                  fit: BoxFit.contain,
-                ),
+                Image.asset(AppAssets.appLogo, width: 150.w, fit: BoxFit.contain),
                 CustomText(
                   text: "culture meets care",
                   color: AppColors.textOnDark,
@@ -94,47 +65,23 @@ class _LoginScreenState extends State<LoginScreen> {
                       text: "Sign in to TNP",
                       fontSize: 22.sp,
                       fontWeight: FontWeight.bold,
-                      color: Color(0XFF000000),
-                      // color: AppColors.textPrimary,
+                      color: const Color(0XFF000000),
                       top: 30.h,
                     ),
 
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CustomText(
-                          text: "Vendors and Beauticians ",
-                          // color: AppColors.textHint,
-                          color: Color(0XFF999999),
-                          fontSize: 13.sp,
-                          top: 8.h,
-                        ),
-                        GestureDetector(
-                          onTap: () => Get.toNamed(RouteConstants.selection),
-                          child: CustomText(
-                            text: "click here",
-                            color: Color(0XFFB5B475),
-                            // color: AppColors.secondary,
-                            fontWeight: FontWeight.bold,
-                            textDecoration: TextDecoration.underline,
-                            fontSize: 13.sp,
-                            top: 8.h,
-                          ),
-                        ),
-                      ],
-                    ),
+                    _buildSubHeader(),
 
                     SizedBox(height: 35.h),
 
-                    // Input Fields using direct IconData
+                    // Inputs using controller
                     CustomTextField(
-                      controller: emailController,
+                      controller: controller.emailController,
                       labelText: "Email",
                       prefixIcon: Icons.email_outlined,
                     ),
                     SizedBox(height: 25.h),
                     CustomTextField(
-                      controller: passwordController,
+                      controller: controller.passwordController,
                       labelText: "Password",
                       isPassword: true,
                       prefixIcon: Icons.lock_outline,
@@ -142,79 +89,28 @@ class _LoginScreenState extends State<LoginScreen> {
 
                     SizedBox(height: 15.h),
 
-                    // Options Row
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            SizedBox(
-                              height: 24.w,
-                              width: 24.w,
-                              child: Checkbox(
-                                value: rememberMe,
-                                activeColor: AppColors.primaryDark,
-                                onChanged: (val) => setState(() => rememberMe = val!),
-                              ),
-                            ),
-                            CustomText(
-                              text: "Remember Me",
-                              fontSize: 12.sp,
-                              color: Color(0XFF000000),
-                              // color: AppColors.textHint,
-                              left: 8.w,
-                            ),
-                          ],
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            Get.toNamed(
-                                RouteConstants.gmailVerification,
-                                arguments: {"flow": "forgot_password"}
-                            );
-                          },
-                          child: CustomText(
-                            text: "Forgot Password",
-                            color: Color(0xFFB5B475),
-                            // color: AppColors.secondary,
-                            fontSize: 12.sp,
-                          ),
-                        ),
-                      ],
-                    ),
-
-
+                    _buildOptionsRow(),
 
                     SizedBox(height: 25.h),
 
                     // Sign In Button
                     Obx(() => CustomButton(
                       text: "Sign in",
-                      color: Color(0XFF1D3826),
-                      // color: AppColors.primaryDark,
-                      loading: _loginController.isLoading.value,
-                      onTap: () {
-                        _loginController.login(
-                          emailController.text.trim(),
-                          passwordController.text.trim(),
-                        );
-                      },
+                      color: const Color(0XFF1D3826),
+                      loading: controller.isLoading.value,
+                      onTap: () => controller.login(),
                     )),
 
-                    // Show error message if there's an error
-                    Obx(() {
-                      if (_loginController.errorMessage.isNotEmpty) {
-                        return Padding(
-                          padding: EdgeInsets.only(top: 10.h),
-                          child: CustomText(
-                            text: _loginController.errorMessage.value,
-                            color: Colors.red,
-                            fontSize: 14.sp,
-                          ),
-                        );
-                      }
-                      return SizedBox.shrink();
-                    }),
+                    // Error Message
+                    Obx(() => controller.errorMessage.isNotEmpty
+                        ? Padding(
+                      padding: EdgeInsets.only(top: 10.h),
+                      child: CustomText(
+                        text: controller.errorMessage.value,
+                        color: Colors.red, fontSize: 14.sp,
+                      ),
+                    )
+                        : const SizedBox.shrink()),
 
                     SizedBox(height: 20.h),
 
@@ -222,31 +118,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       onTap: () => Get.toNamed(RouteConstants.registration),
                       child: CustomText(
                         text: "Create Account",
-                        color: Color(0XFF1D3826),
-                        // color: AppColors.primaryDark,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14.sp,
+                        color: const Color(0XFF1D3826),
+                        fontWeight: FontWeight.bold, fontSize: 14.sp,
                       ),
                     ),
 
-                    // Divider
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 25.h),
-                      child: Row(
-                        children: [
-                          const Expanded(child: Divider()),
-                          CustomText(
-                            text: "Or Continue With",
-                            // color: AppColors.textHint,
-                            color: Color(0x4D000000),
-                            fontSize: 12.sp,
-                            left: 10.w,
-                            right: 10.w,
-                          ),
-                          const Expanded(child: Divider()),
-                        ],
-                      ),
-                    ),
+                    _buildSocialDivider(),
 
                     // Social Buttons
                     Row(
@@ -268,6 +145,62 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
+  // --- Helper Widgets to keep build method clean ---
+
+  Widget _buildSubHeader() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        CustomText(text: "Vendors and Beauticians ", color: const Color(0XFF999999), fontSize: 13.sp, top: 8.h),
+        GestureDetector(
+          onTap: () => Get.toNamed(RouteConstants.selection),
+          child: CustomText(
+            text: "click here", color: const Color(0XFFB5B475),
+            fontWeight: FontWeight.bold, textDecoration: TextDecoration.underline,
+            fontSize: 13.sp, top: 8.h,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOptionsRow() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          children: [
+            SizedBox(
+              height: 24.w, width: 24.w,
+              child: Obx(() => Checkbox(
+                value: controller.rememberMe.value,
+                activeColor: const Color(0XFF1D3826),
+                onChanged: (val) => controller.rememberMe.value = val!,
+              )),
+            ),
+            CustomText(text: "Remember Me", fontSize: 12.sp, color: Colors.black, left: 8.w),
+          ],
+        ),
+        GestureDetector(
+          onTap: () => Get.toNamed(RouteConstants.gmailVerification, arguments: {"flow": "forgot_password"}),
+          child: CustomText(text: "Forgot Password", color: const Color(0xFFB5B475), fontSize: 12.sp),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSocialDivider() {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 25.h),
+      child: Row(
+        children: [
+          const Expanded(child: Divider()),
+          CustomText(text: "Or Continue With", color: const Color(0x4D000000), fontSize: 12.sp, left: 10.w, right: 10.w),
+          const Expanded(child: Divider()),
+        ],
+      ),
+    );
+  }
 
   Widget _socialButton(String label, String iconPath) {
     return Container(
@@ -279,12 +212,7 @@ class _LoginScreenState extends State<LoginScreen> {
       child: Row(
         children: [
           SvgPicture.asset(iconPath, width: 20.w, height: 20.w),
-          CustomText(
-            text: label,
-            fontSize: 12.sp,
-            fontWeight: FontWeight.w500,
-            left: 8.w,
-          ),
+          CustomText(text: label, fontSize: 12.sp, fontWeight: FontWeight.w500, left: 8.w),
         ],
       ),
     );
