@@ -10,21 +10,10 @@ import '../../../../../core/constants/route_constants.dart';
 import '../../../../../core/widgets/custom_button.dart';
 import '../../../../../core/widgets/custom_text.dart';
 import '../../../../../core/widgets/custom_text_field.dart';
+import '../controller/registration_controller.dart';
 
-class RegistrationScreen extends StatefulWidget {
+class RegistrationScreen extends GetView<RegistrationController> {
   const RegistrationScreen({super.key});
-
-  @override
-  State<RegistrationScreen> createState() => _RegistrationScreenState();
-}
-
-class _RegistrationScreenState extends State<RegistrationScreen> {
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
-  bool rememberMe = false;
-  bool isLoading = false; // For CustomButton
 
   @override
   Widget build(BuildContext context) {
@@ -32,22 +21,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          // 1. Top Background Image
           Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: 320.h,
-            child: Image.asset(
-              AppAssets.registration,
-              fit: BoxFit.cover,
-            ),
+            top: 0, left: 0, right: 0, height: 320.h,
+            child: Image.asset(AppAssets.registration, fit: BoxFit.cover),
           ),
-
-          // Back Button
           Positioned(
-            top: 50.h,
-            left: 20.w,
+            top: 50.h, left: 20.w,
             child: CircleAvatar(
               backgroundColor: Colors.black26,
               child: IconButton(
@@ -56,101 +35,47 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               ),
             ),
           ),
-
-          // 2. Form Container
           Positioned.fill(
             top: 260.h,
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 24.w),
-              decoration: BoxDecoration(
+              decoration:  BoxDecoration(
                 color: AppColors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(40.r),
-                  topRight: Radius.circular(40.r),
-                ),
+                borderRadius: BorderRadius.only(topLeft: Radius.circular(40.r), topRight: Radius.circular(40.r)),
               ),
               child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
                 child: Column(
                   children: [
-                    // Header using CustomText
-                    CustomText(
-                      text: "Create TNP Account",
-                      fontSize: 20.sp,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0XFF000000),
-                      // color: AppColors.textPrimary,
-                      top: 30.h,
-                    ),
-
+                    CustomText(text: "Create TNP Account", fontSize: 20.sp, fontWeight: FontWeight.bold, top: 30.h),
                     _buildDivider("Or"),
-
                     GestureDetector(
                       onTap: () => Get.toNamed(RouteConstants.selection),
-                      child: CustomText(
-                        text: "Earn with us",
-                        color: Color(0XFFB5B475),
-                        // color: AppColors.textSecondary,
-                        fontWeight: FontWeight.bold,
-                        textDecoration: TextDecoration.underline,
-                        fontSize: 14.sp,
-                      ),
+                      child: CustomText(text: "Earn with us", color: const Color(0XFFB5B475), fontWeight: FontWeight.bold, textDecoration: TextDecoration.underline, fontSize: 14.sp),
                     ),
-
                     SizedBox(height: 25.h),
-
-                    // Input Fields (CustomTextField already handles its own logic)
-                    CustomTextField(controller: nameController, labelText: "Name"),
+                    CustomTextField(controller: controller.fullNameController, labelText: "Name"),
                     SizedBox(height: 20.h),
-                    CustomTextField(controller: emailController, labelText: "Email"),
+                    CustomTextField(controller: controller.emailController, labelText: "Email"),
                     SizedBox(height: 20.h),
-                    CustomTextField(
-                        controller: passwordController,
-                        labelText: "Password",
-                        isPassword: true
-                    ),
+                    CustomTextField(controller: controller.passwordController, labelText: "Password", isPassword: true),
                     SizedBox(height: 20.h),
-                    CustomTextField(
-                        controller: confirmPasswordController,
-                        labelText: "Confirm Password",
-                        isPassword: true
-                    ),
-
+                    CustomTextField(controller: controller.confirmPasswordController, labelText: "Confirm Password", isPassword: true),
                     SizedBox(height: 10.h),
-
-                    // Remember Me
                     Row(
                       children: [
-                        SizedBox(
-                          height: 24.w,
-                          width: 24.w,
-                          child: Checkbox(
-                            value: rememberMe,
-                            activeColor: AppColors.primaryDark,
-                            onChanged: (val) => setState(() => rememberMe = val!),
-                          ),
-                        ),
-                        CustomText(
-                          text: "Remember Me",
-                          fontSize: 12.sp,
-                          // color: Colors.grey,
-                          color: Color(0XFF000000),
-                          left: 8.w,
-                        ),
+                        Obx(() => Checkbox(
+                          value: controller.rememberMe.value,
+                          activeColor: const Color(0XFF1D3826),
+                          onChanged: (val) => controller.rememberMe.value = val!,
+                        )),
+                        CustomText(text: "Remember Me", fontSize: 12.sp, left: 8.w),
                       ],
                     ),
-
                     SizedBox(height: 25.h),
-
-
                     CustomButton(
                       text: "Continue",
-                      // color: AppColors.primaryDark,
-                      color: Color(0XFF1D3826),
-                      loading: isLoading,
-                      onTap: () {
-                        Get.toNamed(RouteConstants.customerAddAddress);
-                      },
+                      color: const Color(0XFF1D3826),
+                      onTap: () => Get.toNamed(RouteConstants.customerAddAddress),
                     ),
 
                     _buildDivider("Or"),

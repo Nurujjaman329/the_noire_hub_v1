@@ -176,22 +176,40 @@ class ApiClient {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
-        return TimeoutException(error.message);
+        return TimeoutException("Connection timed out. Please check your internet.");
+
       case DioExceptionType.connectionError:
-        return NoInternetException(error.message);
+        return NoInternetException("Unable to connect to the server. Please check your data or Wi-Fi.");
+
       case DioExceptionType.badResponse:
         final statusCode = error.response?.statusCode;
-        final message = error.response?.statusMessage ?? 'Server error';
-        return ServerException(message, statusCode, error.message);
+
+        // 1. Extract the custom message from the backend JSON body
+        // Backends usually send: {"message": "Email already taken"} or {"error": "..."}
+        String? serverMessage;
+        if (error.response?.data != null && error.response?.data is Map) {
+          serverMessage = error.response?.data['message']?.toString() ??
+              error.response?.data['error']?.toString();
+        }
+
+        // 2. Fallback to statusMessage ("Bad Request") if JSON is empty
+        final finalMessage = serverMessage ?? error.response?.statusMessage ?? 'Server error occurred';
+
+        debugPrint('❌ API Error [$statusCode]: $finalMessage');
+        return ServerException(finalMessage, statusCode, error.message);
+
       case DioExceptionType.cancel:
-        return UnknownException('Request cancelled');
+        return UnknownException('Request was cancelled');
+
       case DioExceptionType.badCertificate:
-        return ServerException('Bad certificate', null, error.message);
+        return ServerException('Security certificate validation failed', null, error.message);
+
       case DioExceptionType.unknown:
         if (error.message?.contains('SocketException') ?? false) {
-          return NoInternetException(error.message);
+          return NoInternetException("No internet connection detected.");
         }
-        return UnknownException(error.message);
-    }
+        return UnknownException(error.message ?? "An unexpected error occurred");
+
+      }
   }
 }

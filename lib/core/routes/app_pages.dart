@@ -1,6 +1,7 @@
 
 import 'package:get/get.dart';
 import 'package:the_noire_hub_v1/core/constants/route_constants.dart';
+import 'package:the_noire_hub_v1/features/authentication/registration/presentation/bindings/registration_bindings.dart';
 import '../../features/authentication/login/presentation/bindings/login_binding.dart';
 import '../../features/authentication/login/presentation/screen/login_screen.dart';
 import '../../features/authentication/registration/presentation/screens/customer_address_add_screen.dart';
@@ -80,6 +81,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.registration,
       page: () => const RegistrationScreen(),
+      binding: RegistrationBinding(),
       transition: Transition.cupertino,
     ),
     GetPage(

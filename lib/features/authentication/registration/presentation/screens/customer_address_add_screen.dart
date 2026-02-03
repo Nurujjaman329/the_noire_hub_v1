@@ -3,26 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import '../../../../../core/constants/app_colors.dart';
-import '../../../../../core/constants/route_constants.dart';
 import '../../../../../core/widgets/custom_button.dart';
 import '../../../../../core/widgets/custom_dropdown.dart';
 import '../../../../../core/widgets/custom_text.dart';
 import '../../../../../core/widgets/custom_text_field.dart';
+import '../controller/registration_controller.dart';
 
-class CustomerAddressAddScreen extends StatefulWidget {
+class CustomerAddressAddScreen extends GetView<RegistrationController> {
   const CustomerAddressAddScreen({super.key});
-
-  @override
-  State<CustomerAddressAddScreen> createState() => _CustomerAddressAddScreenState();
-}
-
-class _CustomerAddressAddScreenState extends State<CustomerAddressAddScreen> {
-  final TextEditingController phoneController = TextEditingController();
-  final TextEditingController addressController = TextEditingController();
-  String selectedCountryCode = "+ 1";
-  bool isSubmitting = false; // To test your button's loading state
-  bool _isMapLoaded = false;
 
   @override
   Widget build(BuildContext context) {
@@ -32,187 +20,209 @@ class _CustomerAddressAddScreenState extends State<CustomerAddressAddScreen> {
         elevation: 0,
         backgroundColor: Colors.white,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new, size: 20.sp, color: Colors.black),
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
           onPressed: () => Get.back(),
         ),
+        title: CustomText(text: "Add Address", fontSize: 18.sp, fontWeight: FontWeight.bold),
       ),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 24.w),
         child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. Header Section using CustomText
+              // 1. Phone Number Section
               CustomText(
                 text: "Add Phone Number",
                 fontSize: 18.sp,
                 fontWeight: FontWeight.bold,
-                // color: AppColors.textPrimary,
-                color: Color(0XFF000000),
-                textAlign: TextAlign.left,
+                color: const Color(0XFF000000),
                 top: 10.h,
               ),
               CustomText(
-                text: "Enter the best phone number to send important notifications to",
+                text: "Enter your phone number for account verification",
                 fontSize: 12.sp,
-                color: Color(0x4D000000),
-                // color: Colors.grey,
-                textAlign: TextAlign.left,
+                color: const Color(0x4D000000),
                 top: 8.h,
-                bottom: 35.h,
+                bottom: 25.h,
               ),
 
-              // 2. Phone Row
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-
-                      CustomDropdown<String>(
-                        isBoxStyle: true,
-                        labelText: "Country",
-                        width: 90.w,
-                        value: selectedCountryCode,
-                        items: const ["+ 1", "+ 44", "+ 234"],
-                        itemAsString: (val) => val,
-                        onChanged: (val) => setState(() => selectedCountryCode = val!),
-                      ),
-                    ],
+                  SizedBox(
+                    width: 90.w,
+                    child: CustomDropdown<String>(
+                      isBoxStyle: true,
+                      labelText: "Country",
+                      value: "+1", // You can link this to controller.selectedCountryCode
+                      items: const ["+1", "+44", "+880", "+234"],
+                      itemAsString: (val) => val,
+                      onChanged: (val) {
+                        // controller.selectedCountryCode.value = val!;
+                      },
+                    ),
                   ),
                   SizedBox(width: 15.w),
                   Expanded(
                     child: CustomTextField(
-                      controller: phoneController,
+                      controller: controller.phoneController, // Add this to your controller
                       labelText: "Phone",
                       keyboardType: TextInputType.phone,
-                      hintText: "840 - 45|",
+                      hintText: "840 - 4500",
                     ),
                   ),
                 ],
               ),
 
-              SizedBox(height: 35.h),
+              const Divider(height: 50),
 
-              // 3. Address Header
+              // 2. Search Section with Suggestions
+              CustomText(
+                text: "Add Address",
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold,
+                color: const Color(0XFF000000),
+                bottom: 15.h,
+              ),
+
+              // Search Input
+              CustomTextField(
+                controller: controller.searchController,
+                labelText: "Search Location",
+                hintText: "Enter neighborhood or street",
+                prefixIcon: Icons.search,
+                onChanged: (value) => controller.onSearchChanged(value),
+              ),
+
+              // Floating Suggestion List
+              Obx(() => controller.placePredictions.isNotEmpty
+                  ? Container(
+                margin: EdgeInsets.only(top: 5.h),
+                padding: EdgeInsets.all(8.r),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12.r),
+                  boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
+                ),
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: controller.placePredictions.length,
+                  itemBuilder: (context, index) {
+                    final item = controller.placePredictions[index];
+                    return ListTile(
+                      leading: const Icon(Icons.location_on_outlined, size: 18),
+                      title: Text(item['description'], style: TextStyle(fontSize: 13.sp)),
+                      onTap: () => controller.selectPrediction(item),
+                    );
+                  },
+                ),
+              )
+                  : const SizedBox.shrink()),
+
+              SizedBox(height: 20.h),
+
+              // 3. Map Header & Pin Location
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  CustomText(
-                    text: "Add Address",
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0XFF000000),
-                    // color: AppColors.textPrimary,
-                  ),
+                  CustomText(text: "Pin Location", fontSize: 14.sp, fontWeight: FontWeight.w600),
                   GestureDetector(
-                    onTap: () {},
-                    child: CustomText(
-                      text: "Use Current Location",
-                      fontSize: 12.sp,
-                      color: Color(0XFFB5B475),
-                      // color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w600,
-                      textDecoration: TextDecoration.underline,
+                    onTap: () => controller.getCurrentLocation(),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.my_location, size: 14, color: Color(0XFFB5B475)),
+                        SizedBox(width: 4.w),
+                        CustomText(
+                          text: "Use Current Location",
+                          fontSize: 12.sp,
+                          color: const Color(0XFFB5B475),
+                          fontWeight: FontWeight.w600,
+                          textDecoration: TextDecoration.underline,
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
+              SizedBox(height: 15.h),
 
-              SizedBox(height: 20.h),
-              CustomTextField(
-                controller: addressController,
-                labelText: "Address",
-                hintText: "Type your address",
-                prefixIcon: Icons.location_on_outlined,
-              ),
-
-              // 4. Map Mock
-              CustomText(
-                text: "Choose Location",
-                fontSize: 14.sp,
-                fontWeight: FontWeight.w600,
-                color: Color(0XFF000000),
-                // color: AppColors.textPrimary,
-                top: 35.h,
-                bottom: 15.h,
-              ),
+              // 4. GOOGLE MAP
               Container(
                 height: 250.h,
-                width: double.infinity,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20.r),
-                  border: Border.all(color: Colors.grey.shade200), // Subtle border
+                  border: Border.all(color: Colors.grey.shade200),
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(20.r),
-                  child: Stack(
-                    children: [
-                      GoogleMap(
-                        initialCameraPosition: const CameraPosition(
-                          target: LatLng(6.5244, 3.3792), // Default location (e.g., Lagos)
-                          zoom: 14.0,
-                        ),
-                        onMapCreated: (GoogleMapController controller) {
-                          // Store the controller if needed for future interactions
-                          // Example: if you want to move the marker or update location
-                          setState(() {
-                            _isMapLoaded = true;
-                          });
-                        },
-                        markers: {
-                          Marker(
-                            markerId: const MarkerId("selected_location"),
-                            position: const LatLng(6.5244, 3.3792),
-                            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
-                          ),
-                        },
-                        // Enable location related features
-                        myLocationEnabled: true,
-                        myLocationButtonEnabled: true,
-                        // Disable unnecessary UI elements for a cleaner look
-                        zoomControlsEnabled: false,
-                        mapType: MapType.normal,
-                        // Add gesture controls
-                        zoomGesturesEnabled: true,
-                        scrollGesturesEnabled: true,
-                        rotateGesturesEnabled: true,
-                        tiltGesturesEnabled: true,
+                  child: Obx(() => GoogleMap(
+                    initialCameraPosition: CameraPosition(
+                        target: controller.selectedLatLng.value,
+                        zoom: 14
+                    ),
+                    onMapCreated: controller.onMapCreated,
+                    onTap: (latLng) => controller.updateLocation(latLng),
+                    markers: {
+                      Marker(
+                        markerId: const MarkerId("selected"),
+                        position: controller.selectedLatLng.value,
+                        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
                       ),
-                      if (!_isMapLoaded)
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.8),
-                            borderRadius: BorderRadius.circular(20.r),
-                          ),
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryDark),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
+                    },
+                    myLocationEnabled: true,
+                    myLocationButtonEnabled: false,
+                    zoomControlsEnabled: false,
+                  )),
                 ),
               ),
 
+              SizedBox(height: 25.h),
+
+              // 5. Selected Address Display
+              CustomText(text: "Selected Address", fontSize: 14.sp, fontWeight: FontWeight.w600, bottom: 8.h),
+              Obx(() => Container(
+                padding: EdgeInsets.all(12.w),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8F8F8),
+                  borderRadius: BorderRadius.circular(12.r),
+                  border: Border.all(color: Colors.grey.shade100),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.location_on, color: Color(0XFF1D3826)),
+                    SizedBox(width: 10.w),
+                    Expanded(
+                      child: CustomText(
+                        text: controller.currentAddressString.value.isEmpty
+                            ? "Fetching address..."
+                            : controller.currentAddressString.value,
+                        fontSize: 13.sp,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              )),
+
               SizedBox(height: 40.h),
 
-              // 5. Final Button using your CustomButton widget
-              CustomButton(
+              // 6. FINAL API CALL
+              Obx(() => CustomButton(
                 text: "Create Account",
-                color: Color(0XFF1D3826),
-                // color: AppColors.primaryDark,
-                loading: isSubmitting,
-                onTap: () async {
-                  setState(() => isSubmitting = true);
-                  await Future.delayed(const Duration(seconds: 2)); // Mock API delay
-                  setState(() => isSubmitting = false);
-                  Get.toNamed(RouteConstants.otpVerifyScreen);
+                color: const Color(0XFF1D3826),
+                loading: controller.isLoading.value,
+                onTap: () {
+                  controller.addAddress(
+                      controller.selectedCountry.value,
+                      controller.selectedCity.value,
+                      controller.selectedLatLng.value.latitude,
+                      controller.selectedLatLng.value.longitude
+                  );
+                  controller.register();
                 },
-              ),
+              )),
               SizedBox(height: 40.h),
             ],
           ),
