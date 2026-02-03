@@ -1,4 +1,5 @@
 
+import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LocalStorage {
@@ -56,17 +57,54 @@ class LocalStorage {
     return await removeData('token');
   }
 
+  // Methods for handling access tokens
+  static Future<bool> setAccessToken(String token) async {
+    return await setData('accessToken', token);
+  }
+
+  static String? getAccessToken() {
+    return getData('accessToken');
+  }
+
+  static Future<bool> removeAccessToken() async {
+    return await removeData('accessToken');
+  }
+
+  // Methods for handling refresh tokens
+  static Future<bool> setRefreshToken(String token) async {
+    return await setData('refreshToken', token);
+  }
+
+  static String? getRefreshToken() {
+    return getData('refreshToken');
+  }
+
+  static Future<bool> removeRefreshToken() async {
+    return await removeData('refreshToken');
+  }
+
+  // Methods for handling user data
   static Future<bool> setUserData(Map<String, dynamic> userData) async {
-    return await setData('userData', userData.toString());
+    final userDataJson = jsonEncode(userData);
+    return await setData('userData', userDataJson);
   }
 
   static Map<String, dynamic>? getUserData() {
     final userDataStr = getData('userData') as String?;
     if (userDataStr != null) {
-      // Parse the string back to map - this would require json.decode in a real implementation
-      return {'userData': userDataStr}; // Simplified for now
+      try {
+        final decodedData = jsonDecode(userDataStr);
+        return decodedData as Map<String, dynamic>;
+      } catch (e) {
+        print('Error decoding user data: $e');
+        return null;
+      }
     }
     return null;
+  }
+
+  static Future<bool> removeUserData() async {
+    return await removeData('userData');
   }
 
   static Future<bool> setOnboardingCompleted(bool completed) async {

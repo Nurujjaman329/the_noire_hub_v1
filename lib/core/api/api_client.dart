@@ -31,13 +31,15 @@ class ApiClient {
           return handler.next(options);
         },
         onResponse: (response, handler) {
-          if (kDebugMode)
-            print('RES → ${response.statusCode} ${response.requestOptions.path}');
+          if (kDebugMode) {
+            debugPrint('RES → ${response.statusCode} ${response.requestOptions.path}');
+          }
           return handler.next(response);
         },
         onError: (error, handler) {
-          if (kDebugMode)
-            print('ERR → ${error.response?.statusCode} ${error.requestOptions.path}');
+          if (kDebugMode) {
+            debugPrint('ERR → ${error.response?.statusCode} ${error.requestOptions.path}');
+          }
           return handler.next(error);
         },
       ),

@@ -117,6 +117,31 @@ class UserModel {
           .toList(),
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'firstName': firstName,
+      'lastName': lastName,
+      'fullName': fullName,
+      'email': email,
+      'businessName': businessName,
+      'shopImage': shopImage,
+      'bio': bio,
+      'stripeAccountId': stripeAccountId,
+      'image': image,
+      'role': role,
+      'callingCode': callingCode,
+      'phoneNumber': phoneNumber,
+      'nidNumber': nidNumber,
+      'isNIDVerified': isNIDVerified,
+      'isProfileCompleted': isProfileCompleted,
+      'dateOfBirth': dateOfBirth,
+      'createdAt': createdAt,
+      'selectedCategories': selectedCategories.map((e) => e.toJson()).toList(),
+      'addresses': addresses.map((e) => e.toJson()).toList(),
+    };
+  }
 }
 class UserCategory {
   final String id;
@@ -137,6 +162,14 @@ class UserCategory {
           .map((e) => e.toString())
           .toList(),
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '_id': id,
+      'category': category,
+      'subcategories': subcategories,
+    };
   }
 }
 class UserAddress {
@@ -163,6 +196,16 @@ class UserAddress {
       id: json['_id'] ?? '',
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'location': location.toJson(),
+      'city': city,
+      'country': country,
+      'isDefault': isDefault,
+      '_id': id,
+    };
+  }
 }
 
 class Location {
@@ -182,6 +225,13 @@ class Location {
             .map((e) => (e as num).toDouble()),
       ),
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'type': type,
+      'coordinates': coordinates,
+    };
   }
 
 }
