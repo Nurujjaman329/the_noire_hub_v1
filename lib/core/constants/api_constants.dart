@@ -7,4 +7,6 @@ class ApiConstants {
     // 'Authorization': 'Bearer <token>',  // optional, can set dynamically in interceptor
   };
 
+  static const String registration = "${baseUrl}auth/register";
+
 }

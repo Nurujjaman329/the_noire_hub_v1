@@ -1,51 +1,53 @@
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CacheService {
+  // Singleton Pattern
   static final CacheService _instance = CacheService._internal();
   factory CacheService() => _instance;
   CacheService._internal();
 
-  static const String _boxName = 'appCache';
-  Box? _box;
+  late SharedPreferences _prefs;
 
+  /// Initialize the SharedPreferences instance
+  /// Call this in main(): await CacheService().init();
   Future<void> init() async {
-    await Hive.initFlutter();
-    _box = await Hive.openBox(_boxName);
+    _prefs = await SharedPreferences.getInstance();
   }
 
-  Box get box {
-    if (_box == null || !_box!.isOpen) {
-      throw Exception('Cache service not initialized. Call init() first.');
-    }
-    return _box!;
-  }
+  // --- Generic Methods ---
 
-  Future<void> put(String key, dynamic value) async {
-    await box.put(key, value);
-  }
+  bool containsKey(String key) => _prefs.containsKey(key);
 
-  T? get<T>(String key, {T? defaultValue}) {
-    try {
-      return box.get(key, defaultValue: defaultValue) as T?;
-    } catch (_) {
-      return defaultValue;
-    }
-  }
+  Future<bool> remove(String key) => _prefs.remove(key);
 
-  bool containsKey(String key) {
-    return box.containsKey(key);
-  }
+  Future<bool> clear() => _prefs.clear();
 
-  Future<void> delete(String key) async {
-    await box.delete(key);
-  }
+  // --- Type-Specific Getters (Synchronous) ---
 
-  Future<void> clear() async {
-    await box.clear();
-  }
+  String getString(String key, {String defaultValue = ''}) =>
+      _prefs.getString(key) ?? defaultValue;
 
-  Future<void> dispose() async {
-    await _box?.close();
-    _box = null;
-  }
+  bool getBool(String key, {bool defaultValue = false}) =>
+      _prefs.getBool(key) ?? defaultValue;
+
+  int getInt(String key, {int defaultValue = 0}) =>
+      _prefs.getInt(key) ?? defaultValue;
+
+  double getDouble(String key, {double defaultValue = 0.0}) =>
+      _prefs.getDouble(key) ?? defaultValue;
+
+  List<String> getStringList(String key) =>
+      _prefs.getStringList(key) ?? [];
+
+  // --- Type-Specific Setters (Asynchronous) ---
+
+  Future<bool> setString(String key, String value) => _prefs.setString(key, value);
+
+  Future<bool> setBool(String key, bool value) => _prefs.setBool(key, value);
+
+  Future<bool> setInt(String key, int value) => _prefs.setInt(key, value);
+
+  Future<bool> setDouble(String key, double value) => _prefs.setDouble(key, value);
+
+  Future<bool> setStringList(String key, List<String> value) => _prefs.setStringList(key, value);
 }
