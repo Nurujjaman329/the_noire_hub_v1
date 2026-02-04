@@ -44,6 +44,8 @@ class LoginAttributes {
     );
   }
 }
+
+
 class UserModel {
   final String id;
   final String firstName;
@@ -57,12 +59,16 @@ class UserModel {
   final String image;
   final String role;
   final String callingCode;
-  final String phoneNumber;
-  final String nidNumber;
+
+  final int phoneNumber;
+  final int nidNumber;
+
   final bool isNIDVerified;
   final bool isProfileCompleted;
-  final String dateOfBirth;
-  final String createdAt;
+
+  final DateTime? dateOfBirth;
+  final DateTime? createdAt;
+
   final List<UserCategory> selectedCategories;
   final List<UserAddress> addresses;
 
@@ -91,40 +97,43 @@ class UserModel {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      // Use .toString() to force ints or nulls into a String format
-      id: json['id']?.toString() ?? '',
-      firstName: json['firstName']?.toString() ?? '',
-      lastName: json['lastName']?.toString() ?? '',
-      fullName: json['fullName']?.toString() ?? '',
-      email: json['email']?.toString() ?? '',
-      businessName: json['businessName']?.toString() ?? '',
-      shopImage: json['shopImage']?.toString() ?? '',
-      bio: json['bio']?.toString() ?? '',
-      stripeAccountId: json['stripeAccountId']?.toString() ?? '',
-      image: json['image']?.toString() ?? '',
-      role: json['role']?.toString() ?? '',
-      callingCode: json['callingCode']?.toString() ?? '',
+      id: json['id'] ?? '',
+      firstName: json['firstName'] ?? '',
+      lastName: json['lastName'] ?? '',
+      fullName: json['fullName'] ?? '',
+      email: json['email'] ?? '',
+      businessName: json['businessName'] ?? '',
+      shopImage: json['shopImage'] ?? '',
+      bio: json['bio'] ?? '',
+      stripeAccountId: json['stripeAccountId'] ?? '',
+      image: json['image'] ?? '',
+      role: json['role'] ?? '',
+      callingCode: json['callingCode'] ?? '',
 
-      // This was definitely failing based on your log: phoneNumber: 1957073942
-      phoneNumber: json['phoneNumber']?.toString() ?? '',
+      phoneNumber: (json['phoneNumber'] ?? 0) as int,
+      nidNumber: (json['nidNumber'] ?? 0) as int,
 
-      nidNumber: json['nidNumber']?.toString() ?? '',
+      isNIDVerified: json['isNIDVerified'] ?? false,
+      isProfileCompleted: json['isProfileCompleted'] ?? false,
 
-      // Keep bools as bools, but check for null
-      isNIDVerified: json['isNIDVerified'] == true,
-      isProfileCompleted: json['isProfileCompleted'] == true,
+      dateOfBirth: json['dataOfBirth'] != null
+          ? DateTime.parse(json['dataOfBirth'])
+          : null,
 
-      dateOfBirth: json['dataOfBirth']?.toString() ?? '',
-      createdAt: json['createdAt']?.toString() ?? '',
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'])
+          : null,
 
       selectedCategories: (json['selectedCategories'] as List<dynamic>? ?? [])
           .map((e) => UserCategory.fromJson(e))
           .toList(),
+
       addresses: (json['addresses'] as List<dynamic>? ?? [])
           .map((e) => UserAddress.fromJson(e))
           .toList(),
     );
   }
+
 
   Map<String, dynamic> toJson() {
     return {
@@ -144,13 +153,17 @@ class UserModel {
       'nidNumber': nidNumber,
       'isNIDVerified': isNIDVerified,
       'isProfileCompleted': isProfileCompleted,
-      'dateOfBirth': dateOfBirth,
-      'createdAt': createdAt,
+
+      // ✅ FIX HERE
+      'dateOfBirth': dateOfBirth?.toIso8601String(),
+      'createdAt': createdAt?.toIso8601String(),
+
       'selectedCategories': selectedCategories.map((e) => e.toJson()).toList(),
       'addresses': addresses.map((e) => e.toJson()).toList(),
     };
   }
 }
+
 class UserCategory {
   final String id;
   final String category;
@@ -180,6 +193,8 @@ class UserCategory {
     };
   }
 }
+
+
 class UserAddress {
   final Location location;
   final String city;
@@ -234,6 +249,7 @@ class Location {
       ),
     );
   }
+
 
   Map<String, dynamic> toJson() {
     return {
