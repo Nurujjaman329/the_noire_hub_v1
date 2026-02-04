@@ -6,19 +6,10 @@ import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/widgets/custom_button.dart';
 import '../../../../../core/widgets/custom_text.dart';
 import '../../../../../core/widgets/custom_text_field.dart';
+import '../controller/change_password_controller.dart';
 
-class ChangePasswordScreen extends StatefulWidget {
+class ChangePasswordScreen extends GetView<ChangePasswordController> {
   const ChangePasswordScreen({super.key});
-
-  @override
-  State<ChangePasswordScreen> createState() => _ChangePasswordScreenState();
-}
-
-class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
-  final TextEditingController oldPasswordController = TextEditingController();
-  final TextEditingController newPasswordController = TextEditingController();
-  final TextEditingController confirmPasswordController = TextEditingController();
-  bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +18,11 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: CustomText(text: "Change Password", fontSize: 18.sp, fontWeight: FontWeight.bold),
+        title: CustomText(
+            text: "Change Password",
+            fontSize: 18.sp,
+            fontWeight: FontWeight.bold
+        ),
         centerTitle: true,
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios_new, color: AppColors.background, size: 20.sp),
@@ -50,12 +45,19 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   fontWeight: FontWeight.w600,
                   bottom: 10.h,
                 ),
-                CustomTextField(
-                  controller: oldPasswordController,
+                Obx(() => CustomTextField(
+                  controller: controller.oldPasswordController,
                   labelText: "Enter old password",
                   prefixIcon: Icons.lock_outline,
-                  isPassword: true,
-                ),
+                  isPassword: !controller.isOldVisible.value,
+                  suffixIcons: IconButton(
+                    icon: Icon(
+                      controller.isOldVisible.value ? Icons.visibility : Icons.visibility_off,
+                      size: 20.sp,
+                    ),
+                    onPressed: () => controller.toggleOldVisibility(),
+                  ),
+                )),
 
                 SizedBox(height: 25.h),
                 Divider(color: Colors.grey.shade200),
@@ -68,12 +70,19 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   fontWeight: FontWeight.w600,
                   bottom: 10.h,
                 ),
-                CustomTextField(
-                  controller: newPasswordController,
+                Obx(() => CustomTextField(
+                  controller: controller.newPasswordController,
                   labelText: "Enter new password",
                   prefixIcon: Icons.vpn_key_outlined,
-                  isPassword: true,
-                ),
+                  isPassword: !controller.isNewVisible.value,
+                  suffixIcons: IconButton(
+                    icon: Icon(
+                      controller.isNewVisible.value ? Icons.visibility : Icons.visibility_off,
+                      size: 20.sp,
+                    ),
+                    onPressed: () => controller.toggleNewVisibility(),
+                  ),
+                )),
 
                 SizedBox(height: 20.h),
 
@@ -84,22 +93,29 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   fontWeight: FontWeight.w600,
                   bottom: 10.h,
                 ),
-                CustomTextField(
-                  controller: confirmPasswordController,
+                Obx(() => CustomTextField(
+                  controller: controller.confirmPasswordController,
                   labelText: "Re-type new password",
                   prefixIcon: Icons.lock_reset_outlined,
-                  isPassword: true,
-                ),
+                  isPassword: !controller.isConfirmVisible.value,
+                  suffixIcons: IconButton(
+                    icon: Icon(
+                      controller.isConfirmVisible.value ? Icons.visibility : Icons.visibility_off,
+                      size: 20.sp,
+                    ),
+                    onPressed: () => controller.toggleConfirmVisibility(),
+                  ),
+                )),
 
                 SizedBox(height: 40.h),
 
-                // 4. Update Button
-                CustomButton(
+                // 4. Update Button (Reactive)
+                Obx(() => CustomButton(
                   text: "Update Password",
-                  color: const Color(0xFF1B3022), // Dark Forest Green
-                  loading: isLoading,
-                  onTap: () => _handleChangePassword(),
-                ),
+                  color: const Color(0xFF1B3022),
+                  loading: controller.isLoading.value,
+                  onTap: () => controller.handleChangePassword(),
+                )),
 
                 SizedBox(height: 20.h),
 
@@ -117,44 +133,5 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         ),
       ),
     );
-  }
-
-  void _handleChangePassword() {
-    String oldPass = oldPasswordController.text.trim();
-    String newPass = newPasswordController.text.trim();
-    String confirmPass = confirmPasswordController.text.trim();
-
-    // Validation logic
-    if (oldPass.isEmpty || newPass.isEmpty || confirmPass.isEmpty) {
-      Get.snackbar("Required", "All fields must be filled", backgroundColor: Colors.redAccent, colorText: Colors.white);
-      return;
-    }
-
-    if (newPass != confirmPass) {
-      Get.snackbar("Error", "New passwords do not match", backgroundColor: Colors.orangeAccent, colorText: Colors.white);
-      return;
-    }
-
-    if (oldPass == newPass) {
-      Get.snackbar("No Change", "New password cannot be the same as the old one", backgroundColor: Colors.blueAccent, colorText: Colors.white);
-      return;
-    }
-
-    setState(() => isLoading = true);
-
-    // Simulate API process
-    Future.delayed(const Duration(seconds: 2), () {
-      setState(() => isLoading = false);
-
-      Get.back(); // Return to Profile/Settings
-
-      Get.snackbar(
-        "Success",
-        "Password updated successfully",
-        backgroundColor: const Color(0xFFD9E8B9),
-        colorText: const Color(0xFF1B3022),
-        snackPosition: SnackPosition.BOTTOM,
-      );
-    });
   }
 }

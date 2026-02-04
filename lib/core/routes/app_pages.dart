@@ -4,6 +4,7 @@ import 'package:the_noire_hub_v1/core/constants/route_constants.dart';
 import 'package:the_noire_hub_v1/features/authentication/gmailVerification/presentation/bindings/gmail_verification_bindings.dart';
 import 'package:the_noire_hub_v1/features/authentication/registration/presentation/bindings/registration_bindings.dart';
 import 'package:the_noire_hub_v1/features/authentication/resetPassword/presentation/bindings/reset_password_bindings.dart';
+import 'package:the_noire_hub_v1/features/common/changePassword/presentation/bindings/change_password_bindings.dart';
 import '../../features/authentication/gmailVerification/presentation/screen/gmail_verification_screen.dart';
 import '../../features/authentication/login/presentation/bindings/login_binding.dart';
 import '../../features/authentication/login/presentation/screen/login_screen.dart';
@@ -296,6 +297,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.changePassword,
       page: () => const ChangePasswordScreen(),
+      binding: ChangePasswordBinding(),
       transition: Transition.cupertino,
     ),
     GetPage(
