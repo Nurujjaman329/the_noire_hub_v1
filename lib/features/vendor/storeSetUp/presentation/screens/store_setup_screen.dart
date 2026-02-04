@@ -185,7 +185,7 @@ class StoreSetupScreen extends GetView<RegistrationController> {
       height: 120.h,
       margin: EdgeInsets.only(right: 15.w),
       decoration: BoxDecoration(
-        color: isSelected ? AppColors.secondaryVariant : AppColors.primary.withOpacity(0.1),
+        color: isSelected ? Color(0XFFB5B475) : Color(0XFFF1F0B2),
         borderRadius: BorderRadius.circular(30.r),
         border: Border.all(color: isSelected ? Colors.transparent : AppColors.primary),
       ),

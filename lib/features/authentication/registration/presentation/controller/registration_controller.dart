@@ -129,4 +129,22 @@ class RegistrationController extends GetxController with MapSearchMixin {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
     if (pickedFile != null) selectedShopImage.value = File(pickedFile.path);
   }
+
+
+
+  // Inside RegistrationController
+  void resetFields() {
+    fullNameController.clear();
+    emailController.clear();
+    passwordController.clear();
+    confirmPasswordController.clear();
+    businessNameController.clear();
+    bioController.clear();
+    phoneController.clear();
+
+    // Reset observable variables
+    selectedShopImage.value = null;
+    selectedCategories.clear();
+    addresses.clear();
+  }
 }

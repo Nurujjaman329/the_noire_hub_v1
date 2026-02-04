@@ -12,12 +12,12 @@ class InitialBinding extends Bindings {
   void dependencies() {
     Get.put<ApiClient>(ApiClient(), permanent: true);
 
-    // Categories
-    Get.lazyPut<CategoryService>(() => CategoryService(Get.find<ApiClient>()));
-    Get.lazyPut<CategoryController>(() => CategoryController(Get.find<CategoryService>()));
+    // Categories - Added fenix: true
+    Get.lazyPut<CategoryService>(() => CategoryService(Get.find<ApiClient>()), fenix: true);
+    Get.lazyPut<CategoryController>(() => CategoryController(Get.find<CategoryService>()), fenix: true);
 
-    // SubCategories
-    Get.lazyPut<SubCategoryService>(() => SubCategoryService(Get.find<ApiClient>()));
-    Get.lazyPut<SubCategoryController>(() => SubCategoryController(Get.find<SubCategoryService>()));
+    // SubCategories - Added fenix: true
+    Get.lazyPut<SubCategoryService>(() => SubCategoryService(Get.find<ApiClient>()), fenix: true);
+    Get.lazyPut<SubCategoryController>(() => SubCategoryController(Get.find<SubCategoryService>()), fenix: true);
   }
 }

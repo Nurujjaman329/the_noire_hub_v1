@@ -150,6 +150,8 @@ class SelectionScreen extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         final regController = Get.find<RegistrationController>();
+
+        regController.resetFields();
         // Assign role based on card title
         regController.userRole.value = (title == "Vendors") ? 'vendor' : 'beautician';
         Get.toNamed(RouteConstants.vendorRegistration);
