@@ -57,12 +57,16 @@ class UserModel {
   final String image;
   final String role;
   final String callingCode;
-  final String phoneNumber;
-  final String nidNumber;
+
+  final int phoneNumber;
+  final int nidNumber;
+
   final bool isNIDVerified;
   final bool isProfileCompleted;
-  final String dateOfBirth;
-  final String createdAt;
+
+  final DateTime? dateOfBirth;
+  final DateTime? createdAt;
+
   final List<UserCategory> selectedCategories;
   final List<UserAddress> addresses;
 
@@ -103,20 +107,31 @@ class UserModel {
       image: json['image'] ?? '',
       role: json['role'] ?? '',
       callingCode: json['callingCode'] ?? '',
-      phoneNumber: json['phoneNumber'] ?? '',
-      nidNumber: json['nidNumber'] ?? '',
+
+      phoneNumber: (json['phoneNumber'] ?? 0) as int,
+      nidNumber: (json['nidNumber'] ?? 0) as int,
+
       isNIDVerified: json['isNIDVerified'] ?? false,
       isProfileCompleted: json['isProfileCompleted'] ?? false,
-      dateOfBirth: json['dataOfBirth'] ?? '',
-      createdAt: json['createdAt'] ?? '',
+
+      dateOfBirth: json['dataOfBirth'] != null
+          ? DateTime.parse(json['dataOfBirth'])
+          : null,
+
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'])
+          : null,
+
       selectedCategories: (json['selectedCategories'] as List<dynamic>? ?? [])
           .map((e) => UserCategory.fromJson(e))
           .toList(),
+
       addresses: (json['addresses'] as List<dynamic>? ?? [])
           .map((e) => UserAddress.fromJson(e))
           .toList(),
     );
   }
+
 
   Map<String, dynamic> toJson() {
     return {
@@ -136,14 +151,18 @@ class UserModel {
       'nidNumber': nidNumber,
       'isNIDVerified': isNIDVerified,
       'isProfileCompleted': isProfileCompleted,
-      'dateOfBirth': dateOfBirth,
-      'createdAt': createdAt,
+
+      // ✅ FIX HERE
+      'dateOfBirth': dateOfBirth?.toIso8601String(),
+      'createdAt': createdAt?.toIso8601String(),
+
       'selectedCategories': selectedCategories.map((e) => e.toJson()).toList(),
       'addresses': addresses.map((e) => e.toJson()).toList(),
     };
   }
 }
-class UserCategory {
+
+  class UserCategory {
   final String id;
   final String category;
   final List<String> subcategories;
@@ -172,6 +191,8 @@ class UserCategory {
     };
   }
 }
+
+
 class UserAddress {
   final Location location;
   final String city;
@@ -226,6 +247,7 @@ class Location {
       ),
     );
   }
+
 
   Map<String, dynamic> toJson() {
     return {
