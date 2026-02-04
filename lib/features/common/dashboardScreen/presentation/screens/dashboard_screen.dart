@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import '../../../../../core/accountController/account_controller.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/route_constants.dart';
+import '../../../../../core/storage/local_storage.dart';
 import '../../../../../core/widgets/custom_text.dart';
 import '../../../../../core/widgets/dialog_helper.dart';
 import '../widget/dashboard_drawer.dart';
@@ -17,27 +18,28 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final AccountController accountCtrl = Get.find<AccountController>();
-    debugPrint("Dashboard Screen - Current User Type: ${accountCtrl.userType.value}, "
-               "isCustomer: ${accountCtrl.isCustomer}, "
-               "isVendor: ${accountCtrl.isVendor}, "
-               "isBeautician: ${accountCtrl.isBeautician}");
+    // 1. Get User Data directly from Local Storage
+    final userData = LocalStorage.getUserData();
+    final String role = (userData?['role'] ?? 'user').toString().toLowerCase();
 
+    // 2. Define Role Booleans
+    final bool isVendor = role.contains('vendor');
+    final bool isBeautician = role.contains('beautician');
+    final String userName = userData?['name'] ?? "Ada’s Body Shop";
 
-    if (accountCtrl.isBeautician && !accountCtrl.hasDismissedActionDialog.value) {
+    // 3. Handle Auto-Dialog for Beauticians
+    // Note: You can use a simple RxBool in a small 'DashboardController'
+    // or just show it once per session.
+    if (isBeautician) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        showQuickTipDialog(context);
-        // We don't call accountCtrl.dismissDialog() here yet
-        // because we want to handle that inside the dialog buttons logic
+        // You might want to add a check here to only show once
+        // showQuickTipDialog(context);
       });
     }
 
-    final bool isVendor = accountCtrl.isVendor;
-    final bool isBeautician = accountCtrl.isBeautician;
-
     return Scaffold(
       key: _scaffoldKey,
-      drawer: const DashboardDrawer(),
+      drawer: DashboardDrawer(isVendor: isVendor, isBeautician: isBeautician),
       backgroundColor: AppColors.white,
       body: SafeArea(
         child: SingleChildScrollView(
@@ -47,34 +49,22 @@ class DashboardScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 1. Custom Header
-                _buildHeader(context),
-
+                _buildHeader(context, userData),
                 SizedBox(height: 20.h),
                 Center(
                   child: CustomText(
                     text: "Dashboard",
                     fontSize: 28.sp,
                     fontWeight: FontWeight.bold,
-                    color: Color(0XFF000000),
-                    // color: AppColors.textPrimary,
+                    color: const Color(0XFF000000),
                   ),
                 ),
                 SizedBox(height: 25.h),
-
-                // 2. Ada's Body Shop Banner
-                _buildStoreBanner(),
-
+                _buildStoreBanner(userName),
                 SizedBox(height: 25.h),
-
-                // 3. Your Products Section
-                _buildProductsSection(isVendor, context),
-
+                _buildProductsSection(isVendor, isBeautician, context),
                 SizedBox(height: 25.h),
-
-                // 4. This Week's Revenue Section
                 _buildRevenueSection(),
-
                 SizedBox(height: 30.h),
               ],
             ),
@@ -84,8 +74,9 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  // --- Header with Menu, Location, and Profile ---
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(BuildContext context, Map<String, dynamic>? userData) {
+    final String profileImg = userData?['image'] ?? "https://images.pexels.com/photos/674010/pexels-photo-674010.jpeg";
+
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 10.h),
       child: Row(
@@ -100,7 +91,7 @@ class DashboardScreen extends StatelessWidget {
               Icon(Icons.location_on, size: 18.sp, color: AppColors.textPrimary),
               SizedBox(width: 5.w),
               CustomText(
-                text: "Toronto, ON",
+                text: "Toronto, ON", // This could also come from LocalStorage if saved
                 fontSize: 16.sp,
                 fontWeight: FontWeight.bold,
               ),
@@ -108,12 +99,10 @@ class DashboardScreen extends StatelessWidget {
             ],
           ),
           GestureDetector(
-            onTap: (){
-              Get.toNamed(RouteConstants.profileScreen);
-            },
+            onTap: () => Get.toNamed(RouteConstants.profileScreen),
             child: CircleAvatar(
               radius: 22.r,
-              backgroundImage: const NetworkImage("https://images.pexels.com/photos/674010/pexels-photo-674010.jpeg"),
+              backgroundImage: NetworkImage(profileImg),
             ),
           ),
         ],
@@ -121,22 +110,13 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  // --- Store Banner Card ---
-  Widget _buildStoreBanner() {
+  Widget _buildStoreBanner(String name) {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(20.r),
       decoration: BoxDecoration(
-        color: Color(0XFFCADA9F),
-        // color: AppColors.primary.withOpacity(0.8),
+        color: const Color(0XFFCADA9F),
         borderRadius: BorderRadius.circular(25.r),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          )
-        ],
       ),
       child: Stack(
         children: [
@@ -144,39 +124,32 @@ class DashboardScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CustomText(
-                text: "Ada’s Body\nShop",
+                text: name.replaceFirst(' ', '\n'), // Wraps name to two lines
                 fontSize: 24.sp,
                 fontWeight: FontWeight.bold,
-                color: Color(0XFF1D3826),
-                // color: AppColors.background,
+                color: const Color(0XFF1D3826),
                 textAlign: TextAlign.start,
               ),
               SizedBox(height: 15.h),
-
             ],
           ),
           Positioned(
             right: 0,
             bottom: 0,
-            child: Icon(
-                Icons.eco_outlined,
-                size: 80.sp,
-                color: AppColors.primaryDark.withOpacity(0.3)
-            ),
+            child: Icon(Icons.eco_outlined, size: 80.sp, color: AppColors.primaryDark.withOpacity(0.3)),
           )
         ],
       ),
     );
   }
 
-  // --- Your Products Section ---
-  Widget _buildProductsSection(bool isVendor, BuildContext context) {
+  Widget _buildProductsSection(bool isVendor, bool isBeautician, BuildContext context)
+  {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(vertical: 20.h, horizontal: 15.w),
       decoration: BoxDecoration(
-        color: Color(0XFF9BB575),
-        // color: AppColors.secondaryVariant.withOpacity(0.7), // Using your brand green
+        color: const Color(0XFF9BB575),
         borderRadius: BorderRadius.circular(25.r),
       ),
       child: Column(
@@ -188,8 +161,7 @@ class DashboardScreen extends StatelessWidget {
               text: isVendor ? "Your Products" : "Your Services",
               fontSize: 18.sp,
               fontWeight: FontWeight.bold,
-              // color: AppColors.background,
-              color: Color(0XFF1D3826),
+              color: const Color(0XFF1D3826),
             ),
           ),
           SizedBox(height: 15.h),
@@ -198,13 +170,37 @@ class DashboardScreen extends StatelessWidget {
             physics: const BouncingScrollPhysics(),
             child: Row(
               children: [
-                _buildAddProductTile(context),
+                _buildAddButton(isBeautician, context),
                 _buildProductTile("https://images.pexels.com/photos/4041391/pexels-photo-4041391.jpeg"),
                 _buildProductTile("https://images.pexels.com/photos/3762882/pexels-photo-3762882.jpeg"),
               ],
             ),
           )
         ],
+      ),
+    );
+  }
+
+
+  Widget _buildAddButton(bool isBeautician, BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        if (isBeautician) {
+          showQuickTipDialog(context);
+        } else {
+          Get.toNamed(RouteConstants.addProductsScreen);
+        }
+      },
+      child: Container(
+        width: 100.w,
+        height: 110.h,
+        margin: EdgeInsets.symmetric(horizontal: 8.w),
+        decoration: BoxDecoration(
+          color: AppColors.primary,
+          borderRadius: BorderRadius.circular(25.r),
+          border: Border.all(color: AppColors.white, width: 4),
+        ),
+        child: Icon(Icons.add, size: 35.sp, color: AppColors.primaryDark),
       ),
     );
   }

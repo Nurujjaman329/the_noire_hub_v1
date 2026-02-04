@@ -11,34 +11,30 @@ import '../../../../../core/navigationController/app_navigation_controller.dart'
 import '../../../../../core/widgets/custom_text.dart';
 
 class DashboardDrawer extends StatelessWidget {
-  const DashboardDrawer({super.key});
+  final bool isVendor;
+  final bool isBeautician;
+
+  const DashboardDrawer({
+    super.key,
+    required this.isVendor,
+    required this.isBeautician
+  });
 
   @override
   Widget build(BuildContext context) {
-    final accountCtrl = Get.find<AccountController>();
-    debugPrint("Dashboard Drawer - Current User Type: ${accountCtrl.userType.value}, "
-               "isCustomer: ${accountCtrl.isCustomer}, "
-               "isVendor: ${accountCtrl.isVendor}, "
-               "isBeautician: ${accountCtrl.isBeautician}");
-
-    final bool isVendor = accountCtrl.isVendor;
-    final bool isBeautician = accountCtrl.isBeautician;
-
     return SizedBox(
       width: Get.width * 0.65,
       child: Drawer(
-        backgroundColor: AppColors.transparent,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         child: ClipPath(
           clipper: DrawerClipper(),
           child: Container(
-            color: Color(0XFFCADA9F),
-            // color: AppColors.primary,
+            color: const Color(0XFFCADA9F),
             padding: EdgeInsets.symmetric(horizontal: 25.w, vertical: 60.h),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Close button
                 GestureDetector(
                   onTap: () => Get.back(),
                   child: CircleAvatar(
@@ -62,32 +58,15 @@ class DashboardDrawer extends StatelessWidget {
                     child: Column(
                       children: [
                         _drawerItem(Icons.person_outline, "Account", () => Get.toNamed(RouteConstants.profileScreen)),
-
-                        // Adaptive Store/Profile View
-                        _drawerItem(
-                          Icons.visibility_outlined,
-                          "View Store",
-                                () {
-                                  Get.back(); // Close the drawer
-                                  // Set the index to 1 to show orders/bookings
-                                  Get.find<AppNavigationController>().changeVendorIndex(2);
-                                }
-                        ),
-
+                        _drawerItem(Icons.visibility_outlined, "View Store", () {
+                          Get.find<AppNavigationController>().changeVendorIndex(2);
+                        }),
                         _drawerItem(Icons.bar_chart, "Business", () => Get.toNamed(RouteConstants.businessScreen)),
-
-                        // IMPORTANT: Adaptive Navigation for Orders/Bookings
                         _drawerItem(
                             isVendor ? Icons.description_outlined : Icons.calendar_today_outlined,
                             isVendor ? "Orders" : "Bookings",
-                                () {
-                              // Close the drawer and set index to 1 (orders/bookings tab)
-                              Get.back(); // Close the drawer
-                              // Set the index to 1 to show orders/bookings
-                              Get.find<AppNavigationController>().changeVendorIndex(1);
-                            }
+                                () => Get.find<AppNavigationController>().changeVendorIndex(1)
                         ),
-
                         _drawerItem(Icons.payment, "Add Billings", () => Get.toNamed(RouteConstants.vendorBillingSection)),
                       ],
                     ),

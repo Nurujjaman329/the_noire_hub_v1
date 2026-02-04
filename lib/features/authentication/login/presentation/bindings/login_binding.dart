@@ -6,13 +6,12 @@ import '../controller/login_controller.dart';
 class LoginBinding extends Bindings {
   @override
   void dependencies() {
-    // Create the API client instance
-    final apiClient = ApiClient();
-    
-    // Create the login service with the API client
-    Get.lazyPut<LoginService>(() => LoginService(apiClient));
-    
-    // Create the login controller with the login service
-    Get.lazyPut<LoginController>(() => LoginController(Get.find<LoginService>()));
+    // 1. Find the existing ApiClient, then inject LoginService
+    Get.lazyPut(() => LoginService(Get.find<ApiClient>()), fenix: true);
+
+    Get.lazyPut<LoginController>(
+          () => LoginController(Get.find<LoginService>()),
+      fenix: true,
+    );
   }
 }

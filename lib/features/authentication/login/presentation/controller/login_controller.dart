@@ -25,7 +25,8 @@ class LoginController extends GetxController {
 
   @override
   void onClose() {
-    // Correctly dispose of controllers to prevent memory leaks
+    debugPrint('🧹 LoginController disposing...');
+    // Only dispose if they haven't been disposed by the framework already
     emailController.dispose();
     passwordController.dispose();
     super.onClose();
@@ -51,12 +52,13 @@ class LoginController extends GetxController {
 
     try {
       final response = await _loginService.login(email, password);
-      debugPrint('📡 Login Response Code: ${response.code}');
+
+      // Check if the controller is still active before proceeding
+      if (isClosed) return;
 
       if (response.code == 200 || response.code == 201) {
         isLoggedInStatus.value = true;
 
-        // Success Feedback
         Get.snackbar("Success", "Welcome back!",
             snackPosition: SnackPosition.TOP,
             backgroundColor: Colors.green,
@@ -64,38 +66,40 @@ class LoginController extends GetxController {
             duration: const Duration(seconds: 2));
 
         final userRole = response.data.attributes.user.role.toLowerCase();
+
+        // The navigation happens here, which triggers onClose()
         if (userRole.contains('vendor') || userRole.contains('beautician')) {
-          Get.offAllNamed(
-              RouteConstants.vendorMainContainer,
-              arguments: {'role': userRole}
-          );
+          Get.offAllNamed(RouteConstants.vendorMainContainer, arguments: {'role': userRole});
         } else {
           Get.offAllNamed(RouteConstants.customerMainContainer);
         }
       } else {
-        errorMessage.value = response.message;
         _showErrorSnackbar(response.message);
       }
     } catch (e) {
+      if (isClosed) return; // Prevent updating UI if we've navigated away
       errorMessage.value = e.toString();
       _showErrorSnackbar("Login failed. Please check your connection.");
-      debugPrint('❌ Error during login: $e');
     } finally {
-      isLoading.value = false;
+      // This is usually where the crash happens
+      // Only update isLoading if the controller hasn't been disposed yet
+      if (!isClosed) {
+        isLoading.value = false;
+      }
     }
   }
 
   Future<void> logout() async {
+    FocusManager.instance.primaryFocus?.unfocus();
+
     try {
       await _loginService.logout();
       isLoggedInStatus.value = false;
 
-      Get.snackbar("Logged Out", "You have been successfully logged out",
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.black87,
-          colorText: Colors.white);
-
+      // 2. Clear the navigation stack
+      // We do NOT use Future.delayed here; we want the transition to start immediately
       Get.offAllNamed(RouteConstants.login);
+
     } catch (e) {
       _showErrorSnackbar("Logout failed: ${e.toString()}");
     }
