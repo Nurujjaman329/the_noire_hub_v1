@@ -1,18 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import '../../../../core/accountController/account_controller.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/route_constants.dart';
+import '../../../../core/storage/local_storage.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/widgets/custom_network_image.dart';
 import '../../../../core/widgets/custom_text.dart';
+import '../../../authentication/login/presentation/controller/login_controller.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+
+    final userData = LocalStorage.getUserData();
+    final String role = (userData?['role'] ?? 'user').toString().toLowerCase();
+    final bool isCustomer = role == 'user';
+    final bool isBeautician = role == 'beautician';
+    final bool isVendor = role == 'vendor';
+
     return Scaffold(
       backgroundColor: Color(0XFF3F592B),
       // backgroundColor: AppColors.primaryDark,
@@ -49,10 +57,10 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 25.h),
 
-                  _buildQuickActions(),
+                  _buildQuickActions(isCustomer, isBeautician),
                   SizedBox(height: 20.h),
 
-                  _buildSettingsList(),
+                  _buildSettingsList(isCustomer),
                   SizedBox(height: 20.h),
                   _buildSignOutSection(),
                   SizedBox(height: 100.h),
@@ -78,10 +86,9 @@ class ProfileScreen extends StatelessWidget {
   }
 
 
-  Widget _buildQuickActions() {
-    final accountCtrl = Get.find<AccountController>();
+  Widget _buildQuickActions(bool isCustomer, bool isBeautician) {
 
-    if (accountCtrl.isCustomer) {
+    if (isCustomer) {
       return Row(
         children: [
           // Expanded ensures they take equal width with a gap in between
@@ -106,7 +113,7 @@ class ProfileScreen extends StatelessWidget {
           ),
         ],
       );
-    } else if (accountCtrl.isBeautician) {
+    } else if (isBeautician) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -165,10 +172,7 @@ class ProfileScreen extends StatelessWidget {
         ),
 
 
-        // _actionBox("Rating", Icons.star_border, width: 105.w,onTap: () => Get.toNamed(RouteConstants.reviewScreen)),
-        // _actionBox("Wallet", Icons.credit_card_outlined, width: 105.w,onTap: () => Get.toNamed(RouteConstants.walletScreen)),
-        // _actionBox("Orders", Icons.assignment_outlined, width: 105.w,onTap: () => Get.toNamed(RouteConstants.reviewScreen)),
-      ],
+     ],
     );
   }
 
@@ -214,8 +218,7 @@ class ProfileScreen extends StatelessWidget {
   }
 
 
-  Widget _buildSettingsList() {
-    final accountCtrl = Get.find<AccountController>();
+  Widget _buildSettingsList(bool isCustomer) {
 
     // 1. Define all possible items
     final List<Map<String, dynamic>> menuItems = [
@@ -231,15 +234,9 @@ class ProfileScreen extends StatelessWidget {
 
     // 2. Filter list: Remove 'Invite Friends' if user is NOT a customer
     final filteredItems = menuItems.where((item) {
-      if (item['label'] == "Invite Friends") {
-        return accountCtrl.isCustomer;
-      }
-      if (item['label'] == "Deals & Promos") {
-        return accountCtrl.isCustomer;
-      }
-      if (item['label'] == "Add Promo Code") {
-        return !accountCtrl.isCustomer;
-      }
+      if (item['label'] == "Invite Friends") return isCustomer;
+      if (item['label'] == "Deals & Promos") return isCustomer;
+      if (item['label'] == "Add Promo Code") return !isCustomer;
       return true;
     }).toList();
 
@@ -326,13 +323,28 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
+  void _handleMenuNavigation(String label) {
+    switch (label) {
+      case "Personal Info": Get.toNamed(RouteConstants.personalInfoScreen); break;
+      case "Invite Friends": Get.toNamed(RouteConstants.inviteScreens); break;
+      case "About": Get.toNamed(RouteConstants.aboutUsScreen); break;
+      case "Terms of Service": Get.toNamed(RouteConstants.termsOfServiceScreen); break;
+      case "Deals & Promos": Get.toNamed(RouteConstants.dealsPromos); break;
+      case "Add Promo Code": Get.toNamed(RouteConstants.addDealsPromos); break;
+      case "Help": Get.toNamed(RouteConstants.helpScreen); break;
+      case "Change Password": Get.toNamed(RouteConstants.changePassword); break;
+    }
+  }
+
   void _showLogoutDialog() {
+    // Access the controller to use its logout logic
+    final loginCtrl = Get.find<LoginController>();
+
     Get.defaultDialog(
       title: "Sign Out",
       titleStyle: TextStyle(
         fontSize: 18.sp,
         fontWeight: FontWeight.bold,
-        // color: AppColors.primaryDark,
         color: const Color(0xFF9BB575),
       ),
       middleText: "Are you sure you want to sign out of your account?",
@@ -345,11 +357,10 @@ class ProfileScreen extends StatelessWidget {
       onCancel: () => Get.back(),
       textConfirm: "Yes, Sign Out",
       confirmTextColor: AppColors.white,
-      // buttonColor: AppColors.secondaryVariant, // Using the accent color for buttons
       buttonColor: const Color(0xFF9BB575),
-      onConfirm: () {
-        Get.offAllNamed(RouteConstants.login);
+      onConfirm: () async {
+        Get.back(); // Close the dialog first
+        await loginCtrl.logout(); // This clears LocalStorage and redirects to Login
       },
     );
-  }
-}
+  }}

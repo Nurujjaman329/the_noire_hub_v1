@@ -65,7 +65,10 @@ class LoginController extends GetxController {
 
         final userRole = response.data.attributes.user.role.toLowerCase();
         if (userRole.contains('vendor') || userRole.contains('beautician')) {
-          Get.offAllNamed(RouteConstants.vendorMainContainer);
+          Get.offAllNamed(
+              RouteConstants.vendorMainContainer,
+              arguments: {'role': userRole}
+          );
         } else {
           Get.offAllNamed(RouteConstants.customerMainContainer);
         }

@@ -160,24 +160,93 @@ class StoreSetupScreen extends GetView<RegistrationController> {
   }
 
   Widget _buildDynamicSubCategories(SubCategoryController subCtrl) {
-    return Obx(() => Wrap(
-      spacing: 10.w,
-      children: subCtrl.subCategories.map((sub) {
-        bool isSelected = controller.selectedCategories.isNotEmpty &&
-            controller.selectedCategories.first.subcategories.contains(sub.id);
-        return FilterChip(
-          label: Text(sub.name),
-          selected: isSelected,
-          onSelected: (val) {
-            if (controller.selectedCategories.isEmpty) return;
-            var currentSubKeys = controller.selectedCategories.first.subcategories;
-            val ? currentSubKeys.add(sub.id) : currentSubKeys.remove(sub.id);
-            controller.selectedCategories.refresh();
-          },
+    return Obx(() {
+      if (subCtrl.isLoading.value) {
+        return const Center(child: CircularProgressIndicator(color: Color(0XFFB5B475)));
+      }
+
+      if (subCtrl.subCategories.isEmpty) {
+        return CustomText(
+          text: "Select a category first to see subcategories",
+          fontSize: 12.sp,
+          color: Colors.grey,
         );
-      }).toList(),
-    ));
+      }
+
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        child: Row(
+          children: subCtrl.subCategories.map((sub) {
+            bool isSelected = controller.selectedCategories.isNotEmpty &&
+                controller.selectedCategories.first.subcategories.contains(sub.id);
+
+            return GestureDetector(
+              onTap: () {
+                if (controller.selectedCategories.isEmpty) return;
+                var currentSubKeys = controller.selectedCategories.first.subcategories;
+                if (isSelected) {
+                  currentSubKeys.remove(sub.id);
+                } else {
+                  currentSubKeys.add(sub.id);
+                }
+                controller.selectedCategories.refresh();
+              },
+              child: _subcategoryCard(sub.name, sub.image, isSelected),
+            );
+          }).toList(),
+        ),
+      );
+    });
   }
+
+  Widget _subcategoryCard(String title, String imageUrl, bool isSelected) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      width: 90.w,
+      margin: EdgeInsets.only(right: 12.w, bottom: 5.h),
+      padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 8.w),
+      decoration: BoxDecoration(
+        color: isSelected ? const Color(0XFF1D3826) : Colors.white,
+        borderRadius: BorderRadius.circular(20.r),
+        border: Border.all(
+          color: isSelected ? Colors.transparent : const Color(0XFFB5B475).withOpacity(0.3),
+          width: 1.5,
+        ),
+        boxShadow: isSelected ? [
+          BoxShadow(
+            color: const Color(0XFF1D3826).withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          )
+        ] : [],
+      ),
+      child: Column(
+        children: [
+          // Subcategory Image/Icon
+          CustomNetworkImage(
+            imageUrl: imageUrl.toFullUrl,
+            height: 35.h,
+            width: 35.h,
+            // Add a color filter if selected to make the icon pop
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 10.sp,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              color: isSelected ? Colors.white : const Color(0XFF1D3826),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 
   Widget _specialtyCard(String title, String imageUrl, bool isSelected) {
     return Container(

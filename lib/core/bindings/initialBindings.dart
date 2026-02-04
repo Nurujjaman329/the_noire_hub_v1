@@ -1,5 +1,7 @@
 import 'package:get/get.dart';
 
+import '../../features/authentication/login/data/login_service.dart';
+import '../../features/authentication/login/presentation/controller/login_controller.dart';
 import '../../features/common/category/data/category_service.dart';
 import '../../features/common/category/presentation/controller/category_controller.dart';
 import '../../features/common/subCategories/data/sub_categories_service.dart';
@@ -11,6 +13,9 @@ class InitialBinding extends Bindings {
   @override
   void dependencies() {
     Get.put<ApiClient>(ApiClient(), permanent: true);
+
+    Get.lazyPut<LoginService>(() => LoginService(Get.find<ApiClient>()), fenix: true);
+    Get.lazyPut<LoginController>(() => LoginController(Get.find<LoginService>()), fenix: true);
 
     // Categories - Added fenix: true
     Get.lazyPut<CategoryService>(() => CategoryService(Get.find<ApiClient>()), fenix: true);

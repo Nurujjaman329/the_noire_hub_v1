@@ -1,5 +1,7 @@
 
 
+import 'package:dio/dio.dart';
+
 import '../../../../core/api/api_client.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/storage/local_storage.dart';
@@ -63,7 +65,21 @@ class OtpVerificationService {
         ApiConstants.resendOtp,
         data: {'email': email},
       );
-      debugPrint('📡 [Resend OTP Response]: ${response.statusCode} - ${response.data}');
+
+      debugPrint('📡 [Resend OTP Response Status]: ${response.statusCode}');
+
+      // Some APIs return 200 but the "code" inside the body is what matters
+      final responseData = response.data;
+      if (response.statusCode == 200) {
+        debugPrint('✅ [Resend OTP Success]: ${responseData['message']}');
+      } else {
+        throw Exception(responseData['message'] ?? "Failed to resend code");
+      }
+    } on DioException catch (e) {
+      // Catch Dio specific errors to see the real server message
+      String serverMsg = e.response?.data['message'] ?? "Connection Error";
+      debugPrint('🆘 [Dio Error]: $serverMsg');
+      throw Exception(serverMsg);
     } catch (e) {
       debugPrint('🆘 [Resend OTP Exception]: $e');
       rethrow;

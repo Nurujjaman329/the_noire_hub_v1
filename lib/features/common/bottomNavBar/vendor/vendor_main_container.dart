@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:the_noire_hub_v1/features/common/bottomNavBar/vendor/vendor_bottom_navBar.dart';
+import 'package:the_noire_hub_v1/features/common/bottomNavBar/vendor/vendor_main_controller.dart';
 import '../../../../core/accountController/account_controller.dart';
 import '../../../../core/navigationController/app_navigation_controller.dart';
 import '../../../beautician/beauticanStoreScreen/presentation/screens/beautician_store_screen.dart';
@@ -18,40 +19,26 @@ class VendorMainContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final navCtrl = Get.put(AppNavigationController());
-    // 1. Access the Account Controller
-    final accountCtrl = Get.find<AccountController>();
+    final controller = Get.put(VendorMainController());
 
-    debugPrint("Vendor Main Container - Current User Type: ${accountCtrl.userType.value}, "
-               "isCustomer: ${accountCtrl.isCustomer}, "
-               "isVendor: ${accountCtrl.isVendor}, "
-               "isBeautician: ${accountCtrl.isBeautician}");
+    return Obx(() {
+      // Show a loader if role isn't determined yet
+      if (controller.userRole.value.isEmpty) {
+        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      }
 
-    // 2. Define pages dynamically based on account type
-    final List<Widget> _pages = [
-       DashboardScreen(),
-
-      // LOGIC: If vendor, show Orders. If beautician, show Booking History.
-      accountCtrl.isVendor
-          ? const VendorOrdersScreen()
-          : const BeauticianBookingHistoryScreen(),
-
-      accountCtrl.isVendor
-           ? VendorStoreScreen()
-           : BeauticianStoreScreen(),
-      const ProfileScreen(),
-    ];
-
-    return Obx(() => Scaffold(
-      extendBody: true,
-      body: IndexedStack(
-        index: navCtrl.vendorIndex.value,
-        children: _pages,
-      ),
-      bottomNavigationBar: VendorBottomNavbar(
-        currentIndex: navCtrl.vendorIndex.value,
-        onTap: navCtrl.changeVendorIndex,
-      ),
-    ));
+      return Scaffold(
+        extendBody: true,
+        body: IndexedStack(
+          index: controller.currentIndex.value,
+          children: controller.getPages(),
+        ),
+        bottomNavigationBar: VendorBottomNavbar(
+          currentIndex: controller.currentIndex.value,
+          onTap: controller.changeIndex,
+          isVendor: controller.isVendor,
+        ),
+      );
+    });
   }
 }

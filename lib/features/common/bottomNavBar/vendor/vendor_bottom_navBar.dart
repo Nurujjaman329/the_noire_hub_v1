@@ -7,25 +7,18 @@ import '../../../../core/accountController/account_controller.dart';
 class VendorBottomNavbar extends StatelessWidget {
   final int currentIndex;
   final Function(int) onTap;
+  final bool isVendor; // Added this parameter
 
   const VendorBottomNavbar({
     super.key,
     required this.currentIndex,
     required this.onTap,
+    required this.isVendor, // Added to constructor
   });
 
   @override
   Widget build(BuildContext context) {
-    // 1. Access the Account Controller to check the type
-    final accountCtrl = Get.find<AccountController>();
-    debugPrint("Vendor Bottom Nav - Current User Type: ${accountCtrl.userType.value}, "
-               "isCustomer: ${accountCtrl.isCustomer}, "
-               "isVendor: ${accountCtrl.isVendor}, "
-               "isBeautician: ${accountCtrl.isBeautician}");
-
-    final bool isVendor = accountCtrl.isVendor;
-    final bool isBeautician = accountCtrl.isBeautician;
-
+    // Removed AccountController dependency
     return Container(
       decoration: BoxDecoration(
         boxShadow: [
@@ -44,15 +37,12 @@ class VendorBottomNavbar extends StatelessWidget {
         child: BottomNavigationBar(
           currentIndex: currentIndex,
           onTap: onTap,
-          backgroundColor: Color(0XFF1D3826),
-          // backgroundColor: const Color(0xFF1E2D1F),
+          backgroundColor: const Color(0XFF1D3826),
           type: BottomNavigationBarType.fixed,
-          selectedItemColor: Color(0XFFF1F0B2),
-          // selectedItemColor: const Color(0xFFD9E0A3),
+          selectedItemColor: const Color(0XFFF1F0B2),
           unselectedItemColor: Colors.white.withOpacity(0.6),
           showUnselectedLabels: true,
           iconSize: 24.sp,
-
           selectedLabelStyle: TextStyle(
             fontSize: 11.sp,
             fontWeight: FontWeight.w600,
@@ -62,7 +52,6 @@ class VendorBottomNavbar extends StatelessWidget {
             fontSize: 11.sp,
             height: 1.8,
           ),
-
           items: [
             BottomNavigationBarItem(
               icon: Padding(
@@ -72,7 +61,7 @@ class VendorBottomNavbar extends StatelessWidget {
               label: 'Dashboard',
             ),
 
-            // 2. Adaptive Tab: Orders vs Bookings
+            // Adaptive Tab: Logic now uses the passed isVendor boolean
             BottomNavigationBarItem(
               icon: Padding(
                 padding: EdgeInsets.only(top: 8.h),
