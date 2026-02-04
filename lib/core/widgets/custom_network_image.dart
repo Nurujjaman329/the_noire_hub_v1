@@ -12,7 +12,8 @@ class CustomNetworkImage extends StatelessWidget {
   final Color? backgroundColor;
   final Widget? child;
   final ColorFilter? colorFilter;
-  final BoxFit fit; // Added to make the widget more flexible
+  final BoxFit fit;
+  final Color? color;
 
   const CustomNetworkImage({
     super.key,
@@ -26,12 +27,16 @@ class CustomNetworkImage extends StatelessWidget {
     this.borderRadius,
     this.boxShape = BoxShape.rectangle,
     this.fit = BoxFit.cover,
+    this.color,
   });
 
   @override
   Widget build(BuildContext context) {
-    // 1. Check if the image is a local asset
     final bool isAsset = !imageUrl.startsWith('http');
+
+    // Create a color filter if a color is provided but no complex filter exists
+    final effectiveColorFilter = colorFilter ??
+        (color != null ? ColorFilter.mode(color!, BlendMode.srcIn) : null);
 
     if (isAsset) {
       return Container(
@@ -44,7 +49,6 @@ class CustomNetworkImage extends StatelessWidget {
           color: backgroundColor,
         ),
         child: ClipRRect(
-          // Ensure the asset follows the borderRadius/shape
           borderRadius: boxShape == BoxShape.circle
               ? BorderRadius.circular(height)
               : (borderRadius ?? BorderRadius.zero),
@@ -53,15 +57,14 @@ class CustomNetworkImage extends StatelessWidget {
             height: height,
             width: width,
             fit: fit,
-            color: colorFilter != null ? Colors.white : null,
-            colorBlendMode: colorFilter != null ? BlendMode.dstIn : null,
+            color: color, // Direct tint for assets
+            colorBlendMode: color != null ? BlendMode.srcIn : null,
             errorBuilder: (context, error, stackTrace) => _buildErrorWidget(),
           ),
         ),
       );
     }
 
-    // 2. Otherwise, treat as a Network Image
     return CachedNetworkImage(
       imageUrl: imageUrl,
       imageBuilder: (context, imageProvider) => Container(
@@ -75,7 +78,7 @@ class CustomNetworkImage extends StatelessWidget {
           image: DecorationImage(
             image: imageProvider,
             fit: fit,
-            colorFilter: colorFilter,
+            colorFilter: effectiveColorFilter, // Applies the tint here
           ),
         ),
         child: child,

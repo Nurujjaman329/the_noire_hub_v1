@@ -1,6 +1,7 @@
 
 import 'package:get/get.dart';
 import 'package:the_noire_hub_v1/core/constants/route_constants.dart';
+import 'package:the_noire_hub_v1/features/authentication/gmailVerification/presentation/bindings/gmail_verification_bindings.dart';
 import 'package:the_noire_hub_v1/features/authentication/registration/presentation/bindings/registration_bindings.dart';
 import '../../features/authentication/gmailVerification/presentation/screen/gmail_verification_screen.dart';
 import '../../features/authentication/login/presentation/bindings/login_binding.dart';
@@ -10,6 +11,7 @@ import '../../features/authentication/otpVerify/presentation/screen/otp_verify_s
 import '../../features/authentication/registration/presentation/screens/customer_address_add_screen.dart';
 import '../../features/authentication/registration/presentation/screens/registration_screen.dart';
 import '../../features/authentication/registration/presentation/screens/vendor_registration_screen.dart';
+import '../../features/authentication/resetPassword/presentation/screen/reset_password_screen.dart';
 import '../../features/beautician/beauticianAvailabiltySection/presentation/screens/beautician_availability_section.dart';
 import '../../features/beautician/beauticiansBookingHistory/presentation/screens/beauticians_bookings_history_screen.dart';
 import '../../features/beautician/editServiceScreen/presentation/edit_service_screen.dart';
@@ -27,7 +29,6 @@ import '../../features/common/inviteFriends/presentation/invite_friends_screen.d
 import '../../features/common/personalInfo/presentation/personal_info_screen.dart';
 import '../../features/common/profile/presentation/profile_screen.dart';
 import '../../features/common/rating/presentation/rating_screen.dart';
-import '../../features/common/resetPassword/presentation/screen/reset_password_screen.dart';
 import '../../features/common/selection/selection_screen.dart';
 import '../../features/common/splash/splash_screen.dart';
 import '../../features/common/termsOfService/presentation/screen/terms_of_service_screen.dart';
@@ -276,6 +277,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.gmailVerification,
       page: () => const GmailVerificationScreen(),
+      binding: GmailVerificationBindings(),
       transition: Transition.cupertino,
     ),
     GetPage(

@@ -16,6 +16,8 @@ class ApiConstants {
   static const String subCategories = "subcategories";
   static const String verifyOtp = "auth/verify-email";
   static const String resendOtp = "auth/resend-otp";
+  static const String verifyMail = "auth/forgot-password";
+  static const String resetPassword = "auth/reset-password";
 
   //customer
 

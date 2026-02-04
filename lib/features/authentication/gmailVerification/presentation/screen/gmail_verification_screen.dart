@@ -1,29 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-
 import '../../../../../core/constants/app_colors.dart';
-import '../../../../../core/constants/route_constants.dart';
 import '../../../../../core/widgets/custom_button.dart';
 import '../../../../../core/widgets/custom_text.dart';
 import '../../../../../core/widgets/custom_text_field.dart';
+import '../controller/gmail_verification_controller.dart';
 
-
-class GmailVerificationScreen extends StatefulWidget {
+class GmailVerificationScreen extends GetView<GmailVerificationController> {
   const GmailVerificationScreen({super.key});
 
   @override
-  State<GmailVerificationScreen> createState() => _GmailVerificationScreenState();
-}
-
-class _GmailVerificationScreenState extends State<GmailVerificationScreen> {
-  final TextEditingController emailController = TextEditingController();
-  bool isLoading = false;
-
-  @override
   Widget build(BuildContext context) {
-    // Determine the flow type
-    final String flowType = Get.arguments?['flow'] ?? "verification_only";
+    // 1. Determine the flow type from arguments
+    final dynamic args = Get.arguments;
+    final String flowType = (args is Map) ? (args['flow'] ?? "verification") : "verification";
     final bool isForgotPassword = flowType == "forgot_password";
 
     return Scaffold(
@@ -32,7 +23,7 @@ class _GmailVerificationScreenState extends State<GmailVerificationScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new, color: AppColors.background, size: 20.sp),
+          icon: Icon(Icons.arrow_back_ios_new, color: const Color(0XFF1D3826), size: 20.sp),
           onPressed: () => Get.back(),
         ),
       ),
@@ -41,10 +32,7 @@ class _GmailVerificationScreenState extends State<GmailVerificationScreen> {
           builder: (context, constraints) {
             return SingleChildScrollView(
               child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  // Forces the content to be at least as tall as the screen
-                  minHeight: constraints.maxHeight,
-                ),
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
                 child: IntrinsicHeight(
                   child: Padding(
                     padding: EdgeInsets.symmetric(horizontal: 25.w),
@@ -53,7 +41,7 @@ class _GmailVerificationScreenState extends State<GmailVerificationScreen> {
                       children: [
                         SizedBox(height: 20.h),
 
-                        // 1. Dynamic Icon
+                        // Dynamic Icon Container
                         Container(
                           padding: EdgeInsets.all(15.r),
                           decoration: const BoxDecoration(
@@ -69,31 +57,31 @@ class _GmailVerificationScreenState extends State<GmailVerificationScreen> {
 
                         SizedBox(height: 25.h),
 
-                        // 2. Dynamic Title
+                        // Dynamic Title
                         CustomText(
                           text: isForgotPassword ? "Forgot Password?" : "Verify Email",
                           fontSize: 28.sp,
                           fontWeight: FontWeight.bold,
-                          color: Color(0XFF1D3826),
-                          // color: AppColors.background,
+                          color: const Color(0XFF1D3826),
                         ),
 
                         SizedBox(height: 10.h),
 
-                        // 3. Dynamic Subtitle
+                        // Dynamic Subtitle
                         CustomText(
                           text: isForgotPassword
                               ? "No worries! Enter your email address below and we will send you a code to reset your password."
                               : "Enter your email address below. We will send you a verification code to confirm your account.",
                           fontSize: 14.sp,
-                          color: AppColors.geryColor,
+                          color: Colors.grey,
                           height: 1.5,
                         ),
 
                         SizedBox(height: 40.h),
 
+                        // Connected to Controller's emailController
                         CustomTextField(
-                          controller: emailController,
+                          controller: controller.emailController,
                           labelText: "Email Address",
                           prefixIcon: Icons.email_outlined,
                           hintText: "example@mail.com",
@@ -101,35 +89,24 @@ class _GmailVerificationScreenState extends State<GmailVerificationScreen> {
 
                         SizedBox(height: 40.h),
 
-                        // 4. Dynamic Button Text
-                        CustomButton(
+                        // Dynamic Button with Loading State
+                        Obx(() => CustomButton(
                           text: isForgotPassword ? "Send Reset Code" : "Send Verification Code",
-                          color: Color(0XFF1D3826),
-                          loading: isLoading,
-                          onTap: () {
-                            if (emailController.text.isNotEmpty) {
-                              _handleVerificationRequest(flowType);
-                            } else {
-                              Get.snackbar("Error", "Please enter your email",
-                                  snackPosition: SnackPosition.BOTTOM,
-                                  backgroundColor: Colors.redAccent,
-                                  colorText: Colors.white
-                              );
-                            }
-                          },
-                        ),
+                          color: const Color(0XFF1D3826),
+                          loading: controller.isLoading.value,
+                          onTap: () => controller.sendVerificationCode(),
+                        )),
 
-                        // Spacer now works because IntrinsicHeight + ConstrainedBox
-                        // gives the Column a target height to fill.
                         const Spacer(),
 
+                        // Bottom Navigation Link
                         Center(
                           child: GestureDetector(
                             onTap: () => Get.back(),
                             child: RichText(
                               text: TextSpan(
                                 text: isForgotPassword ? "Remember your password? " : "Already have an account? ",
-                                style: TextStyle(color: Color(0x4D000000), fontSize: 14.sp),
+                                style: TextStyle(color: const Color(0x4D000000), fontSize: 14.sp),
                                 children: [
                                   const TextSpan(
                                     text: "Login",
@@ -154,28 +131,5 @@ class _GmailVerificationScreenState extends State<GmailVerificationScreen> {
         ),
       ),
     );
-  }
-
-  void _handleVerificationRequest(String flowType) {
-    setState(() => isLoading = true);
-
-    Future.delayed(const Duration(seconds: 2), () {
-      setState(() => isLoading = false);
-
-      Get.toNamed(
-          RouteConstants.otpVerifyScreen,
-          arguments: {"flow": flowType}
-      );
-
-      Get.snackbar(
-          "Success",
-          flowType == "forgot_password"
-              ? "Reset code sent to your email"
-              : "Verification code sent to your email",
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: const Color(0xFFD9E8B9),
-          colorText: const Color(0xFF1B3022)
-      );
-    });
   }
 }
