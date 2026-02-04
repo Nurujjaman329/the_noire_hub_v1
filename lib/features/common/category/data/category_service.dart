@@ -18,9 +18,13 @@ class CategoryService {
         'page': page,
         'limit': limit,
       };
+      if (categoryType != null) {
+        queryParams['categoryType'] = categoryType;
+      }
 
       final response = await _apiClient.get(
         ApiConstants.categories,
+        queryParameters: queryParams,
       );
 
       if (response.statusCode == 200) {

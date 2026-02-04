@@ -11,6 +11,7 @@ class SubCategoryService {
     int page = 1,
     int limit = 10,
     String? categoryId,
+    String? categoryType,
   }) async {
     try {
       // Define your query parameters
@@ -21,6 +22,10 @@ class SubCategoryService {
 
       if (categoryId != null) {
         queryParams['category'] = categoryId;
+      }
+
+      if (categoryType != null) {
+        queryParams['categoryType'] = categoryType;
       }
 
       final response = await _apiClient.get(

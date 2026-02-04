@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 
+import '../../../../../core/storage/local_storage.dart';
 import '../../data/category_response_model.dart';
 import '../../data/category_service.dart';
 
@@ -16,18 +17,32 @@ class CategoryController extends GetxController {
   var totalPages = 0.obs;
   var totalResults = 0.obs;
   var hasMoreData = true.obs;
+  String? categoryType;
 
   Future<void> loadCategories({int page = 1, int limit = 10, String? categoryType}) async {
-    if (page == 1) {
-      isLoading.value = true;
-    }
+    if (page == 1) isLoading.value = true;
     errorMessage.value = '';
+
+    if (categoryType != null) {
+      this.categoryType = categoryType;
+    }
+
+    // AUTO-DETECTION LOGIC
+    String? finalType = categoryType;
+    if (finalType == null) {
+      final userData = LocalStorage.getUserData();
+      final String role = (userData?['role'] ?? '').toString().toLowerCase();
+
+      // Map user role to backend category filter
+      if (role == 'vendor') finalType = 'product';
+      else if (role == 'beautician') finalType = 'service';
+    }
 
     try {
       final response = await _categoryService.getCategories(
         page: page,
         limit: limit,
-        categoryType: categoryType,
+        categoryType: finalType, // Use the detected type
       );
 
       if (response.code == 200) {

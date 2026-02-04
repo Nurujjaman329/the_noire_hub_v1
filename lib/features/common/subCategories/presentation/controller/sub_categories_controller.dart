@@ -10,28 +10,28 @@ class SubCategoryController extends GetxController {
   final SubCategoryService _service;
   SubCategoryController(this._service);
 
-  // Observable Data Lists
   var subCategories = <SubCategory>[].obs;
-
-  // State States
   var isLoading = false.obs;
   var isMoreLoading = false.obs;
   var errorMessage = ''.obs;
 
-  // Pagination State
   var currentPage = 1.obs;
   var hasMoreData = true.obs;
   String? selectedCategoryId;
+  String? categoryType; // Stores the active filter (product/service)
 
-  /// Fetches subcategories.
-  /// If [categoryId] is provided, it filters the results.
-  /// If [isRefresh] is true, it clears the list and starts from page 1.
-  Future<void> fetchSubCategories({String? categoryId, bool isRefresh = true}) async {
+  Future<void> fetchSubCategories({
+    String? categoryId,
+    String? categoryType,
+    bool isRefresh = true
+  }) async {
     if (isRefresh) {
       currentPage.value = 1;
       hasMoreData.value = true;
       isLoading.value = true;
       selectedCategoryId = categoryId;
+      // Store the type in state for future pagination/loads
+      this.categoryType = categoryType;
     } else {
       isMoreLoading.value = true;
     }
@@ -42,6 +42,7 @@ class SubCategoryController extends GetxController {
       final response = await _service.getSubCategories(
         page: currentPage.value,
         categoryId: selectedCategoryId,
+        categoryType: this.categoryType, // Use the stored state
       );
 
       if (isRefresh) {
@@ -50,7 +51,6 @@ class SubCategoryController extends GetxController {
         subCategories.addAll(response.data.attributes.results);
       }
 
-      // Logic to determine if there is more data to fetch
       hasMoreData.value = currentPage.value < response.data.attributes.totalPages;
 
       if (hasMoreData.value) {
@@ -65,10 +65,14 @@ class SubCategoryController extends GetxController {
     }
   }
 
-  /// Triggered when user scrolls to the bottom
   Future<void> loadMore() async {
     if (!isLoading.value && !isMoreLoading.value && hasMoreData.value) {
-      await fetchSubCategories(categoryId: selectedCategoryId, isRefresh: false);
+      // Pass categoryType: categoryType to maintain the product/service filter
+      await fetchSubCategories(
+          categoryId: selectedCategoryId,
+          categoryType: categoryType,
+          isRefresh: false
+      );
     }
   }
 }

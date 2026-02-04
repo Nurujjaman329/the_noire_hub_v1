@@ -22,9 +22,19 @@ class StoreSetupScreen extends GetView<RegistrationController> {
   Widget build(BuildContext context) {
     final catCtrl = Get.find<CategoryController>();
     final subCtrl = Get.find<SubCategoryController>();
+    String? userRole = controller.userRole.value;
+    bool isVendor = (userRole == "vendor");
+    bool isBeauticians = (userRole == "beautician");
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      catCtrl.loadCategories(categoryType: controller.userRole.value);
+      // 1. Get the chosen role from SelectionScreen via RegistrationController
+      String role = controller.userRole.value;
+
+      // 2. Map role to the API 'categoryType'
+      String apiType = (role == 'vendor') ? 'product' : 'service';
+
+      // 3. Force the category load for THIS setup session only
+      catCtrl.loadCategories(categoryType: apiType);
     });
 
     return Scaffold(
@@ -118,7 +128,7 @@ class StoreSetupScreen extends GetView<RegistrationController> {
                       loading: controller.isLoading.value,
                       onTap: () {
                         // Safety check: if user typed but didn't click prediction, we use what we have
-                        if (controller.addresses.isEmpty && controller.selectedLatLng.value != null) {
+                        if (controller.addresses.isEmpty) {
                           controller.addAddress(
                             controller.selectedCountry.value,
                             controller.selectedCity.value,
@@ -145,12 +155,21 @@ class StoreSetupScreen extends GetView<RegistrationController> {
       child: Row(
         children: catCtrl.categories.map((cat) {
           bool isSelected = controller.selectedCategories.any((c) => c.category == cat.id);
+
           return GestureDetector(
             onTap: () {
               controller.selectedCategories.assignAll([
                 SelectedCategoryRequest(category: cat.id, subcategories: [])
               ]);
-              subCtrl.fetchSubCategories(categoryId: cat.id);
+
+              // Determine type based on the initial SelectionScreen choice
+              String apiType = (controller.userRole.value == 'vendor') ? 'product' : 'service';
+
+              // Fetch subcategories filtered by both ID and Type
+              subCtrl.fetchSubCategories(
+                  categoryId: cat.id,
+                  categoryType: apiType
+              );
             },
             child: _specialtyCard(cat.name, cat.image, isSelected),
           );
@@ -158,6 +177,7 @@ class StoreSetupScreen extends GetView<RegistrationController> {
       ),
     ));
   }
+
 
   Widget _buildDynamicSubCategories(SubCategoryController subCtrl) {
     return Obx(() {
@@ -179,7 +199,7 @@ class StoreSetupScreen extends GetView<RegistrationController> {
         child: Row(
           children: subCtrl.subCategories.map((sub) {
             bool isSelected = controller.selectedCategories.isNotEmpty &&
-                controller.selectedCategories.first.subcategories.contains(sub.id);
+                (controller.selectedCategories.first.subcategories.contains(sub.id) ?? false);
 
             return GestureDetector(
               onTap: () {
