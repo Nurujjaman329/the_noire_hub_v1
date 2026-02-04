@@ -34,7 +34,6 @@ class OtpVerificationController extends GetxController {
   }
 
   Future<void> verify() async {
-    // 1. Combine digits into a String
     String otpString = controllers.map((e) => e.text).join();
 
     if (otpString.length < 4) {
@@ -43,20 +42,19 @@ class OtpVerificationController extends GetxController {
       return;
     }
 
-    // NO NEED to parse to int. Keep it as String.
     isLoading.value = true;
 
     try {
-      // Pass the otpString directly
-      final response = await _service.verifyOtp(email, otpString);
+      // Pass flowType here ------------------------👇
+      final response = await _service.verifyOtp(email, otpString, flowType);
 
       Get.snackbar("Success", response.message,
-          backgroundColor: Colors.green, colorText: Colors.white);
+          backgroundColor: const Color(0xFFD9E8B9), colorText: const Color(0xFF1B3022));
 
-      // 3. Navigation Logic
       if (flowType == "forgot_password") {
         Get.toNamed(RouteConstants.resetPasswordScreen, arguments: {"email": email});
       } else {
+        // Normal flow: Storage happened in service, now navigate to Home
         final userRole = response.data.attributes.user.role.toLowerCase();
         if (userRole.contains('vendor') || userRole.contains('beautician')) {
           Get.offAllNamed(RouteConstants.vendorMainContainer);

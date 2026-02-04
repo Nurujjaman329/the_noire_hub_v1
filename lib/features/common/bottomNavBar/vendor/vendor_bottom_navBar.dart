@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
-
-import '../../../../core/accountController/account_controller.dart';
 
 class VendorBottomNavbar extends StatelessWidget {
   final int currentIndex;
@@ -18,7 +15,6 @@ class VendorBottomNavbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Removed AccountController dependency
     return Container(
       decoration: BoxDecoration(
         boxShadow: [

@@ -14,8 +14,8 @@ class OtpVerificationService {
 
   OtpVerificationService(this._apiClient);
 
-  Future<OtpVerificationResponseModel> verifyOtp(String email, String otp) async {
-    debugPrint('📩 [OTP Verify Request]: Email: $email, Code: $otp');
+  Future<OtpVerificationResponseModel> verifyOtp(String email, String otp, String flowType) async {
+    debugPrint('📩 [OTP Verify Request]: Email: $email, Code: $otp, Flow: $flowType');
 
     try {
       final response = await _apiClient.postJson(
@@ -26,34 +26,32 @@ class OtpVerificationService {
         },
       );
 
-      debugPrint('📡 [OTP Verify Response Status]: ${response.statusCode}');
-      debugPrint('📦 [OTP Verify Response Data]: ${response.data}');
-
       if (response.statusCode == 200) {
         final verificationResponse = OtpVerificationResponseModel.fromJson(response.data);
 
-        // 1. Store Tokens
-        String accessToken = verificationResponse.data.attributes.tokens.access.token;
-        await LocalStorage.setAccessToken(accessToken);
-        await LocalStorage.setRefreshToken(verificationResponse.data.attributes.tokens.refresh.token);
-        await LocalStorage.setToken(accessToken);
+        // ONLY store tokens if it is NOT a forgot password flow
+        if (flowType != "forgot_password") {
+          // 1. Store Tokens
+          String accessToken = verificationResponse.data.attributes.tokens.access.token;
+          await LocalStorage.setAccessToken(accessToken);
+          await LocalStorage.setRefreshToken(verificationResponse.data.attributes.tokens.refresh.token);
+          await LocalStorage.setToken(accessToken);
 
-        debugPrint('🔑 [Storage]: Access & Refresh Tokens stored successfully');
+          // 2. Store User Data
+          var userData = verificationResponse.data.attributes.user.toJson();
+          await LocalStorage.setUserData(userData);
 
-        // 2. Store User Data
-        var userData = verificationResponse.data.attributes.user.toJson();
-        await LocalStorage.setUserData(userData);
-
-        debugPrint('👤 [Storage]: User Profile data stored successfully');
+          debugPrint('🔑 [Storage]: Auth data saved for registration/login flow');
+        } else {
+          debugPrint('🛡️ [Storage]: Skipped token storage for forgot_password flow');
+        }
 
         return verificationResponse;
       } else {
         String errorMsg = response.data['message'] ?? 'Verification failed';
-        debugPrint('⚠️ [OTP Verify Failed]: $errorMsg');
         throw Exception(errorMsg);
       }
     } catch (e) {
-      debugPrint('🆘 [OTP Verify Exception]: $e');
       rethrow;
     }
   }
