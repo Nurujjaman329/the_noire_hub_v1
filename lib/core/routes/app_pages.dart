@@ -25,6 +25,7 @@ import '../../features/common/averageReviewScreen/presentation/screens/average_r
 import '../../features/common/bottomNavBar/customer/customer_main_container.dart';
 import '../../features/common/bottomNavBar/vendor/vendor_main_container.dart';
 import '../../features/common/changePassword/presentation/screen/change_password_screen.dart';
+import '../../features/common/editProfile/presentation/binding/edit_profile_binding.dart';
 import '../../features/common/editProfile/presentation/edit_profile_screen.dart';
 import '../../features/common/help/presentation/help_screen.dart';
 import '../../features/common/inviteFriends/presentation/invite_friends_screen.dart';
@@ -345,6 +346,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.editProfile,
       page: () => const EditProfileScreen(),
+      binding: EditProfileBinding(),
       transition: Transition.cupertino,
     ),
     GetPage(

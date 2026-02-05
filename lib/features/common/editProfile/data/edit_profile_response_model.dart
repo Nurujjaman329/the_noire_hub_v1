@@ -1,191 +1,112 @@
-import '../../../../core/constants/api_constants.dart';
 
-class LoginResponseModel {
+class EditProfileResponseModel {
   final int code;
   final String message;
-  final LoginData data;
+  final UserUpdateAttributes data;
 
-  LoginResponseModel({
+  EditProfileResponseModel({
     required this.code,
     required this.message,
     required this.data,
   });
 
-  factory LoginResponseModel.fromJson(Map<String, dynamic> json) {
-    return LoginResponseModel(
+  factory EditProfileResponseModel.fromJson(Map<String, dynamic> json) {
+    return EditProfileResponseModel(
       code: json['code'] ?? 0,
       message: json['message'] ?? '',
-      data: LoginData.fromJson(json['data'] ?? {}),
+      data: UserUpdateAttributes.fromJson(json['data']?['attributes'] ?? {}),
     );
   }
 }
-class LoginData {
-  final LoginAttributes attributes;
 
-  LoginData({required this.attributes});
+class UserUpdateAttributes {
+  final EditUserModel user;
 
-  factory LoginData.fromJson(Map<String, dynamic> json) {
-    return LoginData(
-      attributes: LoginAttributes.fromJson(json['attributes'] ?? {}),
+  UserUpdateAttributes({required this.user});
+
+  factory UserUpdateAttributes.fromJson(Map<String, dynamic> json) {
+    return UserUpdateAttributes(
+      user: EditUserModel.fromJson(json),
     );
   }
 }
-class LoginAttributes {
-  final UserModel user;
-  final TokenPair tokens;
 
-  LoginAttributes({
-    required this.user,
-    required this.tokens,
-  });
-
-  factory LoginAttributes.fromJson(Map<String, dynamic> json) {
-    return LoginAttributes(
-      user: UserModel.fromJson(json['user'] ?? {}),
-      tokens: TokenPair.fromJson(json['tokens'] ?? {}),
-    );
-  }
-}
-class UserModel {
+// Reuse the same EditUserModel from before
+class EditUserModel {
   final String id;
-  final String firstName;
-  final String lastName;
   final String fullName;
   final String email;
   final String businessName;
   final String shopImage;
   final String bio;
-  final String stripeAccountId;
   final String image;
   final String role;
-  final String callingCode;
-
-  final int phoneNumber;
-  final int nidNumber;
-
-  final bool isNIDVerified;
+  final String? phoneNumber;
   final bool isProfileCompleted;
-
-  final DateTime? dateOfBirth;
   final DateTime? createdAt;
-
   final List<UserCategory> selectedCategories;
   final List<UserAddress> addresses;
 
-  UserModel({
+  EditUserModel({
     required this.id,
-    required this.firstName,
-    required this.lastName,
     required this.fullName,
     required this.email,
     required this.businessName,
     required this.shopImage,
     required this.bio,
-    required this.stripeAccountId,
     required this.image,
     required this.role,
-    required this.callingCode,
-    required this.phoneNumber,
-    required this.nidNumber,
-    required this.isNIDVerified,
+    this.phoneNumber,
     required this.isProfileCompleted,
-    required this.dateOfBirth,
-    required this.createdAt,
+    this.createdAt,
     required this.selectedCategories,
     required this.addresses,
   });
 
-
-  /// Returns the full URL for the user profile image
-  String get fullProfileImageUrl => (image.isNotEmpty)
-      ? "${ApiConstants.baseImageUrl}$image"
-      : "";
-
-  /// Returns the full URL for the shop/banner image
-  String get fullShopImageUrl => (shopImage.isNotEmpty)
-      ? "${ApiConstants.baseImageUrl}$shopImage"
-      : "";
-
-  /// Helper to check if the user is a service provider
-  bool get isProvider => role.toLowerCase().contains('vendor') || role.toLowerCase().contains('beautician');
-
-  factory UserModel.fromJson(Map<String, dynamic> json) {
-    return UserModel(
+  factory EditUserModel.fromJson(Map<String, dynamic> json) {
+    return EditUserModel(
       id: json['id'] ?? '',
-      firstName: json['firstName'] ?? '',
-      lastName: json['lastName'] ?? '',
       fullName: json['fullName'] ?? '',
       email: json['email'] ?? '',
       businessName: json['businessName'] ?? '',
       shopImage: json['shopImage'] ?? '',
       bio: json['bio'] ?? '',
-      stripeAccountId: json['stripeAccountId'] ?? '',
       image: json['image'] ?? '',
       role: json['role'] ?? '',
-      callingCode: json['callingCode'] ?? '',
-
-      phoneNumber: json['phoneNumber'] is int
-          ? json['phoneNumber']
-          : int.tryParse(json['phoneNumber']?.toString() ?? '0') ?? 0,
-
-      nidNumber: json['nidNumber'] is int
-          ? json['nidNumber']
-          : int.tryParse(json['nidNumber']?.toString() ?? '0') ?? 0,
-
-      isNIDVerified: json['isNIDVerified'] ?? false,
+      phoneNumber: json['phoneNumber']?.toString(),
       isProfileCompleted: json['isProfileCompleted'] ?? false,
-
-      dateOfBirth: json['dateOfBirth'] != null || json['dataOfBirth'] != null
-          ? DateTime.parse(json['dateOfBirth'] ?? json['dataOfBirth'])
-          : null,
-
       createdAt: json['createdAt'] != null
-          ? DateTime.parse(json['createdAt'])
+          ? DateTime.tryParse(json['createdAt'])
           : null,
-
       selectedCategories: (json['selectedCategories'] as List<dynamic>? ?? [])
           .map((e) => UserCategory.fromJson(e))
           .toList(),
-
       addresses: (json['addresses'] as List<dynamic>? ?? [])
           .map((e) => UserAddress.fromJson(e))
           .toList(),
     );
-
-
   }
-
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'firstName': firstName,
-      'lastName': lastName,
       'fullName': fullName,
       'email': email,
       'businessName': businessName,
       'shopImage': shopImage,
       'bio': bio,
-      'stripeAccountId': stripeAccountId,
       'image': image,
       'role': role,
-      'callingCode': callingCode,
       'phoneNumber': phoneNumber,
-      'nidNumber': nidNumber,
-      'isNIDVerified': isNIDVerified,
       'isProfileCompleted': isProfileCompleted,
-
-      // ✅ FIX HERE
-      'dateOfBirth': dateOfBirth?.toIso8601String(),
       'createdAt': createdAt?.toIso8601String(),
-
       'selectedCategories': selectedCategories.map((e) => e.toJson()).toList(),
       'addresses': addresses.map((e) => e.toJson()).toList(),
     };
   }
 }
 
-  class UserCategory {
+class UserCategory {
   final String id;
   final String category;
   final List<String> subcategories;
@@ -214,7 +135,6 @@ class UserModel {
     };
   }
 }
-
 
 class UserAddress {
   final Location location;
@@ -265,51 +185,15 @@ class Location {
     return Location(
       type: json['type'] ?? '',
       coordinates: List<double>.from(
-        (json['coordinates'] as List<dynamic>? ?? [])
-            .map((e) => (e as num).toDouble()),
-      ),
+          (json['coordinates'] as List<dynamic>? ?? [])
+              .map((e) => (e as num).toDouble())),
     );
   }
-
 
   Map<String, dynamic> toJson() {
     return {
       'type': type,
       'coordinates': coordinates,
     };
-  }
-
-}
-class TokenPair {
-  final Token access;
-  final Token refresh;
-
-  TokenPair({
-    required this.access,
-    required this.refresh,
-  });
-
-  factory TokenPair.fromJson(Map<String, dynamic> json) {
-    return TokenPair(
-      access: Token.fromJson(json['access'] ?? {}),
-      refresh: Token.fromJson(json['refresh'] ?? {}),
-    );
-  }
-}
-
-class Token {
-  final String token;
-  final String expires;
-
-  Token({
-    required this.token,
-    required this.expires,
-  });
-
-  factory Token.fromJson(Map<String, dynamic> json) {
-    return Token(
-      token: json['token'] ?? '',
-      expires: json['expires'] ?? '',
-    );
   }
 }

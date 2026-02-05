@@ -13,13 +13,23 @@ class PersonalInfoController extends GetxController {
   var isLoading = false.obs;
   var errorMessage = ''.obs;
 
-  // Reactive profile data
+  // Reactive profile data (Specific to this screen/feature)
   var userProfile = Rxn<UserProfileModel>();
 
   @override
   void onInit() {
     super.onInit();
+    // Pre-fill from LocalStorage if available for instant UI loading
+    _loadInitialData();
     fetchProfile();
+  }
+
+  void _loadInitialData() {
+    final storedUser = LocalStorage.getUserModel();
+    if (storedUser != null) {
+      // Map the generic UserModel back to the specific UserProfileModel for the UI
+      userProfile.value = UserProfileModel.fromJson(storedUser.toJson());
+    }
   }
 
   Future<void> fetchProfile() async {
@@ -32,15 +42,14 @@ class PersonalInfoController extends GetxController {
       // 1. Update the local reactive state
       userProfile.value = fetchedUser;
 
-      // 2. Synchronize with LocalStorage
-      // We convert UserProfileModel -> Map -> UserModel
-      // This ensures LocalStorage gets the exact type it expects.
+      // 2. Map to the main UserModel and save to LocalStorage
+      // This bridges the gap between different model classes
       final userJson = fetchedUser.toJson();
       final userModel = UserModel.fromJson(userJson);
 
       await LocalStorage.setUserModel(userModel);
 
-      debugPrint("✅ Profile synced to LocalStorage successfully");
+      debugPrint("✅ Personal Info synced to LocalStorage");
     } on AppException catch (e) {
       errorMessage.value = e.message;
     } catch (e) {

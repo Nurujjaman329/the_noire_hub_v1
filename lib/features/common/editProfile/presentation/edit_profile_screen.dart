@@ -1,96 +1,128 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
+import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/storage/local_storage.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_network_image.dart';
 import '../../../../core/widgets/custom_text.dart';
+import 'controller/edit_profile_controller.dart';
 
 
-class EditProfileScreen extends StatelessWidget {
+class EditProfileScreen extends GetView<EditProfileController> {
   const EditProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
-      appBar: CustomAppBar(
-        title: "Edit Profile",
-        showBackButton: true,
-      ),
-      body: SingleChildScrollView(
+      appBar: CustomAppBar(title: "Edit Profile", showBackButton: true),
+      body: Obx(() => SingleChildScrollView(
         child: Column(
           children: [
             SizedBox(height: 30.h),
-
-            // 1. Profile Image Section
-            _buildProfileImage(),
-
+            _buildEditableImage(),
             SizedBox(height: 40.h),
-
-            // 2. Info Fields Section
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20.w),
               child: Column(
                 children: [
-                  _infoTile(label: "Full Name", value: "Jane Cooper", icon: Icons.person_outline),
-                  _infoTile(label: "Email Address", value: "jane.cooper@example.com", icon: Icons.mail_outline),
-                  _infoTile(label: "Phone Number", value: "+1 234 567 890", icon: Icons.phone_android_outlined),
-                  _infoTile(label: "Default Address", value: "123 Green Valley, New York", icon: Icons.location_on_outlined),
-                  _infoTile(label: "Date of Birth", value: "12 May 1995", icon: Icons.calendar_today_outlined),
+                  _editTile(label: "Full Name", controller: controller.fullNameController, icon: Icons.person_outline),
+                  _editTile(label: "Business Name", controller: controller.businessNameController, icon: Icons.business_outlined),
+                  _editTile(label: "Phone Number", controller: controller.phoneController, icon: Icons.phone_android_outlined),
+                  _editTile(label: "Address", controller: controller.addressController, icon: Icons.location_on_outlined),
+                  _editTile(label: "Bio", controller: controller.bioController, icon: Icons.info_outline),
                 ],
               ),
             ),
+            SizedBox(height: 20.h),
+            controller.isLoading.value
+                ? const Center(child: CircularProgressIndicator(color: Color(0xFF707E5F)))
+                : _buildSubmitButton(),
+          ],
+        ),
+      )),
+    );
+  }
 
-            SizedBox(height: 40.h),
-
-            // 3. Edit Button
-            _buildEditButton(),
+  Widget _buildEditableImage() {
+    final user = LocalStorage.getUserModel();
+    return Center(
+      child: GestureDetector(
+        onTap: () => _showImageSourceSheet(),
+        child: Stack(
+          children: [
+            Container(
+              padding: EdgeInsets.all(4.r),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFFC4C99A), width: 2),
+              ),
+              child: controller.selectedImagePath.isEmpty
+                  ? CustomNetworkImage(
+                imageUrl: user?.fullProfileImageUrl ?? "",
+                height: 100.h, width: 100.w,
+                borderRadius: BorderRadius.circular(50.r),
+              )
+                  : ClipOval(
+                child: Image.file(
+                  File(controller.selectedImagePath.value),
+                  height: 100.h, width: 100.w, fit: BoxFit.cover,
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: 0, right: 0,
+              child: Container(
+                padding: EdgeInsets.all(6.r),
+                decoration: const BoxDecoration(color: Color(0xFF707E5F), shape: BoxShape.circle),
+                child: Icon(Icons.camera_alt, color: Colors.white, size: 18.sp),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildProfileImage() {
-    return Center(
-      child: Stack(
-        children: [
-          Container(
-            padding: EdgeInsets.all(4.r),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFFC4C99A), width: 2),
+  void _showImageSourceSheet() {
+    Get.bottomSheet(
+      Container(
+        padding: EdgeInsets.all(20.r),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text("Select Image Source", style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
+            SizedBox(height: 20.h),
+            ListTile(
+              leading: const Icon(Icons.camera_alt, color: Color(0xFF707E5F)),
+              title: const Text("Camera"),
+              onTap: () => controller.pickImage(ImageSource.camera),
             ),
-            child: CustomNetworkImage(
-              imageUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200",
-              height: 100.h,
-              width: 100.w,
-              borderRadius: BorderRadius.circular(50.r),
+            ListTile(
+              leading: const Icon(Icons.photo_library, color: Color(0xFF707E5F)),
+              title: const Text("Gallery"),
+              onTap: () => controller.pickImage(ImageSource.gallery),
             ),
-          ),
-          Positioned(
-            bottom: 0,
-            right: 0,
-            child: Container(
-              padding: EdgeInsets.all(6.r),
-              decoration: const BoxDecoration(
-                color: Color(0xFF707E5F),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(Icons.camera_alt, color: Colors.white, size: 18.sp),
-            ),
-          ),
-        ],
+            SizedBox(height: 10.h),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _infoTile({required String label, required String value, required IconData icon}) {
+  Widget _editTile({required String label, required TextEditingController controller, required IconData icon}) {
     return Container(
       margin: EdgeInsets.only(bottom: 20.h),
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
       decoration: BoxDecoration(
         color: const Color(0xFFF9F9F9),
         borderRadius: BorderRadius.circular(15.r),
@@ -101,13 +133,14 @@ class EditProfileScreen extends StatelessWidget {
           Icon(icon, color: const Color(0xFF707E5F), size: 22.sp),
           SizedBox(width: 15.w),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(text: label, fontSize: 11.sp, color: Colors.grey),
-                SizedBox(height: 4.h),
-                CustomText(text: value, fontSize: 14.sp, fontWeight: FontWeight.w600),
-              ],
+            child: TextField(
+              controller: controller,
+              style: TextStyle(fontSize: 14.sp),
+              decoration: InputDecoration(
+                labelText: label,
+                labelStyle: TextStyle(fontSize: 12.sp, color: Colors.grey),
+                border: InputBorder.none,
+              ),
             ),
           ),
         ],
@@ -115,10 +148,13 @@ class EditProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildEditButton() {
+  Widget _buildSubmitButton() {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20.w,vertical: 20.h),
-      child: CustomButton(onTap: (){}, text: "Update Profile"),
+      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
+      child: CustomButton(
+          onTap: () => controller.updateProfile(),
+          text: "Update Profile"
+      ),
     );
   }
 }

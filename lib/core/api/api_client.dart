@@ -149,6 +149,26 @@ class ApiClient {
     }
   }
 
+  // Add this inside your ApiClient class
+  Future<Response> patchFormData(
+      String path, {
+        required FormData data,
+        Options? options,
+        CancelToken? cancelToken,
+      }) async {
+    try {
+      return await _dio.patch(
+        path,
+        data: data,
+        // Force multipart/form-data content type
+        options: options ?? Options(contentType: 'multipart/form-data'),
+        cancelToken: cancelToken,
+      );
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
   // ====================== DELETE ======================
   Future<Response> delete(
       String path, {
