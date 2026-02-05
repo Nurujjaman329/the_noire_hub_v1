@@ -29,18 +29,15 @@ class VendorAddProductScreen extends StatefulWidget {
 
 class _VendorAddProductScreenState extends State<VendorAddProductScreen> {
   String selectedCategory = "Hair";
-  List<ProductEntry> productList = [ProductEntry()];
   UserModel? user;
 
-  // Inventory Categories for Physical Goods
   final Map<String, List<String>> categoryData = {
     "Hair": ["Shampoo", "Extensions", "Wigs", "Conditioner", "Oils"],
     "Make Up": ["Lipstick", "Foundation", "Brushes", "Eyeliner"],
     "Nails": ["Polish", "Acrylic", "Gel", "Nail Art"],
-    "Hair Removal": ["Wax", "Lasers", "Creams", "Razors"],
   };
 
-  String get businessName => user?.businessName ?? "My Shop";
+  String get businessName => user?.businessName ?? "Braids By Mia";
 
   @override
   void initState() {
@@ -51,7 +48,7 @@ class _VendorAddProductScreenState extends State<VendorAddProductScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.primaryDark,
+      backgroundColor: const Color(0xFF1D3826), // Dark Green Header
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
@@ -60,44 +57,44 @@ class _VendorAddProductScreenState extends State<VendorAddProductScreen> {
             child: Container(
               width: double.infinity,
               decoration: BoxDecoration(
-                color: AppColors.white,
+                color: Colors.white,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(50.r),
                   topRight: Radius.circular(50.r),
                 ),
               ),
               child: Padding(
-                padding: EdgeInsets.all(25.w),
+                padding: EdgeInsets.all(20.w),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Center(
                       child: CustomText(
                         text: businessName,
-                        fontSize: 24.sp,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.background,
+                        fontSize: 28.sp,
+                        color: const Color(0xFF1D3826).withOpacity(0.7),
                       ),
                     ),
+                    SizedBox(height: 25.h),
+                    _buildSectionHeader("Product Category", "Select All types of Products you sell"),
+                    _buildCategorySelection(),
                     SizedBox(height: 30.h),
-                    _buildSectionTitle(
-                        "Product Category",
-                        "Select all types of products you sell in your shop"
-                    ),
-                    _buildSpecialtiesList(),
+                    _buildAddProductHeader(),
+                    SizedBox(height: 15.h),
+                    _buildPhotoUploader(),
+                    SizedBox(height: 20.h),
+                    _buildLabel("Select Subcategory"),
+                    _buildDropdownField(["Shampoo", "Wigs", "Extensions"]),
+                    SizedBox(height: 15.h),
+                    _buildWeightRow(),
+                    SizedBox(height: 15.h),
+                    _buildLabel("Price"),
+                    _buildPriceField(),
+                    SizedBox(height: 15.h),
+                    _buildLabel("Description (optional)"),
+                    _buildDescriptionField(),
                     SizedBox(height: 30.h),
-
-                    // List of Product Entry Sections
-                    ListView.separated(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: productList.length,
-                      separatorBuilder: (context, index) => SizedBox(height: 30.h),
-                      itemBuilder: (context, index) => _buildAddProductSection(index),
-                    ),
-
-                    SizedBox(height: 40.h),
-                    _buildFooter(),
+                    _buildSaveButton(),
                     SizedBox(height: 20.h),
                   ],
                 ),
@@ -109,256 +106,196 @@ class _VendorAddProductScreenState extends State<VendorAddProductScreen> {
     );
   }
 
-  Widget _buildFooter() {
-    return CustomButton(
-      onTap: () {
-        debugPrint("Vendor Saving Products...");
-        Get.snackbar(
-          "Success",
-          "Products saved to your shop!",
-          backgroundColor: AppColors.secondaryVariant,
-          colorText: Colors.white,
-        );
-        Get.back();
-      },
-      text: "Save Products",
-    );
-  }
-
-  Widget _buildSpecialtiesList() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      physics: const BouncingScrollPhysics(),
-      child: Row(
-        children: categoryData.keys.map((cat) {
-          bool isSelected = selectedCategory == cat;
-          return GestureDetector(
-            onTap: () => setState(() {
-              selectedCategory = cat;
-              for (var product in productList) {
-                product.subCategory = null;
-              }
-            }),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              width: 100.w,
-              height: 110.h,
-              margin: EdgeInsets.only(right: 15.w),
-              decoration: BoxDecoration(
-                color: isSelected ? AppColors.secondaryVariant : AppColors.primary,
-                borderRadius: BorderRadius.circular(25.r),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    isSelected ? Icons.check_circle : Icons.inventory_2_outlined,
-                    color: isSelected ? Colors.white : AppColors.background,
-                    size: 30.sp,
-                  ),
-                  CustomText(
-                      text: cat,
-                      fontSize: 11.sp,
-                      fontWeight: FontWeight.bold,
-                      color: isSelected ? Colors.white : AppColors.textPrimary,
-                      top: 8.h
-                  ),
-                ],
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildAddProductSection(int index) {
+  Widget _buildSectionHeader(String title, String sub) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            CustomText(
-                text: index == 0 ? "Add Product" : "Product #${index + 1}",
-                fontSize: 18.sp,
-                fontWeight: FontWeight.bold,
-                color: AppColors.background
-            ),
-            SizedBox(width: 140.w, child: _buildDynamicDropdown(index)),
-          ],
-        ),
-        SizedBox(height: 20.h),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              flex: 3,
-              child: Column(
-                children: [
-                  Container(
-                    padding: EdgeInsets.all(15.r),
-                    decoration: BoxDecoration(
-                      color: const Color(0XFFCADA9F),
-                      borderRadius: BorderRadius.circular(20.r),
-                    ),
-                    child: Column(
-                      children: [
-                        _buildSmallInputRow("Product Name", "\$ 0.00"),
-                        SizedBox(height: 25.h),
-                        const Icon(Icons.add_a_photo_outlined, size: 35, color: Color(0x4D000000)),
-                        CustomText(text: "Tap to add photos", fontSize: 11.sp, color: const Color(0x4D000000), top: 8.h),
-                        SizedBox(height: 25.h),
-                        _buildVariantLink(),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: 10.h),
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.all(12.r),
-                    decoration: BoxDecoration(
-                      color: const Color(0XFFCADA9F),
-                      borderRadius: BorderRadius.circular(15.r),
-                    ),
-                    child: CustomText(text: "Product Description", color: const Color(0x4D000000), fontSize: 12.sp),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              flex: 1,
-              child: Column(
-                children: [
-                  SizedBox(height: 50.h),
-                  GestureDetector(
-                    onTap: () => setState(() => productList.add(ProductEntry())),
-                    child: Column(
-                      children: [
-                        Icon(Icons.add_circle_outline, color: AppColors.secondaryVariant, size: 35.sp),
-                        CustomText(
-                          text: "Add Another\nProduct",
-                          textAlign: TextAlign.center,
-                          fontSize: 9.sp,
-                          color: AppColors.geryColor,
-                          top: 5.h,
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (index > 0) ...[
-                    SizedBox(height: 20.h),
-                    IconButton(
-                      icon: Icon(Icons.delete_outline, color: Colors.red.withOpacity(0.5)),
-                      onPressed: () => setState(() => productList.removeAt(index)),
-                    )
-                  ]
-                ],
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDynamicDropdown(int index) {
-    List<String> subCategories = categoryData[selectedCategory] ?? [];
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.w),
-      decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(10.r),
-        border: Border.all(color: AppColors.primary),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: productList[index].subCategory,
-          hint: CustomText(text: "Subcategory", fontSize: 11.sp, color: AppColors.background),
-          isExpanded: true,
-          icon: Icon(Icons.keyboard_arrow_down, color: AppColors.background, size: 16.sp),
-          items: subCategories.map((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: CustomText(text: value, fontSize: 11.sp, color: AppColors.background),
-            );
-          }).toList(),
-          onChanged: (newValue) {
-            setState(() {
-              productList[index].subCategory = newValue;
-            });
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildVariantLink() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        CustomText(text: "0 photos added", fontSize: 10.sp, color: const Color(0x4D000000)),
-        GestureDetector(
-          onTap: () => Get.bottomSheet(
-            const VendorAddVariantSheet(),
-            isScrollControlled: true,
-            backgroundColor: Colors.transparent,
-          ),
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-            decoration: BoxDecoration(
-              color: const Color(0x4D000000),
-              borderRadius: BorderRadius.circular(5.r),
-            ),
-            child: CustomText(
-              text: "+ Add Variants",
-              fontSize: 10.sp,
-              color: AppColors.secondaryVariant,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // Common UI Helpers (Simplified)
-  Widget _buildSliverAppBar() {
-    return SliverAppBar(
-      expandedHeight: 180.h,
-      backgroundColor: AppColors.primaryDark,
-      pinned: true,
-      flexibleSpace: FlexibleSpaceBar(
-        background: Center(
-          child: CustomNetworkImage(imageUrl: AppAssets.appLogo, height: 60.h, width: 150.w, fit: BoxFit.contain),
-        ),
-      ),
-      leading: IconButton(
-        icon: Icon(Icons.arrow_back_ios_new, color: AppColors.white, size: 20.sp),
-        onPressed: () => Get.back(),
-      ),
-    );
-  }
-
-  Widget _buildSectionTitle(String title, String sub) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CustomText(text: title, fontSize: 16.sp, fontWeight: FontWeight.bold, color: const Color(0XFF1D3826)),
-        CustomText(text: sub, fontSize: 11.sp, color: const Color(0XFFB5B475)),
+        CustomText(text: title, fontSize: 18.sp, fontWeight: FontWeight.bold, color: const Color(0xFF1D3826)),
+        CustomText(text: sub, fontSize: 12.sp, color: const Color(0xFFB5B475)),
         SizedBox(height: 15.h),
       ],
     );
   }
 
-  Widget _buildSmallInputRow(String hint, String price) {
-    return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-      CustomText(text: hint, color: const Color(0x4D000000), fontSize: 13.sp),
-      Container(
-        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
-        decoration: BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.circular(10.r)),
-        child: CustomText(text: price, fontSize: 12.sp, fontWeight: FontWeight.bold),
-      )
-    ]);
+  Widget _buildCategorySelection() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: categoryData.keys.map((cat) {
+        bool isSelected = selectedCategory == cat;
+        return GestureDetector(
+          onTap: () => setState(() => selectedCategory = cat),
+          child: Container(
+            width: 105.w,
+            height: 110.h,
+            decoration: BoxDecoration(
+              color: isSelected ? const Color(0xFFB7C591) : const Color(0xFFCADA9F).withOpacity(0.6),
+              borderRadius: BorderRadius.circular(25.r),
+              boxShadow: isSelected ? [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 4))] : [],
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  isSelected ? Icons.check_circle : Icons.category_outlined, // Placeholder for your custom icons
+                  color: isSelected ? Colors.white : const Color(0xFF1D3826),
+                  size: 28.sp,
+                ),
+                SizedBox(height: 8.h),
+                CustomText(
+                  text: cat,
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF1D3826),
+                ),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildAddProductHeader() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CustomText(text: "Add Product", fontSize: 22.sp, fontWeight: FontWeight.bold, color: const Color(0xFF1D3826)),
+            CustomText(text: "Category: $selectedCategory Care", fontSize: 12.sp, color: Colors.grey),
+          ],
+        ),
+        TextButton(
+          onPressed: () => Get.bottomSheet(
+            const VendorAddVariantSheet(),
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+          ),
+          child: CustomText(
+            text: "Add Variant",
+            fontSize: 16.sp,
+            fontWeight: FontWeight.bold,
+            color: const Color(0xFF1D3826),
+            textDecoration: TextDecoration.underline,
+          ),
+        )
+      ],
+    );
+  }
+
+  Widget _buildPhotoUploader() {
+    return Container(
+      width: double.infinity,
+      height: 120.h,
+      decoration: BoxDecoration(
+        border: Border.all(color: const Color(0xFF1D3826)),
+        borderRadius: BorderRadius.circular(10.r),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.note_add_outlined, color: Color(0xFF1D3826)),
+          SizedBox(height: 8.h),
+          CustomText(text: "Tap to add photo", fontSize: 12.sp, color: Colors.grey),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLabel(String text) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 8.h),
+      child: CustomText(text: text, fontSize: 12.sp, fontWeight: FontWeight.w600, color: const Color(0xFF1D3826)),
+    );
+  }
+
+  Widget _buildDropdownField(List<String> items) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12.w),
+      decoration: BoxDecoration(
+        border: Border.all(color: const Color(0xFF1D3826)),
+        borderRadius: BorderRadius.circular(8.r),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          isExpanded: true,
+          icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF1D3826)),
+          items: items.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+          onChanged: (v) {},
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWeightRow() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildLabel("Weight"),
+        Row(
+          children: [
+            Expanded(flex: 3, child: _buildDropdownField(["Value e.g:gm"])),
+            SizedBox(width: 10.w),
+            Expanded(flex: 1, child: _buildDropdownField(["Unit"])),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPriceField() {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12.w),
+      decoration: BoxDecoration(
+        border: Border.all(color: const Color(0xFF1D3826)),
+        borderRadius: BorderRadius.circular(8.r),
+      ),
+      child: TextField(
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          icon: Icon(Icons.monetization_on_outlined, size: 20.sp, color: const Color(0xFF1D3826)),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDescriptionField() {
+    return Container(
+      height: 80.h,
+      decoration: BoxDecoration(
+        border: Border.all(color: const Color(0xFF1D3826)),
+        borderRadius: BorderRadius.circular(10.r),
+      ),
+      child: const TextField(
+        maxLines: 3,
+        decoration: InputDecoration(border: InputBorder.none, contentPadding: EdgeInsets.all(10)),
+      ),
+    );
+  }
+
+  Widget _buildSaveButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 50.h,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF1D3826),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+        ),
+        onPressed: () {},
+        child: CustomText(text: "Save", color: Colors.white, fontSize: 18.sp, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
+  Widget _buildSliverAppBar() {
+    return SliverAppBar(
+      expandedHeight: 80.h,
+      backgroundColor: const Color(0xFF1D3826),
+      automaticallyImplyLeading: false,
+      pinned: true,
+    );
   }
 }

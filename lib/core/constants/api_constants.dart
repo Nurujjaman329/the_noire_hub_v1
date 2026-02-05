@@ -31,5 +31,6 @@ class ApiConstants {
 
   static const String vendorProductList = "products";
   static const String vendorSingleProduct = "products/";
+  static const String vendorDeleteSingleProduct = "products/";
 
 }
