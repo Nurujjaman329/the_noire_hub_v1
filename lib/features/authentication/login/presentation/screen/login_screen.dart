@@ -22,13 +22,13 @@ class LoginScreen extends GetView<LoginController> {
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          // 1. Header Background
+          // --- Header Image ---
           Positioned(
             top: 0, left: 0, right: 0, height: 350.h,
             child: Image.asset(AppAssets.logInMan, fit: BoxFit.cover),
           ),
 
-          // 2. Logo and Tagline
+          // --- Logo & Tagline ---
           Positioned(
             top: 110.h, left: 0, right: 0,
             child: Column(
@@ -45,7 +45,7 @@ class LoginScreen extends GetView<LoginController> {
             ),
           ),
 
-          // 3. Main Content Container
+          // --- Main Container ---
           Positioned.fill(
             top: 280.h,
             child: Container(
@@ -68,12 +68,11 @@ class LoginScreen extends GetView<LoginController> {
                       color: const Color(0XFF000000),
                       top: 30.h,
                     ),
-
                     _buildSubHeader(),
 
                     SizedBox(height: 35.h),
 
-                    // Inputs using controller
+                    // --- TextFields ---
                     CustomTextField(
                       controller: controller.emailController,
                       labelText: "Email",
@@ -88,44 +87,34 @@ class LoginScreen extends GetView<LoginController> {
                     ),
 
                     SizedBox(height: 15.h),
-
                     _buildOptionsRow(),
 
                     SizedBox(height: 25.h),
 
-                    // Sign In Button
+                    // --- Login Button ---
                     Obx(() => CustomButton(
                       text: "Sign in",
                       color: const Color(0XFF1D3826),
                       loading: controller.isLoading.value,
-                      onTap: () => controller.login(),
+                      onTap: controller.login,
                     )),
-
-                    // Error Message
-                    Obx(() => controller.errorMessage.isNotEmpty
-                        ? Padding(
-                      padding: EdgeInsets.only(top: 10.h),
-                      child: CustomText(
-                        text: controller.errorMessage.value,
-                        color: Colors.red, fontSize: 14.sp,
-                      ),
-                    )
-                        : const SizedBox.shrink()),
 
                     SizedBox(height: 20.h),
 
+                    // --- Create Account ---
                     GestureDetector(
                       onTap: () => Get.toNamed(RouteConstants.registration),
                       child: CustomText(
                         text: "Create Account",
                         color: const Color(0XFF1D3826),
-                        fontWeight: FontWeight.bold, fontSize: 14.sp,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14.sp,
                       ),
                     ),
 
                     _buildSocialDivider(),
 
-                    // Social Buttons
+                    // --- Social Buttons ---
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
@@ -134,6 +123,7 @@ class LoginScreen extends GetView<LoginController> {
                         _socialButton("Apple", AppIcons.appleIcon),
                       ],
                     ),
+
                     SizedBox(height: 40.h),
                   ],
                 ),
@@ -145,63 +135,89 @@ class LoginScreen extends GetView<LoginController> {
     );
   }
 
-  // --- Helper Widgets to keep build method clean ---
-
+  // --- Sub Header ---
   Widget _buildSubHeader() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        CustomText(text: "Vendors and Beauticians ", color: const Color(0XFF999999), fontSize: 13.sp, top: 8.h),
+        CustomText(
+          text: "Vendors and Beauticians ",
+          color: const Color(0XFF999999),
+          fontSize: 13.sp,
+          top: 8.h,
+        ),
         GestureDetector(
           onTap: () => Get.toNamed(RouteConstants.selection),
           child: CustomText(
-            text: "click here", color: const Color(0XFFB5B475),
-            fontWeight: FontWeight.bold, textDecoration: TextDecoration.underline,
-            fontSize: 13.sp, top: 8.h,
+            text: "click here",
+            color: const Color(0XFFB5B475),
+            fontWeight: FontWeight.bold,
+            textDecoration: TextDecoration.underline,
+            fontSize: 13.sp,
+            top: 8.h,
           ),
         ),
       ],
     );
   }
 
+  // --- Options Row ---
   Widget _buildOptionsRow() {
+    final controller = Get.find<LoginController>();
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Row(
           children: [
-            SizedBox(
-              height: 24.w, width: 24.w,
-              child: Obx(() => Checkbox(
-                value: controller.rememberMe.value,
-                activeColor: const Color(0XFF1D3826),
-                onChanged: (val) => controller.rememberMe.value = val!,
-              )),
+            Obx(() => Checkbox(
+              value: controller.rememberMe.value,
+              activeColor: const Color(0XFF1D3826),
+              onChanged: (val) => controller.rememberMe.value = val!,
+            )),
+            CustomText(
+              text: "Remember Me",
+              fontSize: 12.sp,
+              color: Colors.black,
+              left: 8.w,
             ),
-            CustomText(text: "Remember Me", fontSize: 12.sp, color: Colors.black, left: 8.w),
           ],
         ),
         GestureDetector(
-          onTap: () => Get.toNamed(RouteConstants.gmailVerification, arguments: {"flow": "forgot_password"}),
-          child: CustomText(text: "Forgot Password", color: const Color(0xFFB5B475), fontSize: 12.sp),
+          onTap: () => Get.toNamed(
+            RouteConstants.gmailVerification,
+            arguments: {"flow": "forgot_password"},
+          ),
+          child: CustomText(
+            text: "Forgot Password",
+            color: const Color(0xFFB5B475),
+            fontSize: 12.sp,
+          ),
         ),
       ],
     );
   }
 
+  // --- Divider ---
   Widget _buildSocialDivider() {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 25.h),
       child: Row(
         children: [
           const Expanded(child: Divider()),
-          CustomText(text: "Or Continue With", color: const Color(0x4D000000), fontSize: 12.sp, left: 10.w, right: 10.w),
+          CustomText(
+            text: "Or Continue With",
+            color: const Color(0x4D000000),
+            fontSize: 12.sp,
+            left: 10.w,
+            right: 10.w,
+          ),
           const Expanded(child: Divider()),
         ],
       ),
     );
   }
 
+  // --- Social Button ---
   Widget _socialButton(String label, String iconPath) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
@@ -212,7 +228,12 @@ class LoginScreen extends GetView<LoginController> {
       child: Row(
         children: [
           SvgPicture.asset(iconPath, width: 20.w, height: 20.w),
-          CustomText(text: label, fontSize: 12.sp, fontWeight: FontWeight.w500, left: 8.w),
+          CustomText(
+            text: label,
+            fontSize: 12.sp,
+            fontWeight: FontWeight.w500,
+            left: 8.w,
+          ),
         ],
       ),
     );

@@ -7,7 +7,7 @@ import '../../../../core/storage/local_storage.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/widgets/custom_network_image.dart';
 import '../../../../core/widgets/custom_text.dart';
-import '../../../authentication/login/presentation/controller/login_controller.dart';
+import '../../../authentication/login/presentation/controller/logout_controller.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -337,8 +337,8 @@ class ProfileScreen extends StatelessWidget {
   }
 
   void _showLogoutDialog() {
-    // Access the controller to use its logout logic
-    final loginCtrl = Get.find<LoginController>();
+    // Access the logout controller
+    final logoutCtrl = Get.put(LogoutController(Get.find()));
 
     Get.defaultDialog(
       title: "Sign Out",
@@ -360,7 +360,9 @@ class ProfileScreen extends StatelessWidget {
       buttonColor: const Color(0xFF9BB575),
       onConfirm: () async {
         Get.back(); // Close the dialog first
-        await loginCtrl.logout(); // This clears LocalStorage and redirects to Login
+        await logoutCtrl.logout(); // Perform logout
+        // Clean up the logout controller after use
+        Get.delete<LogoutController>();
       },
     );
   }}

@@ -22,7 +22,6 @@ class _VendorStoreScreenState extends State<VendorStoreScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final AccountController accountCtrl = Get.find<AccountController>();
 
     return Scaffold(
       backgroundColor: AppColors.white,

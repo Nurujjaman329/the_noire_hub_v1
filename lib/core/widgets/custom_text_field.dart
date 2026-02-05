@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-
 class CustomTextField extends StatefulWidget {
   final TextEditingController controller;
   final TextInputType? keyboardType;
@@ -52,6 +51,23 @@ class CustomTextField extends StatefulWidget {
 
 class _CustomTextFieldState extends State<CustomTextField> {
   bool obscureText = true;
+  // 🔥 FIX: Add an explicit FocusNode
+  late FocusNode _focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode = FocusNode();
+  }
+
+  @override
+  void dispose() {
+    // 🔥 FIX: Unfocus and dispose node to stop it from
+    // calling the controller after the widget is gone
+    _focusNode.unfocus();
+    _focusNode.dispose();
+    super.dispose();
+  }
 
   void toggle() {
     setState(() {
@@ -62,6 +78,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
+      focusNode: _focusNode, // 🔥 FIX: Attach the managed node
       maxLines: widget.maxLines,
       onTap: widget.onTab,
       readOnly: widget.readOnly ?? false,
@@ -73,7 +90,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
       cursorColor: Colors.black,
       obscureText: widget.isPassword ? obscureText : false,
       style: TextStyle(
-        color: const Color(0xFF000000), // Solid Black
+        color: const Color(0xFF000000),
         fontSize: 16.sp,
       ),
       decoration: InputDecoration(
@@ -85,7 +102,6 @@ class _CustomTextFieldState extends State<CustomTextField> {
           fontSize: 14.sp,
         ),
         hintText: widget.hintText,
-        // Hint text is now bold solid black as requested
         hintStyle: TextStyle(
             color: const Color(0xFF000000),
             fontSize: 14.sp,
@@ -103,14 +119,11 @@ class _CustomTextFieldState extends State<CustomTextField> {
           vertical: widget.contenpaddingVertical ?? 16.h,
           horizontal: widget.contenpaddingHorizontal ?? 15.w,
         ),
-
-        // --- BORDER SECTION ---
         border: _buildOutlineBorder(color: Colors.grey.shade400),
         enabledBorder: _buildOutlineBorder(color: Colors.grey.shade400),
-        focusedBorder: _buildOutlineBorder(color: const Color(0xFF000000)), // Black on focus
+        focusedBorder: _buildOutlineBorder(color: const Color(0xFF000000)),
         errorBorder: _buildOutlineBorder(color: Colors.red),
         focusedErrorBorder: _buildOutlineBorder(color: Colors.red, width: 1.5),
-
         suffixIcon: widget.isPassword
             ? IconButton(
           onPressed: toggle,
@@ -125,7 +138,6 @@ class _CustomTextFieldState extends State<CustomTextField> {
     );
   }
 
-  // Helper method for consistent Outline Border
   OutlineInputBorder _buildOutlineBorder({required Color color, double width = 1.0}) {
     return OutlineInputBorder(
       borderRadius: BorderRadius.circular(12.r),

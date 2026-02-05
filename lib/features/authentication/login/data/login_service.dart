@@ -1,5 +1,5 @@
-import 'package:dio/dio.dart';
 import '../../../../core/api/api_client.dart';
+import '../../../../core/api/api_exception.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/storage/local_storage.dart';
 import 'login_response_model.dart';
@@ -19,31 +19,26 @@ class LoginService {
         },
       );
 
-      if (response.statusCode == 200) {
-        final loginResponse = LoginResponseModel.fromJson(response.data);
+      final loginResponse = LoginResponseModel.fromJson(response.data);
 
-        // Store the tokens in local storage
-        await LocalStorage.setAccessToken(loginResponse.data.attributes.tokens.access.token);
-        await LocalStorage.setRefreshToken(loginResponse.data.attributes.tokens.refresh.token);
+      await LocalStorage.setAccessToken(
+          loginResponse.data.attributes.tokens.access.token);
+      await LocalStorage.setRefreshToken(
+          loginResponse.data.attributes.tokens.refresh.token);
+      await LocalStorage.setUserData(
+          loginResponse.data.attributes.user.toJson());
+      await LocalStorage.setToken(
+          loginResponse.data.attributes.tokens.access.token);
 
-        // Store user data in local storage
-        await LocalStorage.setUserData(loginResponse.data.attributes.user.toJson());
-
-        // Also store the main token for the API interceptor
-        await LocalStorage.setToken(loginResponse.data.attributes.tokens.access.token);
-
-        return loginResponse;
-      } else {
-        throw Exception('Failed to login: ${response.statusMessage}');
-      }
-    } on DioException catch (e) {
-      throw Exception('Login failed: ${e.message}');
+      return loginResponse;
+    } on AppException {
+      rethrow;
     } catch (e) {
-      throw Exception('Login failed: $e');
+      throw UnknownException(e.toString());
     }
   }
 
-  Future<void> logout() async {
+    Future<void> logout() async {
     try {
       // Remove tokens and user data from local storage
       await LocalStorage.removeAccessToken();
