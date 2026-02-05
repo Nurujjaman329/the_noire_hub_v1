@@ -2,92 +2,92 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../../../core/accountController/account_controller.dart';
+import '../../../../../core/constants/api_constants.dart';
 import '../../../../../core/constants/app_assets.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/route_constants.dart';
+import '../../../../../core/storage/local_storage.dart';
 import '../../../../../core/widgets/custom_network_image.dart';
 import '../../../../../core/widgets/custom_text.dart';
 import '../../../../../core/widgets/dialog_helper.dart';
+import '../../../../authentication/login/data/login_response_model.dart';
+import '../../data/vendor_products_response_model.dart';
+import '../controller/vendor_product_controller.dart';
 
-class VendorStoreScreen extends StatefulWidget {
+class VendorStoreScreen extends GetView<VendorProductController> {
   const VendorStoreScreen({super.key});
 
   @override
-  State<VendorStoreScreen> createState() => _VendorStoreScreenState();
-}
-
-class _VendorStoreScreenState extends State<VendorStoreScreen> {
-  // Track toggle state
-  bool isLiveMode = true;
-
-  @override
   Widget build(BuildContext context) {
+    // Pull logged in user info for the store header
+    final user = LocalStorage.getUserModel();
 
     return Scaffold(
       backgroundColor: AppColors.white,
-      body: SingleChildScrollView(
-        child: Stack(
-          children: [
-            // 1. Header Background (Static in background)
-            _buildHeaderBackground(),
+      body: Obx(() {
+        if (controller.isLoading.value && controller.productList.isEmpty) {
+          return const Center(child: CircularProgressIndicator(color: Color(0xFF707E5F)));
+        }
 
-            // 2. Content Layer
-            Column(
+        return RefreshIndicator(
+          onRefresh: () => controller.fetchProducts(),
+          child: SingleChildScrollView(
+            child: Stack(
               children: [
-                // Transparent space to let header show through
-                SizedBox(height: 160.h),
-
-                // 3. The Main Content Card
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(50.r),
-                      topRight: Radius.circular(50.r),
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      // THIS IS THE KEY: Pull the image up so it sits on the line
-                      Transform.translate(
-                        offset: Offset(0, -60.h),
-                        child: _buildFloatingProfileImage(),
-                      ),
-
-                      // Reduce height since Transform moved the image up
-                      Transform.translate(
-                        offset: Offset(0, -40.h),
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 20.w),
-                          child: Column(
-                            children: [
-                              _buildStoreInfo(),
-
-                              Padding(
-                                padding: EdgeInsets.symmetric(vertical: 15.h),
-                                child: Divider(color: AppColors.geryColor.withOpacity(0.2), thickness: 1),
-                              ),
-
-                              _buildTextButtonsToggle(),
-
-                              SizedBox(height: 10.h),
-                              _buildProductCategory("Hair Care", showEdit: isLiveMode),
-                              _buildProductCategory("Skin Care", showEdit: isLiveMode),
-
-                              SizedBox(height: 100.h),
-                            ],
-                          ),
+                _buildHeaderBackground(),
+                Column(
+                  children: [
+                    SizedBox(height: 160.h),
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: AppColors.white,
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(50.r),
+                          topRight: Radius.circular(50.r),
                         ),
                       ),
-                    ],
-                  ),
+                      child: Column(
+                        children: [
+                          Transform.translate(
+                            offset: Offset(0, -60.h),
+                            child: _buildFloatingProfileImage(user),
+                          ),
+                          Transform.translate(
+                            offset: Offset(0, -40.h),
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 20.w),
+                              child: Column(
+                                children: [
+                                  _buildStoreInfo(user),
+                                  Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 15.h),
+                                    child: Divider(color: AppColors.geryColor.withOpacity(0.2), thickness: 1),
+                                  ),
+                                  _buildTextButtonsToggle(),
+                                  SizedBox(height: 10.h),
+
+                                  // Group products by category dynamically
+                                  if (controller.productList.isEmpty)
+                                    _buildEmptyState()
+                                  else
+                                    _buildDynamicProductList(),
+
+                                  SizedBox(height: 100.h),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      }),
     );
   }
 
@@ -117,78 +117,47 @@ class _VendorStoreScreenState extends State<VendorStoreScreen> {
     );
   }
 
-  Widget _buildFloatingProfileImage() {
+  Widget _buildFloatingProfileImage(UserModel? user) {
     return Container(
       padding: EdgeInsets.all(5.r),
       decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-      child: Stack(
-        children: [
-          CustomNetworkImage(
-            imageUrl: "https://images.pexels.com/photos/3762882/pexels-photo-3762882.jpeg",
-            height: 110.r,
-            width: 110.r,
-            boxShape: BoxShape.circle,
-          ),
-          if (isLiveMode)
-            Positioned(
-              bottom: 0,
-              right: 0,
-              child: CircleAvatar(
-                radius: 18.r,
-                backgroundColor: AppColors.primaryDark,
-                child: Icon(Icons.camera_alt, color: Colors.white, size: 16.sp),
-              ),
-            ),
-        ],
+      child: CustomNetworkImage(
+        imageUrl: user?.fullProfileImageUrl ?? "",
+        height: 110.r,
+        width: 110.r,
+        boxShape: BoxShape.circle,
       ),
     );
   }
 
-  Widget _buildStoreInfo() {
+  Widget _buildStoreInfo(UserModel? user) {
     return Column(
       children: [
         CustomText(
-          text: "Ada’s Body Shop",
+          text: user?.businessName ?? "My Shop",
           fontSize: 22.sp,
           fontWeight: FontWeight.bold,
-          color: Color(0XFF1D3826),
-          // color: AppColors.primaryDark,
+          color: const Color(0XFF1D3826),
         ),
         SizedBox(height: 10.h),
         CustomText(
-          text: "Shop home-made products that are tailored to tropical climates, black skin and black hair.",
+          text: user?.bio ?? "Welcome to our store.",
           textAlign: TextAlign.center,
           fontSize: 11.sp,
-          color: Color(0x80000000),
-          // color: AppColors.geryColor,
+          color: const Color(0x80000000),
           height: 1.4,
         ),
         SizedBox(height: 12.h),
-
-        // --- NEW SEPARATED INFO ROW ---
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _infoTile("2-Day Delivery"),
+              _infoTile("Verified Vendor"),
               _infoDivider(),
-              _infoTile("10-Day Shipping"),
+              _infoTile(user?.email ?? ""),
               _infoDivider(),
-              _infoTile("Open 9 am - 9 pm"),
-              _infoDivider(),
-              GestureDetector(
-                onTap: () {
-                  // More Details Logic
-                },
-                child: CustomText(
-                  text: "More Details",
-                  fontSize: 9.sp,
-                  color: AppColors.primaryDark,
-                  fontWeight: FontWeight.bold,
-                  textDecoration: TextDecoration.underline,
-                ),
-              ),
+              _infoTile(user?.role.toUpperCase() ?? ""),
             ],
           ),
         ),
@@ -196,71 +165,12 @@ class _VendorStoreScreenState extends State<VendorStoreScreen> {
     );
   }
 
-  // Helper widget for the info text
-  Widget _infoTile(String text) {
-    return CustomText(
-      text: text,
-      fontSize: 9.sp,
-      color: Color(0XFFB5B475),
-      // color: AppColors.geryColor,
-      fontWeight: FontWeight.w500,
-    );
+  Widget _buildDynamicProductList() {
+    // Simple logic to show all products or group them if you have categories
+    return _buildProductSection("All Products", controller.productList);
   }
 
-  // Helper widget for the vertical separator |
-  Widget _infoDivider() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 8.w),
-      child: CustomText(
-        text: "|",
-        fontSize: 10.sp,
-        color: AppColors.geryColor.withOpacity(0.5),
-      ),
-    );
-  }
-
-  // --- REPLACED TAB WITH TEXT BUTTONS ---
-  Widget _buildTextButtonsToggle() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        GestureDetector(
-          onTap: () {
-            GlobalDialogs.showActionRequiredDialog(
-              onVerifyTap: () {
-                Get.toNamed(RouteConstants.businessScreen);
-              },
-              onFulfillmentTap: () {
-                Get.toNamed(RouteConstants.orderFullFillMent);
-              },
-                onClose: () {
-                  // Get.find<AccountController>().dismissDialog();
-                }
-            );
-          },
-          child: CustomText(
-            text: "Go Live",
-            color: Color(0XFFB5B475),
-            // color: AppColors.secondaryVariant,
-            fontSize: 14.sp,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        GestureDetector(
-          onTap: () => setState(() => isLiveMode = false),
-          child: CustomText(
-            text: "Preview",
-            color: Color(0XFFB5B475),
-            // color: AppColors.secondaryVariant,
-            fontSize: 14.sp,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildProductCategory(String category, {required bool showEdit}) {
+  Widget _buildProductSection(String title, List<VendorProductModel> products) {
     return Column(
       children: [
         Padding(
@@ -268,29 +178,22 @@ class _VendorStoreScreenState extends State<VendorStoreScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  CustomText(text: category, fontSize: 18.sp, fontWeight: FontWeight.bold),
-                  if (showEdit) SizedBox(width: 5.w),
-                  if (showEdit) Icon(Icons.edit_note, size: 20.sp, color: AppColors.geryColor),
-                ],
-              ),
-              if (showEdit)
-                GestureDetector(
-                  onTap: () { /* Add Section Logic */ },
-                  child: Row(
-                    children: [
-                      Icon(Icons.add_circle_outline, size: 18.sp, color: AppColors.background),
-                      CustomText(
-                        text: "Add Product",
-                        fontSize: 11.sp,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.background,
-                        left: 5.w,
-                      ),
-                    ],
-                  ),
-                )
+              CustomText(text: title, fontSize: 18.sp, fontWeight: FontWeight.bold),
+              GestureDetector(
+               // onTap: () => Get.toNamed(RouteConstants.addProduct),
+                child: Row(
+                  children: [
+                    Icon(Icons.add_circle_outline, size: 18.sp, color: const Color(0xFF707E5F)),
+                    CustomText(
+                      text: "Add Product",
+                      fontSize: 11.sp,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF707E5F),
+                      left: 5.w,
+                    ),
+                  ],
+                ),
+              )
             ],
           ),
         ),
@@ -298,24 +201,22 @@ class _VendorStoreScreenState extends State<VendorStoreScreen> {
           shrinkWrap: true,
           padding: EdgeInsets.zero,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: 2,
+          itemCount: products.length,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
             childAspectRatio: 0.78,
             crossAxisSpacing: 15.w,
             mainAxisSpacing: 15.h,
           ),
-          itemBuilder: (context, index) => _buildProductCard(showEdit: showEdit),
+          itemBuilder: (context, index) => _buildProductCard(products[index]),
         ),
       ],
     );
   }
 
-  Widget _buildProductCard({required bool showEdit}) {
+  Widget _buildProductCard(VendorProductModel product) {
     return GestureDetector(
-      onTap: () {
-        Get.toNamed(RouteConstants.vendorProductDetailScreen);
-      },
+      onTap: () => Get.toNamed(RouteConstants.vendorProductDetailScreen, arguments: product),
       child: Container(
         decoration: BoxDecoration(
           color: const Color(0XFFF0F0EC),
@@ -329,11 +230,10 @@ class _VendorStoreScreenState extends State<VendorStoreScreen> {
                 padding: EdgeInsets.all(8.r),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(15.r),
-                  child: const CustomNetworkImage(
-                    imageUrl: "https://images.pexels.com/photos/4041391/pexels-photo-4041391.jpeg",
+                  child: CustomNetworkImage(
+                    imageUrl: "${ApiConstants.baseImageUrl}${product.image}",
                     width: double.infinity,
-                    fit: BoxFit.cover,
-                    height: 70,
+                    fit: BoxFit.cover, height: 70,
                   ),
                 ),
               ),
@@ -344,15 +244,14 @@ class _VendorStoreScreenState extends State<VendorStoreScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                    text: "Argan Oil Serum",
+                    text: product.name,
                     fontSize: 11.sp,
                     fontWeight: FontWeight.bold,
                     maxLines: 1,
-                    color: const Color(0XFF000000),
                   ),
                   SizedBox(height: 4.h),
                   CustomText(
-                    text: "21 Blends",
+                    text: product.category,
                     fontSize: 9.sp,
                     color: const Color(0x99000000),
                   ),
@@ -361,58 +260,11 @@ class _VendorStoreScreenState extends State<VendorStoreScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       CustomText(
-                        text: "\$17.99",
+                        text: "\$${product.price.toStringAsFixed(2)}",
                         fontSize: 12.sp,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0XFF000000),
                       ),
-
-                      // --- REPLACED EDIT ICON WITH POPUP MENU ---
-                      if (showEdit)
-                      // --- INSIDE _buildProductCard ---
-
-                        PopupMenuButton<String>(
-                          color: const Color(0XFF627E4C),
-                          padding: EdgeInsets.zero,
-                          constraints: BoxConstraints(minWidth: 100.w),
-                          icon: Icon(Icons.more_vert, size: 18.sp, color: AppColors.geryColor),
-
-                          // 1. Move navigation logic here
-                          onSelected: (value) {
-                            if (value == 'edit') {
-                              debugPrint("Navigating to Edit Screen");
-                              Get.toNamed(RouteConstants.editProductDetailScreen);
-                            } else if (value == 'delete') {
-                              debugPrint("Handle Delete Logic");
-                            }
-                          },
-
-                          // 2. Keep items clean without internal Detectors
-                          itemBuilder: (BuildContext context) => [
-                            PopupMenuItem(
-                              value: 'edit',
-                              height: 35.h,
-                              child: Row(
-                                children: [
-                                  Icon(Icons.edit, size: 14.sp, color: const Color(0XFFF1F0B2)),
-                                  SizedBox(width: 8.w),
-                                  CustomText(text: "Edit", fontSize: 12.sp, color: const Color(0XFFF1F0B2)),
-                                ],
-                              ),
-                            ),
-                            PopupMenuItem(
-                              value: 'delete',
-                              height: 35.h,
-                              child: Row(
-                                children: [
-                                  Icon(Icons.delete, size: 14.sp, color: Colors.red),
-                                  SizedBox(width: 8.w),
-                                  CustomText(text: "Delete", fontSize: 12.sp, color: Colors.red),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
+                      _buildProductMenu(product),
                     ],
                   ),
                 ],
@@ -424,7 +276,64 @@ class _VendorStoreScreenState extends State<VendorStoreScreen> {
     );
   }
 
+  Widget _buildProductMenu(VendorProductModel product) {
+    return PopupMenuButton<String>(
+      color: const Color(0XFF627E4C),
+      icon: Icon(Icons.more_vert, size: 18.sp, color: AppColors.geryColor),
+      onSelected: (value) {
+        if (value == 'edit') {
+          Get.toNamed(RouteConstants.editProductDetailScreen, arguments: product);
+        } else if (value == 'delete') {
+          // Add delete confirmation dialog
+        }
+      },
+      itemBuilder: (context) => [
+        _buildMenuItem('edit', Icons.edit, "Edit", const Color(0XFFF1F0B2)),
+        _buildMenuItem('delete', Icons.delete, "Delete", Colors.red),
+      ],
+    );
+  }
 
+  PopupMenuItem<String> _buildMenuItem(String value, IconData icon, String text, Color color) {
+    return PopupMenuItem(
+      value: value,
+      height: 35.h,
+      child: Row(
+        children: [
+          Icon(icon, size: 14.sp, color: color),
+          SizedBox(width: 8.w),
+          CustomText(text: text, fontSize: 12.sp, color: color),
+        ],
+      ),
+    );
+  }
 
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.only(top: 50.h),
+        child: Column(
+          children: [
+            Icon(Icons.inventory_2_outlined, size: 50.sp, color: AppColors.geryColor),
+            SizedBox(height: 10.h),
+            CustomText(text: "No products added yet.", color: AppColors.geryColor),
+          ],
+        ),
+      ),
+    );
+  }
 
+  // Re-used Helpers
+  Widget _infoTile(String text) => CustomText(text: text, fontSize: 9.sp, color: const Color(0XFFB5B475), fontWeight: FontWeight.w500);
+  Widget _infoDivider() => Padding(padding: EdgeInsets.symmetric(horizontal: 8.w), child: CustomText(text: "|", fontSize: 10.sp, color: AppColors.geryColor.withOpacity(0.5)));
+
+  Widget _buildTextButtonsToggle() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        CustomText(text: "Product Inventory", color: const Color(0XFFB5B475), fontSize: 14.sp, fontWeight: FontWeight.bold),
+        CustomText(text: "Preview Store", color: const Color(0XFFB5B475), fontSize: 14.sp, fontWeight: FontWeight.bold),
+      ],
+    );
+  }
 }

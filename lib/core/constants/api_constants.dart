@@ -29,4 +29,7 @@ class ApiConstants {
   //beauticians
 
   //vendor
+
+  static const String vendorProductList = "products";
+
 }

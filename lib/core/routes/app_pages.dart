@@ -5,6 +5,7 @@ import 'package:the_noire_hub_v1/features/authentication/gmailVerification/prese
 import 'package:the_noire_hub_v1/features/authentication/registration/presentation/bindings/registration_bindings.dart';
 import 'package:the_noire_hub_v1/features/authentication/resetPassword/presentation/bindings/reset_password_bindings.dart';
 import 'package:the_noire_hub_v1/features/common/changePassword/presentation/bindings/change_password_bindings.dart';
+import 'package:the_noire_hub_v1/features/vendor/vendorStoreScreen/presentation/binding/vendor_product_binding.dart';
 import '../../features/authentication/gmailVerification/presentation/screen/gmail_verification_screen.dart';
 import '../../features/authentication/login/presentation/bindings/login_binding.dart';
 import '../../features/authentication/login/presentation/screen/login_screen.dart';
@@ -352,6 +353,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.vendorStoreScreen,
       page: () => const VendorStoreScreen(),
+      binding: VendorProductBinding(),
       transition: Transition.cupertino,
     ),
     GetPage(
