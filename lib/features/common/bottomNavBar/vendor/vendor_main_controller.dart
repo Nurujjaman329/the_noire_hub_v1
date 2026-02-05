@@ -9,6 +9,8 @@ import '../../../vendor/vendorStoreScreen/presentation/screens/vendor_store_scre
 import '../../dashboardScreen/presentation/screens/dashboard_screen.dart';
 import '../../profile/presentation/profile_screen.dart';
 
+enum Role { vendor, beautician }
+
 class VendorMainController extends GetxController {
   var currentIndex = 0.obs;
   var userRole = ''.obs;
@@ -28,29 +30,40 @@ class VendorMainController extends GetxController {
       return;
     }
 
-    // 2. Fallback: Use the strongly-typed getUserModel() from our new LocalStorage
+    // 2. Fallback: Use LocalStorage
     final user = LocalStorage.getUserModel();
-    if (user != null) {
-      userRole.value = user.role.toLowerCase();
-      debugPrint("🏠 Role set from LocalStorage (UserModel): ${userRole.value}");
-    } else {
-      // 3. Last resort fallback
-      userRole.value = 'vendor';
-      debugPrint("⚠️ Role fallback used: vendor");
-    }
+    userRole.value = user?.role.toLowerCase() ?? 'vendor';
+    debugPrint("🏠 Role set from LocalStorage or fallback: ${userRole.value}");
   }
 
-  // Helpers for cleaner UI logic
-  bool get isVendor => userRole.value.contains('vendor');
-  bool get isBeautician => userRole.value.contains('beautician');
+  // ===== Role helpers =====
+  Role get role {
+    if (userRole.value.contains('vendor')) return Role.vendor;
+    if (userRole.value.contains('beautician')) return Role.beautician;
+    return Role.vendor; // fallback
+  }
 
+  bool get isVendor => role == Role.vendor;
+  bool get isBeautician => role == Role.beautician;
+
+  // ===== Navigation =====
   void changeIndex(int index) => currentIndex.value = index;
 
+  // ===== Centralized tab navigation =====
+  void goToTab(int index) {
+    currentIndex.value = index;
+
+    // Close drawer or overlay if open
+    if (Get.isOverlaysOpen) Get.back();
+  }
+
+  // ===== Pages =====
   List<Widget> getPages() {
     return [
       DashboardScreen(),
-      // Dynamic screens based on role
-      isVendor ? const VendorOrdersScreen() : const BeauticianBookingHistoryScreen(),
+      isVendor
+          ? const VendorOrdersScreen()
+          : const BeauticianBookingHistoryScreen(),
       isVendor ? VendorStoreScreen() : BeauticianStoreScreen(),
       const ProfileScreen(),
     ];

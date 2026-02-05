@@ -5,6 +5,7 @@ import '../../../core/constants/route_constants.dart';
 import '../../../core/navigationController/app_navigation_controller.dart';
 import '../../../core/widgets/custom_button.dart';
 import '../../../core/widgets/custom_text.dart';
+import '../../common/bottomNavBar/customer/customer_main_controller.dart';
 
 class OrderSuccessScreen extends StatelessWidget {
   const OrderSuccessScreen({super.key});
@@ -130,7 +131,10 @@ class OrderSuccessScreen extends StatelessWidget {
                 Get.offAllNamed(RouteConstants.customerMainContainer);
                 // After navigation, set the index to 0
                 Future.delayed(Duration.zero, () {
-                  Get.find<AppNavigationController>().changeCustomerIndex(0);
+                  Get.offAllNamed(
+                    RouteConstants.customerMainContainer,
+                    arguments: {'initialTab': 0},
+                  );
                 });
               },
             ),

@@ -7,6 +7,7 @@ import '../../../../core/navigationController/app_navigation_controller.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/widgets/custom_network_image.dart';
 import '../../../../core/widgets/custom_text.dart';
+import '../../../common/bottomNavBar/customer/customer_main_controller.dart';
 
 
 class ProductDetailScreen extends StatefulWidget {
@@ -60,15 +61,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             padding: EdgeInsets.only(right: 15.w),
             child: GestureDetector(
               onTap: () {
-                // 1. Find the navigation controller
-                final navCtrl = Get.find<AppNavigationController>();
-
-                // 2. Update the index BEFORE navigating
-                navCtrl.changeCustomerIndex(3);
-
-                // 3. Navigate to the main container
-                // Using offAllNamed ensures we clear the product detail from the stack
-                Get.offAllNamed(RouteConstants.customerMainContainer);
+                Get.offAllNamed(
+                  RouteConstants.customerMainContainer,
+                  arguments: {'initialTab': 3},
+                );
               },
               child: Stack(
                 alignment: Alignment.topRight,
@@ -268,17 +264,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
   Widget _buildFloatingAddToCart() {
     return GestureDetector(
-      onTap: () {
-        // 1. Find the navigation controller
-        final navCtrl = Get.find<AppNavigationController>();
-
-        // 2. Update the index BEFORE navigating
-        navCtrl.changeCustomerIndex(3);
-
-        // 3. Navigate to the main container
-        // Using offAllNamed ensures we clear the product detail from the stack
-        Get.offAllNamed(RouteConstants.customerMainContainer);
-      },
+        onTap: () {
+          // Navigate to CustomerMainContainer with initial tab index = 3 (Cart)
+          Get.offAllNamed(
+            RouteConstants.customerMainContainer,
+            arguments: {'initialTab': 3},
+          );
+        },
       child: Container(
         decoration: BoxDecoration(
           color: const Color(0XFF1D3826),

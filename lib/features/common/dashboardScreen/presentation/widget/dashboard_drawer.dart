@@ -6,8 +6,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/route_constants.dart';
-import '../../../../../core/navigationController/app_navigation_controller.dart';
 import '../../../../../core/widgets/custom_text.dart';
+import '../../../bottomNavBar/vendor/vendor_main_controller.dart';
 
 class DashboardDrawer extends StatelessWidget {
   final bool isVendor;
@@ -16,7 +16,7 @@ class DashboardDrawer extends StatelessWidget {
   const DashboardDrawer({
     super.key,
     required this.isVendor,
-    required this.isBeautician
+    required this.isBeautician,
   });
 
   @override
@@ -56,17 +56,31 @@ class DashboardDrawer extends StatelessWidget {
                   child: SingleChildScrollView(
                     child: Column(
                       children: [
-                        _drawerItem(Icons.person_outline, "Account", () => Get.toNamed(RouteConstants.profileScreen)),
-                        _drawerItem(Icons.visibility_outlined, "View Store", () {
-                          Get.find<AppNavigationController>().changeVendorIndex(2);
-                        }),
-                        _drawerItem(Icons.bar_chart, "Business", () => Get.toNamed(RouteConstants.businessScreen)),
                         _drawerItem(
-                            isVendor ? Icons.description_outlined : Icons.calendar_today_outlined,
-                            isVendor ? "Orders" : "Bookings",
-                                () => Get.find<AppNavigationController>().changeVendorIndex(1)
+                          Icons.person_outline,
+                          "Account",
+                              () => Get.toNamed(RouteConstants.profileScreen),
                         ),
-                        _drawerItem(Icons.payment, "Add Billings", () => Get.toNamed(RouteConstants.vendorBillingSection)),
+                        _drawerItem(
+                          Icons.visibility_outlined,
+                          "View Store",
+                              () => Get.find<VendorMainController>().goToTab(2),
+                        ),
+                        _drawerItem(
+                          Icons.bar_chart,
+                          "Business",
+                              () => Get.toNamed(RouteConstants.businessScreen),
+                        ),
+                        _drawerItem(
+                          isVendor ? Icons.description_outlined : Icons.calendar_today_outlined,
+                          isVendor ? "Orders" : "Bookings",
+                              () => Get.find<VendorMainController>().goToTab(1),
+                        ),
+                        _drawerItem(
+                          Icons.payment,
+                          "Add Billings",
+                              () => Get.toNamed(RouteConstants.vendorBillingSection),
+                        ),
                       ],
                     ),
                   ),
@@ -79,11 +93,11 @@ class DashboardDrawer extends StatelessWidget {
     );
   }
 
-
+  // ================== Drawer Item Widget ==================
   Widget _drawerItem(IconData icon, String title, VoidCallback onTap) {
     return ListTile(
       onTap: () {
-        // FIX: Use Get.back() to close drawer before navigating
+        // Close drawer and run action
         Get.back();
         onTap();
       },
@@ -92,8 +106,7 @@ class DashboardDrawer extends StatelessWidget {
         text: title,
         fontSize: 16.sp,
         fontWeight: FontWeight.w500,
-        color: Color(0xB2000000),
-        // color: AppColors.primaryDark,
+        color: const Color(0xB2000000),
         textAlign: TextAlign.start,
       ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.r)),
@@ -102,34 +115,31 @@ class DashboardDrawer extends StatelessWidget {
   }
 }
 
+// ================== Drawer Clipper ==================
 class DrawerClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     Path path = Path();
-    double curveDepth = 70.r; // How far the curve pulls in
+    double curveDepth = 70.r;
 
-    path.lineTo(0, 0); // Start Top-Left
-    path.lineTo(size.width - curveDepth, 0); // Top edge
+    path.lineTo(0, 0);
+    path.lineTo(size.width - curveDepth, 0);
 
-    // TOP RIGHT CURVE
-    // cubicTo(controlPoint1X, controlPoint1Y, controlPoint2X, controlPoint2Y, endPointX, endPointY)
     path.cubicTo(
-      size.width, 0, // First control point (at the very corner)
-      size.width, 0, // Second control point
-      size.width, curveDepth, // Ends 60px down the side
+      size.width, 0,
+      size.width, 0,
+      size.width, curveDepth,
     );
 
-    // RIGHT SIDE LINE
     path.lineTo(size.width, size.height - curveDepth);
 
-    // BOTTOM RIGHT CURVE
     path.cubicTo(
-      size.width, size.height, // Control point
-      size.width, size.height, // Control point
-      size.width - curveDepth, size.height, // Ends 60px in from the right edge
+      size.width, size.height,
+      size.width, size.height,
+      size.width - curveDepth, size.height,
     );
 
-    path.lineTo(0, size.height); // Back to bottom-left
+    path.lineTo(0, size.height);
     path.close();
 
     return path;
@@ -138,3 +148,4 @@ class DrawerClipper extends CustomClipper<Path> {
   @override
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
+

@@ -1,17 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:the_noire_hub_v1/features/common/bottomNavBar/vendor/vendor_main_controller.dart';
+import 'package:get/get.dart';
 
 class VendorBottomNavbar extends StatelessWidget {
-  final int currentIndex;
-  final Function(int) onTap;
-  final bool isVendor; // Added this parameter
+  final VendorMainController controller;
 
-  const VendorBottomNavbar({
-    super.key,
-    required this.currentIndex,
-    required this.onTap,
-    required this.isVendor, // Added to constructor
-  });
+  const VendorBottomNavbar({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -30,61 +25,55 @@ class VendorBottomNavbar extends StatelessWidget {
           topLeft: Radius.circular(40.r),
           topRight: Radius.circular(40.r),
         ),
-        child: BottomNavigationBar(
-          currentIndex: currentIndex,
-          onTap: onTap,
-          backgroundColor: const Color(0XFF1D3826),
-          type: BottomNavigationBarType.fixed,
-          selectedItemColor: const Color(0XFFF1F0B2),
-          unselectedItemColor: Colors.white.withOpacity(0.6),
-          showUnselectedLabels: true,
-          iconSize: 24.sp,
-          selectedLabelStyle: TextStyle(
-            fontSize: 11.sp,
-            fontWeight: FontWeight.w600,
-            height: 1.8,
+        child: Obx(
+              () => BottomNavigationBar(
+            currentIndex: controller.currentIndex.value,
+            onTap: controller.changeIndex,
+            backgroundColor: const Color(0XFF1D3826),
+            type: BottomNavigationBarType.fixed,
+            selectedItemColor: const Color(0XFFF1F0B2),
+            unselectedItemColor: Colors.white.withOpacity(0.6),
+            showUnselectedLabels: true,
+            iconSize: 24.sp,
+            selectedLabelStyle: TextStyle(
+              fontSize: 11.sp,
+              fontWeight: FontWeight.w600,
+              height: 1.8,
+            ),
+            unselectedLabelStyle: TextStyle(
+              fontSize: 11.sp,
+              height: 1.8,
+            ),
+            items: [
+              BottomNavigationBarItem(
+                icon: _navIcon(Icons.home_filled),
+                label: 'Dashboard',
+              ),
+              BottomNavigationBarItem(
+                icon: _navIcon(controller.isVendor
+                    ? Icons.assignment_outlined
+                    : Icons.calendar_month_outlined),
+                label: controller.isVendor ? 'Orders' : 'Bookings',
+              ),
+              BottomNavigationBarItem(
+                icon: _navIcon(Icons.storefront_outlined),
+                label: 'Store',
+              ),
+              BottomNavigationBarItem(
+                icon: _navIcon(Icons.person),
+                label: 'Profile',
+              ),
+            ],
           ),
-          unselectedLabelStyle: TextStyle(
-            fontSize: 11.sp,
-            height: 1.8,
-          ),
-          items: [
-            BottomNavigationBarItem(
-              icon: Padding(
-                padding: EdgeInsets.only(top: 8.h),
-                child: const Icon(Icons.home_filled),
-              ),
-              label: 'Dashboard',
-            ),
-
-            // Adaptive Tab: Logic now uses the passed isVendor boolean
-            BottomNavigationBarItem(
-              icon: Padding(
-                padding: EdgeInsets.only(top: 8.h),
-                child: Icon(
-                  isVendor ? Icons.assignment_outlined : Icons.calendar_month_outlined,
-                ),
-              ),
-              label: isVendor ? 'Orders' : 'Bookings',
-            ),
-
-            BottomNavigationBarItem(
-              icon: Padding(
-                padding: EdgeInsets.only(top: 8.h),
-                child: const Icon(Icons.storefront_outlined),
-              ),
-              label: 'Store',
-            ),
-            BottomNavigationBarItem(
-              icon: Padding(
-                padding: EdgeInsets.only(top: 8.h),
-                child: const Icon(Icons.person),
-              ),
-              label: 'Profile',
-            ),
-          ],
         ),
       ),
+    );
+  }
+
+  static Widget _navIcon(IconData icon) {
+    return Padding(
+      padding: EdgeInsets.only(top: 8.h),
+      child: Icon(icon),
     );
   }
 }
