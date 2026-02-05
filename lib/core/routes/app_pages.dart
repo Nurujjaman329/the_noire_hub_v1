@@ -4,7 +4,9 @@ import 'package:the_noire_hub_v1/core/constants/route_constants.dart';
 import 'package:the_noire_hub_v1/features/authentication/gmailVerification/presentation/bindings/gmail_verification_bindings.dart';
 import 'package:the_noire_hub_v1/features/authentication/registration/presentation/bindings/registration_bindings.dart';
 import 'package:the_noire_hub_v1/features/authentication/resetPassword/presentation/bindings/reset_password_bindings.dart';
+import 'package:the_noire_hub_v1/features/beautician/beauticianAddService/presentation/screen/beautician_add_service_screen.dart';
 import 'package:the_noire_hub_v1/features/common/changePassword/presentation/bindings/change_password_bindings.dart';
+import 'package:the_noire_hub_v1/features/vendor/vendorAddProduct/presentation/screen/vendor_add_product_screen.dart';
 import 'package:the_noire_hub_v1/features/vendor/vendorStoreScreen/presentation/binding/vendor_product_binding.dart';
 import '../../features/authentication/gmailVerification/presentation/screen/gmail_verification_screen.dart';
 import '../../features/authentication/login/presentation/bindings/login_binding.dart';
@@ -202,11 +204,11 @@ class AppPages {
       binding: RegistrationBinding(),
       transition: Transition.cupertino,
     ),
-    GetPage(
-      name: RouteConstants.addProductsScreen,
-      page: () => const AddProductsScreen(),
-      transition: Transition.cupertino,
-    ),
+    // GetPage(
+    //   name: RouteConstants.addProductsScreen,
+    //   page: () => const AddProductsScreen(),
+    //   transition: Transition.cupertino,
+    // ),
     GetPage(
       name: RouteConstants.vendorBillingSection,
       page: () => const VendorBillingSection(),
@@ -386,6 +388,16 @@ class AppPages {
     GetPage(
       name: RouteConstants.serviceDetailsScreen,
       page: () => const ServiceDetailsScreen(),
+      transition: Transition.cupertino,
+    ),
+    GetPage(
+      name: RouteConstants.vendorAddProductScreen,
+      page: () => const VendorAddProductScreen(),
+      transition: Transition.cupertino,
+    ),
+    GetPage(
+      name: RouteConstants.beauticiansAddServiceScreen,
+      page: () => const BeauticianAddServiceScreen(),
       transition: Transition.cupertino,
     ),
   ];

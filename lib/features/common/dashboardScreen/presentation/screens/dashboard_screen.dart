@@ -180,7 +180,7 @@ class DashboardScreen extends StatelessWidget {
             physics: const BouncingScrollPhysics(),
             child: Row(
               children: [
-                _buildAddButton(isBeautician, context),
+                _buildAddButton(isBeautician, isVendor, context),
                 _buildProductTile("https://images.pexels.com/photos/4041391/pexels-photo-4041391.jpeg"),
                 _buildProductTile("https://images.pexels.com/photos/3762882/pexels-photo-3762882.jpeg"),
               ],
@@ -191,13 +191,15 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAddButton(bool isBeautician, BuildContext context) {
+  Widget _buildAddButton(bool isBeautician, bool isVendor, BuildContext context) {
     return GestureDetector(
       onTap: () {
         if (isBeautician) {
+          // Show Tip first for Beauticians
           showQuickTipDialog(context);
-        } else {
-          Get.toNamed(RouteConstants.addProductsScreen);
+        } else if (isVendor) {
+          // Direct navigation for Vendors
+          Get.toNamed(RouteConstants.vendorAddProductScreen);
         }
       },
       child: Container(
@@ -213,6 +215,72 @@ class DashboardScreen extends StatelessWidget {
       ),
     );
   }
+
+  void showQuickTipDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40.r)),
+          child: Container(
+            padding: EdgeInsets.all(24.r),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Align(
+                  alignment: Alignment.topRight,
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context); // Close Dialog
+                      // Navigate to Beautician Service Screen
+                      Get.toNamed(RouteConstants.beauticiansAddServiceScreen);
+                    },
+                    child: Icon(Icons.close, color: const Color(0xFF1D3826), size: 24.sp),
+                  ),
+                ),
+                SizedBox(height: 10.h),
+                Text(
+                  "Quick Tip",
+                  style: TextStyle(
+                    color: const Color(0xFF6B8E23),
+                    fontSize: 28.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 20.h),
+                Text(
+                  "Add beautician certifications to attract more customers",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 18.sp),
+                ),
+                SizedBox(height: 30.h),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      // This leads to the Business Profile/Certifications section
+                      Get.toNamed(RouteConstants.businessScreen);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF6B7E50),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+                    ),
+                    child: const Text(
+                      "Add Now",
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
 
   Widget _buildProductTile(String url) {
     return Container(
@@ -304,56 +372,56 @@ class DashboardScreen extends StatelessWidget {
   }
 
   // 🔥 AccountController removed from here
-  void showQuickTipDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      barrierDismissible: true, // Set to true if you don't need the controller to "dismiss" it permanently
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40.r)),
-          child: Container(
-            padding: EdgeInsets.all(24.r),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Align(
-                  alignment: Alignment.topRight,
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.pop(context);
-                      Get.toNamed(RouteConstants.addProductsScreen);
-                    },
-                    child: Icon(Icons.close, color: const Color(0xFF1D3826), size: 24.sp),
-                  ),
-                ),
-                SizedBox(height: 10.h),
-                Text("Quick Tip", style: TextStyle(color: const Color(0xFF6B8E23), fontSize: 28.sp, fontWeight: FontWeight.bold)),
-                SizedBox(height: 20.h),
-                Text(
-                  "Add beautician certifications to attract more customers",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 18.sp),
-                ),
-                SizedBox(height: 30.h),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      Get.toNamed(RouteConstants.businessScreen);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF6B7E50),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
-                    ),
-                    child: const Text("Add Now", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
+  // void showQuickTipDialog(BuildContext context) {
+  //   showDialog(
+  //     context: context,
+  //     barrierDismissible: true, // Set to true if you don't need the controller to "dismiss" it permanently
+  //     builder: (BuildContext context) {
+  //       return Dialog(
+  //         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40.r)),
+  //         child: Container(
+  //           padding: EdgeInsets.all(24.r),
+  //           child: Column(
+  //             mainAxisSize: MainAxisSize.min,
+  //             children: [
+  //               Align(
+  //                 alignment: Alignment.topRight,
+  //                 child: GestureDetector(
+  //                   onTap: () {
+  //                     Navigator.pop(context);
+  //                     Get.toNamed(RouteConstants.addProductsScreen);
+  //                   },
+  //                   child: Icon(Icons.close, color: const Color(0xFF1D3826), size: 24.sp),
+  //                 ),
+  //               ),
+  //               SizedBox(height: 10.h),
+  //               Text("Quick Tip", style: TextStyle(color: const Color(0xFF6B8E23), fontSize: 28.sp, fontWeight: FontWeight.bold)),
+  //               SizedBox(height: 20.h),
+  //               Text(
+  //                 "Add beautician certifications to attract more customers",
+  //                 textAlign: TextAlign.center,
+  //                 style: TextStyle(fontSize: 18.sp),
+  //               ),
+  //               SizedBox(height: 30.h),
+  //               SizedBox(
+  //                 width: double.infinity,
+  //                 child: ElevatedButton(
+  //                   onPressed: () {
+  //                     Navigator.pop(context);
+  //                     Get.toNamed(RouteConstants.businessScreen);
+  //                   },
+  //                   style: ElevatedButton.styleFrom(
+  //                     backgroundColor: const Color(0xFF6B7E50),
+  //                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+  //                   ),
+  //                   child: const Text("Add Now", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
 }
