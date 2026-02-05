@@ -28,6 +28,7 @@ import '../../features/common/changePassword/presentation/screen/change_password
 import '../../features/common/editProfile/presentation/edit_profile_screen.dart';
 import '../../features/common/help/presentation/help_screen.dart';
 import '../../features/common/inviteFriends/presentation/invite_friends_screen.dart';
+import '../../features/common/personalInfo/presentation/binding/personal_info_binding.dart';
 import '../../features/common/personalInfo/presentation/personal_info_screen.dart';
 import '../../features/common/profile/presentation/profile_screen.dart';
 import '../../features/common/rating/presentation/rating_screen.dart';
@@ -223,6 +224,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.personalInfoScreen,
       page: () => const PersonalInfoScreen(),
+      binding: PersonalInfoBinding(),
       transition: Transition.cupertino,
     ),
 
