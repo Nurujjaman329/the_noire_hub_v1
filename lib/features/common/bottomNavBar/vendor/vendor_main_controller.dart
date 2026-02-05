@@ -20,19 +20,19 @@ class VendorMainController extends GetxController {
   }
 
   void _determineRole() {
-    // 1. Try to get role from navigation arguments (fastest/safest)
+    // 1. Try to get role from navigation arguments
     final args = Get.arguments;
     if (args is Map && args.containsKey('role')) {
-      userRole.value = args['role'];
+      userRole.value = args['role'].toString().toLowerCase();
       debugPrint("✅ Role set from Arguments: ${userRole.value}");
       return;
     }
 
-    // 2. Fallback: Get from Local Storage if Arguments are missing
-    final userData = LocalStorage.getUserData();
-    if (userData != null && userData['role'] != null) {
-      userRole.value = userData['role'].toString().toLowerCase();
-      debugPrint("🏠 Role set from Local Storage: ${userRole.value}");
+    // 2. Fallback: Use the strongly-typed getUserModel() from our new LocalStorage
+    final user = LocalStorage.getUserModel();
+    if (user != null) {
+      userRole.value = user.role.toLowerCase();
+      debugPrint("🏠 Role set from LocalStorage (UserModel): ${userRole.value}");
     } else {
       // 3. Last resort fallback
       userRole.value = 'vendor';
@@ -40,14 +40,16 @@ class VendorMainController extends GetxController {
     }
   }
 
-  bool get isVendor => userRole.value == 'vendor';
+  // Helpers for cleaner UI logic
+  bool get isVendor => userRole.value.contains('vendor');
+  bool get isBeautician => userRole.value.contains('beautician');
 
   void changeIndex(int index) => currentIndex.value = index;
 
   List<Widget> getPages() {
-    // We use the reactive userRole.value here
     return [
       DashboardScreen(),
+      // Dynamic screens based on role
       isVendor ? const VendorOrdersScreen() : const BeauticianBookingHistoryScreen(),
       isVendor ? VendorStoreScreen() : BeauticianStoreScreen(),
       const ProfileScreen(),

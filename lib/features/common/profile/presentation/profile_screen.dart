@@ -14,21 +14,26 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 1. Get Strongly-Typed Model
+    final user = LocalStorage.getUserModel();
 
-    final userData = LocalStorage.getUserData();
-    final String role = (userData?['role'] ?? 'user').toString().toLowerCase();
+    // 2. Define Role Logic from Model
+    final String role = user?.role.toLowerCase() ?? 'user';
     final bool isCustomer = role == 'user';
-    final bool isBeautician = role == 'beautician';
-    final bool isVendor = role == 'vendor';
+    final bool isBeautician = role.contains('beautician');
+    final bool isVendor = role.contains('vendor');
+
+    // 3. Extract User Display Info
+    final String fullName = user?.fullName ?? "User Name";
+    final String profileImg = user?.image ?? "";
 
     return Scaffold(
-      backgroundColor: Color(0XFF3F592B),
-      // backgroundColor: AppColors.primaryDark,
+      backgroundColor: const Color(0XFF3F592B),
       appBar: CustomAppBar(
         title: "",
         bgColor: Colors.transparent,
         showBackButton: true,
-         arrowColor: AppColors.white,
+        arrowColor: AppColors.white,
       ),
       body: Stack(
         alignment: Alignment.topCenter,
@@ -37,7 +42,7 @@ class ProfileScreen extends StatelessWidget {
             width: double.infinity,
             margin: EdgeInsets.only(top: 60.h),
             decoration: BoxDecoration(
-              color: AppColors.white, // Standard white background
+              color: AppColors.white,
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(50.r),
                 topRight: Radius.circular(50.r),
@@ -49,11 +54,12 @@ class ProfileScreen extends StatelessWidget {
                 children: [
                   SizedBox(height: 75.h),
 
+                  // Dynamic Name
                   CustomText(
-                    text: "Amina Bashir",
+                    text: fullName,
                     fontSize: 26.sp,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.primaryDark, // Brand text color
+                    color: AppColors.primaryDark,
                   ),
                   SizedBox(height: 25.h),
 
@@ -69,11 +75,13 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
 
-          // 1. Profile Image
+          // Dynamic Profile Image
           Positioned(
             top: 0,
             child: CustomNetworkImage(
-              imageUrl: "https://randomuser.me/api/portraits/men/32.jpg",
+              imageUrl: profileImg.isNotEmpty
+                  ? profileImg
+                  : "https://ui-avatars.com/api/?name=$fullName&background=random", // Fallback avatar
               height: 120.h,
               width: 120.w,
               boxShape: BoxShape.circle,
@@ -139,10 +147,7 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
 
-          // _actionBox("Rating", Icons.star_border, width: 105.w,onTap: () => Get.toNamed(RouteConstants.reviewScreen),),
-          // _actionBox("Wallet", Icons.account_balance_wallet_outlined, width: 105.w,onTap: () => Get.toNamed(RouteConstants.walletScreen)),
-          // _actionBox("Bookings", Icons.calendar_today_outlined, width: 105.w,onTap: () => Get.toNamed(RouteConstants.boo)),
-        ],
+       ],
       );
     }
 
@@ -323,6 +328,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
+
   void _handleMenuNavigation(String label) {
     switch (label) {
       case "Personal Info": Get.toNamed(RouteConstants.personalInfoScreen); break;
@@ -337,7 +343,7 @@ class ProfileScreen extends StatelessWidget {
   }
 
   void _showLogoutDialog() {
-    // Access the logout controller
+    // Controller logic remains good
     final logoutCtrl = Get.put(LogoutController(Get.find()));
 
     Get.defaultDialog(
@@ -347,22 +353,18 @@ class ProfileScreen extends StatelessWidget {
         fontWeight: FontWeight.bold,
         color: const Color(0xFF9BB575),
       ),
-      middleText: "Are you sure you want to sign out of your account?",
-      middleTextStyle: TextStyle(fontSize: 14.sp),
+      middleText: "Are you sure you want to sign out?",
       backgroundColor: AppColors.white,
       radius: 20.r,
-      contentPadding: EdgeInsets.all(20.w),
       textCancel: "No",
-      cancelTextColor: AppColors.primaryDark,
-      onCancel: () => Get.back(),
       textConfirm: "Yes, Sign Out",
       confirmTextColor: AppColors.white,
       buttonColor: const Color(0xFF9BB575),
       onConfirm: () async {
-        Get.back(); // Close the dialog first
-        await logoutCtrl.logout(); // Perform logout
-        // Clean up the logout controller after use
+        Get.back();
+        await logoutCtrl.logout();
         Get.delete<LogoutController>();
       },
     );
-  }}
+  }
+}

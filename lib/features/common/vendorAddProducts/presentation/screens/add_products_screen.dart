@@ -7,11 +7,17 @@ import '../../../../../core/accountController/account_controller.dart';
 import '../../../../../core/constants/app_assets.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/route_constants.dart';
+import '../../../../../core/storage/local_storage.dart';
 import '../../../../../core/widgets/custom_network_image.dart';
 import '../../../../../core/widgets/custom_text.dart';
 import '../../../../../core/widgets/custom_button.dart';
+import '../../../../authentication/login/data/login_response_model.dart';
 import '../../../../beautician/beauticiansVariantAdd/presentation/beauticians_add_variant_sheet.dart';
 import '../../../../vendor/vendorAddVariant/vendor_add_variant_sheet.dart';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 
 class ProductEntry {
   String? subCategory;
@@ -30,9 +36,18 @@ class AddProductsScreen extends StatefulWidget {
 
 class _AddProductsScreenState extends State<AddProductsScreen> {
   String selectedCategory = "Hair";
-
-  // 1. List to hold multiple product entries
   List<ProductEntry> productList = [ProductEntry()];
+
+  // Local role detection
+  late String role;
+  // late bool isVendor;
+  // late bool isBeautician;
+
+  bool get isVendor => user?.role.toLowerCase().contains('vendor') ?? false;
+  bool get isBeautician => user?.role.toLowerCase().contains('beautician') ?? false;
+  String get businessName => user?.businessName ?? "Ada's Body Shop";
+
+  UserModel? user;
 
   final Map<String, List<String>> categoryData = {
     "Hair": ["Shampoo", "Extensions", "Wigs", "Conditioner", "Oils"],
@@ -42,8 +57,22 @@ class _AddProductsScreenState extends State<AddProductsScreen> {
   };
 
   @override
+  void initState() {
+    super.initState();
+    // 1. Fetch the actual model from LocalStorage
+    user = LocalStorage.getUserModel();
+
+    if (user == null) {
+      debugPrint("⚠️ No user session found. Redirecting to login...");
+      // Logic to handle missing session if necessary
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final accountCtrl = Get.find<AccountController>();
+    // Dynamic naming based on role
+    final String typeLabel = isVendor ? "Product" : "Service";
+
     return Scaffold(
       backgroundColor: AppColors.primaryDark,
       body: CustomScrollView(
@@ -67,7 +96,7 @@ class _AddProductsScreenState extends State<AddProductsScreen> {
                   children: [
                     Center(
                       child: CustomText(
-                        text: "Ada's Body Shop",
+                        text: businessName, // Dynamic from User Model
                         fontSize: 24.sp,
                         fontWeight: FontWeight.bold,
                         color: AppColors.background,
@@ -76,29 +105,24 @@ class _AddProductsScreenState extends State<AddProductsScreen> {
                     SizedBox(height: 30.h),
 
                     _buildSectionTitle(
-                        accountCtrl.isVendor ? "Product Category" : "Service Category",
-                        accountCtrl.isVendor ? "Select All types of Products you sell" : "Select All types of Service you provide"
+                        "$typeLabel Category",
+                        isVendor ? "Select All types of Products you sell" : "Select All types of Service you provide"
                     ),
                     _buildSpecialtiesList(),
 
                     SizedBox(height: 30.h),
 
-                    // 2. Build the dynamic list of product sections
+                    // List of entries
                     ListView.separated(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: productList.length,
                       separatorBuilder: (context, index) => SizedBox(height: 30.h),
-                      itemBuilder: (context, index) {
-                        return _buildAddProductSection(index);
-                      },
+                      itemBuilder: (context, index) => _buildAddProductSection(index, typeLabel),
                     ),
 
                     SizedBox(height: 40.h),
-
-                    SizedBox(height: 40.h),
-
-                    _buildDynamicFooter(), // Use this helper method
+                    _buildDynamicFooter(),
                     SizedBox(height: 20.h),
                   ],
                 ),
@@ -111,16 +135,12 @@ class _AddProductsScreenState extends State<AddProductsScreen> {
   }
 
   Widget _buildDynamicFooter() {
-    final accountCtrl = Get.find<AccountController>();
-
     return CustomButton(
       onTap: () {
-        if (accountCtrl.isBeautician) {
-          // BEAUTICIAN FLOW: Continue to Availability Screen
+        if (isBeautician) {
           debugPrint("Beautician Continuing to Availability...");
           Get.toNamed(RouteConstants.beauticiansAvailabilityScreen);
-        } else if (accountCtrl.isVendor) {
-          // VENDOR FLOW: Save and go back to store/home
+        } else if (isVendor) {
           debugPrint("Vendor Saving Products...");
           Get.snackbar(
               "Success",
@@ -128,18 +148,13 @@ class _AddProductsScreenState extends State<AddProductsScreen> {
               backgroundColor: AppColors.secondaryVariant,
               colorText: Colors.white
           );
-          Get.back(); // Go back to previous screen
-        } else {
-          // For customers or other types
-          debugPrint("Unknown user type trying to save products");
+          Get.back();
         }
       },
-      // Dynamic Text based on Account Type
-      text: accountCtrl.isVendor ? "Save" : "Continue",
+      text: isVendor ? "Save" : "Continue",
     );
   }
 
-  // --- Main Category Cards ---
   Widget _buildSpecialtiesList() {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -150,7 +165,6 @@ class _AddProductsScreenState extends State<AddProductsScreen> {
           return GestureDetector(
             onTap: () => setState(() {
               selectedCategory = cat;
-              // Reset all products to new category or clear subcategories
               for (var product in productList) {
                 product.subCategory = null;
               }
@@ -161,11 +175,8 @@ class _AddProductsScreenState extends State<AddProductsScreen> {
               height: 110.h,
               margin: EdgeInsets.only(right: 15.w),
               decoration: BoxDecoration(
-                  color: isSelected ? AppColors.secondaryVariant : AppColors.primary,
-                  borderRadius: BorderRadius.circular(25.r),
-                  boxShadow: isSelected ? [
-                    BoxShadow(color: AppColors.secondaryVariant.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 5))
-                  ] : null
+                color: isSelected ? AppColors.secondaryVariant : AppColors.primary,
+                borderRadius: BorderRadius.circular(25.r),
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -185,14 +196,8 @@ class _AddProductsScreenState extends State<AddProductsScreen> {
     );
   }
 
-  Widget _buildAddProductSection(int index) {
-    final accountCtrl = Get.find<AccountController>();
-    debugPrint("Add Products Screen - Current User Type: ${accountCtrl.userType.value}, "
-               "isCustomer: ${accountCtrl.isCustomer}, "
-               "isVendor: ${accountCtrl.isVendor}, "
-               "isBeautician: ${accountCtrl.isBeautician}");
-
-    String typeLabel = accountCtrl.isVendor ? "Product" : "Service";
+  Widget _buildAddProductSection(int index, String typeLabel) {
+    String typeLabel = isVendor ? "Product" : "Service";
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -220,17 +225,15 @@ class _AddProductsScreenState extends State<AddProductsScreen> {
                   Container(
                     padding: EdgeInsets.all(15.r),
                     decoration: BoxDecoration(
-                      color: Color(0XFFCADA9F),
-                      // color: AppColors.primary.withOpacity(0.15),
+                      color: const Color(0XFFCADA9F),
                       borderRadius: BorderRadius.circular(20.r),
                     ),
                     child: Column(
                       children: [
-                        // Updated label inside the row
                         _buildSmallInputRow("$typeLabel Name", "\$ 0.00"),
                         SizedBox(height: 25.h),
-                        Icon(Icons.add_a_photo_outlined, size: 35.sp, color: Color(0x4D000000)),
-                        CustomText(text: "Tap to add photos", fontSize: 11.sp, color: Color(0x4D000000), top: 8.h),
+                        const Icon(Icons.add_a_photo_outlined, size: 35, color: Color(0x4D000000)),
+                        CustomText(text: "Tap to add photos", fontSize: 11.sp, color: const Color(0x4D000000), top: 8.h),
                         SizedBox(height: 25.h),
                         _buildVariantLink(),
                       ],
@@ -241,16 +244,14 @@ class _AddProductsScreenState extends State<AddProductsScreen> {
                     width: double.infinity,
                     padding: EdgeInsets.all(12.r),
                     decoration: BoxDecoration(
-                      color: Color(0XFFCADA9F),
-                      // color: AppColors.primary.withOpacity(0.1),
+                      color: const Color(0XFFCADA9F),
                       borderRadius: BorderRadius.circular(15.r),
                     ),
-                    child: CustomText(text: "Add Description", color: Color(0x4D000000), fontSize: 12.sp),
+                    child: CustomText(text: "Add Description", color: const Color(0x4D000000), fontSize: 12.sp),
                   ),
                 ],
               ),
             ),
-
             Expanded(
               flex: 1,
               child: Column(
@@ -266,7 +267,6 @@ class _AddProductsScreenState extends State<AddProductsScreen> {
                       children: [
                         Icon(Icons.add_circle_outline, color: AppColors.secondaryVariant, size: 35.sp),
                         CustomText(
-                          // Dynamic text here
                           text: "Add Another\n$typeLabel",
                           textAlign: TextAlign.center,
                           fontSize: 9.sp,
@@ -276,7 +276,6 @@ class _AddProductsScreenState extends State<AddProductsScreen> {
                       ],
                     ),
                   ),
-
                   if (index > 0) ...[
                     SizedBox(height: 20.h),
                     IconButton(
@@ -324,8 +323,6 @@ class _AddProductsScreenState extends State<AddProductsScreen> {
     );
   }
 
-  // --- Rest of your UI Helpers (Stay the same) ---
-
   Widget _buildSliverAppBar() {
     return SliverAppBar(
       expandedHeight: 180.h,
@@ -347,8 +344,8 @@ class _AddProductsScreenState extends State<AddProductsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CustomText(text: title, fontSize: 16.sp, fontWeight: FontWeight.bold, color: Color(0XFF1D3826),),
-        CustomText(text: sub, fontSize: 11.sp, color: Color(0XFFB5B475),),
+        CustomText(text: title, fontSize: 16.sp, fontWeight: FontWeight.bold, color: const Color(0XFF1D3826),),
+        CustomText(text: sub, fontSize: 11.sp, color: const Color(0XFFB5B475),),
         SizedBox(height: 15.h),
       ],
     );
@@ -356,7 +353,7 @@ class _AddProductsScreenState extends State<AddProductsScreen> {
 
   Widget _buildSmallInputRow(String hint, String price) {
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-      CustomText(text: hint, color: Color(0x4D000000), fontSize: 13.sp),
+      CustomText(text: hint, color: const Color(0x4D000000), fontSize: 13.sp),
       Container(
         padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
         decoration: BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.circular(10.r)),
@@ -366,43 +363,29 @@ class _AddProductsScreenState extends State<AddProductsScreen> {
   }
 
   Widget _buildVariantLink() {
-    // 1. Find the controller to know the account type
-    final accountCtrl = Get.find<AccountController>();
-
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        CustomText(text: "0 photos added", fontSize: 10.sp, color: Color(0x4D000000)),
+        CustomText(text: "0 photos added", fontSize: 10.sp, color: const Color(0x4D000000)),
         GestureDetector(
           onTap: () {
-            // --- DEBUG PRINT ADDED HERE ---
-            debugPrint("Current Account Type: ${accountCtrl.userType.value}");
-            debugPrint("Is Vendor: ${accountCtrl.isVendor}, Is Beautician: ${accountCtrl.isBeautician}");
-
-            // 2. Conditional logic based on selection
-            if (accountCtrl.isVendor) {
-              debugPrint("Opening Vendor Bottom Sheet...");
+            if (isVendor) {
               Get.bottomSheet(
                 const VendorAddVariantSheet(),
                 isScrollControlled: true,
                 backgroundColor: Colors.transparent,
               );
-            } else if (accountCtrl.isBeautician) {
-              debugPrint("Opening Beautician Dialog...");
+            } else if (isBeautician) {
               Get.dialog(
                 const BeauticiansAddVariantSheet(),
                 barrierDismissible: true,
               );
-            } else {
-              // For customers or other user types, do nothing or show an error
-              debugPrint("Unknown user type or customer trying to add variants");
             }
           },
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
             decoration: BoxDecoration(
-              color: Color(0x4D000000),
-              // border: Border.all(color: AppColors.secondaryVariant),
+              color: const Color(0x4D000000),
               borderRadius: BorderRadius.circular(5.r),
             ),
             child: CustomText(
@@ -416,8 +399,5 @@ class _AddProductsScreenState extends State<AddProductsScreen> {
       ],
     );
   }
-
-
-
 }
 

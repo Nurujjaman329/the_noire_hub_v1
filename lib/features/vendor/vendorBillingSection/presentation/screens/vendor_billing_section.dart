@@ -1,33 +1,28 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-
-import '../../../../../core/accountController/account_controller.dart';
 import '../../../../../core/constants/app_assets.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/widgets/custom_network_image.dart';
 import '../../../../../core/widgets/custom_text.dart';
+
 
 class VendorBillingSection extends StatelessWidget {
   const VendorBillingSection({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final AccountController accountCtrl = Get.find<AccountController>();
+    // 🔥 AccountController removed as it was not being utilized for logic here
 
     return Scaffold(
-      backgroundColor: Color(0XFF627E4C),
-      // backgroundColor: AppColors.secondaryVariant,
+      backgroundColor: const Color(0XFF627E4C),
       body: CustomScrollView(
         physics: const ClampingScrollPhysics(),
         slivers: [
           // 1. Pinned Header
           SliverAppBar(
             expandedHeight: 180.h,
-            backgroundColor: Color(0XFF627E4C),
-            // backgroundColor: AppColors.secondaryVariant,
+            backgroundColor: const Color(0XFF627E4C),
             automaticallyImplyLeading: false,
             elevation: 0,
             pinned: true,
@@ -99,14 +94,12 @@ class VendorBillingSection extends StatelessWidget {
                       text: "Payments",
                       fontSize: 20.sp,
                       fontWeight: FontWeight.bold,
-                      color: Color(0XFF1D3826),
-                      // color: AppColors.primaryDark,
+                      color: const Color(0XFF1D3826),
                     ),
                     CustomText(
                       text: "Add payout information",
                       fontSize: 12.sp,
-                      color: Color(0XFF627E4C),
-                      // color: AppColors.geryColor,
+                      color: const Color(0XFF627E4C),
                     ),
 
                     SizedBox(height: 25.h),
@@ -125,15 +118,13 @@ class VendorBillingSection extends StatelessWidget {
                       text: "Recommended",
                       fontSize: 16.sp,
                       fontWeight: FontWeight.bold,
-                      color: Color(0XFF000000),
-                      // color: AppColors.primaryDark,
+                      color: const Color(0XFF000000),
                     ),
                     SizedBox(height: 12.h),
 
                     _buildStripeCard(),
 
                     SizedBox(height: 50.h),
-
                   ],
                 ),
               ),
@@ -148,11 +139,10 @@ class VendorBillingSection extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.only(bottom: 8.h),
       child: CustomText(
-          text: label,
-          fontSize: 14.sp,
-          fontWeight: FontWeight.bold,
-        color: Color(0XFF000000),
-          // color: AppColors.primaryDark
+        text: label,
+        fontSize: 14.sp,
+        fontWeight: FontWeight.bold,
+        color: const Color(0XFF000000),
       ),
     );
   }
@@ -161,8 +151,7 @@ class VendorBillingSection extends StatelessWidget {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 12.h),
       decoration: BoxDecoration(
-        color: Color(0XFF9BB575),
-        // color: AppColors.secondaryVariant.withOpacity(0.9),
+        color: const Color(0XFF9BB575),
         borderRadius: BorderRadius.circular(15.r),
       ),
       child: Row(
@@ -180,8 +169,7 @@ class VendorBillingSection extends StatelessWidget {
       width: double.infinity,
       padding: EdgeInsets.all(25.r),
       decoration: BoxDecoration(
-        color: Color(0XFFD7EBB8),
-        // color: AppColors.secondaryVariant.withOpacity(0.15), // Soft brand tint
+        color: const Color(0XFFD7EBB8),
         borderRadius: BorderRadius.circular(30.r),
       ),
       child: Column(
@@ -197,8 +185,7 @@ class VendorBillingSection extends StatelessWidget {
             text: "Connect your account to Stripe for easier\nand more seamless payments",
             textAlign: TextAlign.center,
             fontSize: 12.sp,
-            color: Color(0XFF000000),
-            // color: AppColors.geryColor,
+            color: const Color(0XFF000000),
             height: 1.4,
           ),
           SizedBox(height: 25.h),
@@ -207,7 +194,9 @@ class VendorBillingSection extends StatelessWidget {
             width: double.infinity,
             height: 50.h,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                // Future: Implement Stripe Onboarding Logic
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryDark,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
@@ -228,7 +217,7 @@ class VendorBillingSection extends StatelessWidget {
             text: TextSpan(
               style: TextStyle(fontSize: 10.sp, color: Colors.black45),
               children: [
-                const TextSpan(text: "By connecting to Stripe, you agree to their ",style: TextStyle(color: Color(0XFF000000))),
+                const TextSpan(text: "By connecting to Stripe, you agree to their ", style: TextStyle(color: Color(0XFF000000))),
                 TextSpan(
                   text: "terms",
                   style: TextStyle(

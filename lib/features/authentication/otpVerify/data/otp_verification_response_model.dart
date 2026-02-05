@@ -29,7 +29,7 @@ class LoginData {
   }
 }
 class LoginAttributes {
-  final UserModel user;
+  final OtpUserModel user;
   final TokenPair tokens;
 
   LoginAttributes({
@@ -39,14 +39,14 @@ class LoginAttributes {
 
   factory LoginAttributes.fromJson(Map<String, dynamic> json) {
     return LoginAttributes(
-      user: UserModel.fromJson(json['user'] ?? {}),
+      user: OtpUserModel.fromJson(json['user'] ?? {}),
       tokens: TokenPair.fromJson(json['tokens'] ?? {}),
     );
   }
 }
 
 
-class UserModel {
+class OtpUserModel {
   final String id;
   final String firstName;
   final String lastName;
@@ -72,7 +72,7 @@ class UserModel {
   final List<UserCategory> selectedCategories;
   final List<UserAddress> addresses;
 
-  UserModel({
+  OtpUserModel({
     required this.id,
     required this.firstName,
     required this.lastName,
@@ -95,8 +95,8 @@ class UserModel {
     required this.addresses,
   });
 
-  factory UserModel.fromJson(Map<String, dynamic> json) {
-    return UserModel(
+  factory OtpUserModel.fromJson(Map<String, dynamic> json) {
+    return OtpUserModel(
       id: json['id'] ?? '',
       firstName: json['firstName'] ?? '',
       lastName: json['lastName'] ?? '',

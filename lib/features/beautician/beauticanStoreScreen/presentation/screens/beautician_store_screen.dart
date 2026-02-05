@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import '../../../../../core/accountController/account_controller.dart';
 import '../../../../../core/constants/app_assets.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/route_constants.dart';
@@ -22,7 +21,6 @@ class _BeauticianStoreScreenState extends State<BeauticianStoreScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final AccountController accountCtrl = Get.find<AccountController>();
 
     return Scaffold(
       backgroundColor: AppColors.white,
@@ -73,8 +71,8 @@ class _BeauticianStoreScreenState extends State<BeauticianStoreScreen> {
                               _buildTextButtonsToggle(),
 
                               SizedBox(height: 10.h),
-                              _buildServiceCategory(accountCtrl.isBeautician ? "Hair Services" : "Hair Care", showEdit: isLiveMode),
-                              _buildServiceCategory(accountCtrl.isBeautician ? "Skin Services" : "Skin Care", showEdit: isLiveMode),
+                              _buildServiceCategory("Hair Services", showEdit: isLiveMode),
+                              _buildServiceCategory("Skin Services", showEdit: isLiveMode),
 
                               SizedBox(height: 100.h),
                             ],
@@ -234,7 +232,7 @@ class _BeauticianStoreScreenState extends State<BeauticianStoreScreen> {
                 Get.toNamed(RouteConstants.orderFullFillMent);
               },
                 onClose: () {
-                  Get.find<AccountController>().dismissDialog();
+                  // Get.find<AccountController>().dismissDialog();
                 }
             );
           },
@@ -347,7 +345,7 @@ class _BeauticianStoreScreenState extends State<BeauticianStoreScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                  text: Get.find<AccountController>().isBeautician ? "Hair Styling Service" : "Argan Oil Serum",
+                  text: "Hair Styling Service",
                   fontSize: 11.sp,
                   fontWeight: FontWeight.bold,
                   maxLines: 1,

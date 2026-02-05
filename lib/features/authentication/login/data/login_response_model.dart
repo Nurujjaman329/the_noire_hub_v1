@@ -1,3 +1,5 @@
+import '../../../../core/constants/api_constants.dart';
+
 class LoginResponseModel {
   final int code;
   final String message;
@@ -93,6 +95,20 @@ class UserModel {
     required this.addresses,
   });
 
+
+  /// Returns the full URL for the user profile image
+  String get fullProfileImageUrl => (image.isNotEmpty)
+      ? "${ApiConstants.baseImageUrl}$image"
+      : "";
+
+  /// Returns the full URL for the shop/banner image
+  String get fullShopImageUrl => (shopImage.isNotEmpty)
+      ? "${ApiConstants.baseImageUrl}$shopImage"
+      : "";
+
+  /// Helper to check if the user is a service provider
+  bool get isProvider => role.toLowerCase().contains('vendor') || role.toLowerCase().contains('beautician');
+
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       id: json['id'] ?? '',
@@ -114,8 +130,8 @@ class UserModel {
       isNIDVerified: json['isNIDVerified'] ?? false,
       isProfileCompleted: json['isProfileCompleted'] ?? false,
 
-      dateOfBirth: json['dataOfBirth'] != null
-          ? DateTime.parse(json['dataOfBirth'])
+      dateOfBirth: json['dateOfBirth'] != null || json['dataOfBirth'] != null
+          ? DateTime.parse(json['dateOfBirth'] ?? json['dataOfBirth'])
           : null,
 
       createdAt: json['createdAt'] != null
@@ -130,6 +146,8 @@ class UserModel {
           .map((e) => UserAddress.fromJson(e))
           .toList(),
     );
+
+
   }
 
 

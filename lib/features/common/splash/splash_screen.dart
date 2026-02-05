@@ -21,66 +21,38 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _navigateAfterDelay();
+    _initializeApp();
   }
 
-  void _navigateAfterDelay() async {
-    // Initialize local storage first
+  Future<void> _initializeApp() async {
+    // 1. Initialize local storage (one single reliable call)
     await LocalStorage.init();
 
-    // Wait for 3 seconds for branding
+    // 2. Wait for branding/animations (3 seconds)
     await Future.delayed(const Duration(seconds: 3));
 
-    // Check if user is logged in
-    final isLoggedIn = await _checkLoginStatus();
+    // 3. Determine Navigation
+    final String? token = LocalStorage.getAccessToken();
+    final user = LocalStorage.getUserModel();
 
-    if (isLoggedIn) {
-      // If logged in, navigate to the appropriate main container based on role
-      _navigateBasedOnRole();
+    if (token != null && token.isNotEmpty && user != null) {
+      // User is authenticated and we have their profile
+      _navigateBasedOnRole(user);
     } else {
-      // If not logged in, navigate to login screen
+      // Not logged in or data is corrupted/missing
       Get.offAllNamed(RouteConstants.login);
     }
   }
 
-  Future<bool> _checkLoginStatus() async {
-    // Initialize local storage if not already done
-    try {
-      await LocalStorage.init();
-    } catch (e) {
-      // If initialization fails, try to continue anyway
-      debugPrint('LocalStorage initialization error: $e');
-    }
+  void _navigateBasedOnRole(UserModel user) {
+    final String userRole = user.role.toLowerCase();
+    debugPrint("🚀 Navigating user with role: $userRole");
 
-    final accessToken = LocalStorage.getAccessToken();
-    return accessToken != null && accessToken.isNotEmpty;
-  }
-
-  void _navigateBasedOnRole() {
-    // Get user data from local storage
-    final userDataMap = LocalStorage.getUserData();
-
-    if (userDataMap != null) {
-      // Create a temporary UserModel to get the role
-      try {
-        final user = UserModel.fromJson(userDataMap);
-        final userRole = user.role.toLowerCase();
-
-        if (userRole.contains('customer') || userRole.contains('user')) {
-          Get.offAllNamed(RouteConstants.customerMainContainer);
-        } else if (userRole.contains('vendor') || userRole.contains('beautician')) {
-          Get.offAllNamed(RouteConstants.vendorMainContainer);
-        } else {
-          // Default to customer container if role is unknown
-          Get.offAllNamed(RouteConstants.customerMainContainer);
-        }
-      } catch (e) {
-        // If there's an error parsing user data, default to login screen
-        Get.offAllNamed(RouteConstants.login);
-      }
+    if (userRole.contains('vendor') || userRole.contains('beautician')) {
+      Get.offAllNamed(RouteConstants.vendorMainContainer);
     } else {
-      // If no user data, default to login screen
-      Get.offAllNamed(RouteConstants.login);
+      // Default to customer container for 'customer', 'user', or any unknown roles
+      Get.offAllNamed(RouteConstants.customerMainContainer);
     }
   }
 
@@ -90,7 +62,7 @@ class _SplashScreenState extends State<SplashScreen> {
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          // 1. Full Screen Background Image
+          // Background Image
           Positioned.fill(
             child: Image.asset(
               AppAssets.splashImage,
@@ -98,19 +70,16 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
           ),
 
-          // 2. Center Content (Logo and Tagline)
+          // Logo and Tagline
           Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // App Logo (TNP)
                 Image.asset(
                   AppAssets.appLogo,
                   width: 180.w,
                   fit: BoxFit.contain,
                 ),
-
-                // Using CustomText for the Tagline
                 CustomText(
                   text: "culture meets care",
                   color: AppColors.textOnDark,
@@ -118,21 +87,22 @@ class _SplashScreenState extends State<SplashScreen> {
                   fontWeight: FontWeight.w700,
                   top: 12.h,
                 ),
-
                 SizedBox(height: 40.h),
-
                 // Branding Dots
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(3, (index) => Container(
-                    margin: EdgeInsets.symmetric(horizontal: 4.w),
-                    height: 8.h,
-                    width: 8.w,
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryVariant, // Using new variant color
-                      shape: BoxShape.circle,
+                  children: List.generate(
+                    3,
+                        (index) => Container(
+                      margin: EdgeInsets.symmetric(horizontal: 4.w),
+                      height: 8.h,
+                      width: 8.w,
+                      decoration: const BoxDecoration(
+                        color: Color(0XFFCADA9F),
+                        shape: BoxShape.circle,
+                      ),
                     ),
-                  )),
+                  ),
                 ),
               ],
             ),

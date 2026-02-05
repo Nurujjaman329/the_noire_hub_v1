@@ -2,6 +2,15 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../features/authentication/login/data/login_response_model.dart';
+
+
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+
 class LocalStorage {
   static SharedPreferences? _prefs;
 
@@ -16,19 +25,13 @@ class LocalStorage {
     return _prefs!;
   }
 
-  // Generic methods
+  // --- Generic Storage Methods ---
   static Future<bool> setData(String key, dynamic value) async {
-    if (value is String) {
-      return await prefs.setString(key, value);
-    } else if (value is int) {
-      return await prefs.setInt(key, value);
-    } else if (value is double) {
-      return await prefs.setDouble(key, value);
-    } else if (value is bool) {
-      return await prefs.setBool(key, value);
-    } else if (value is List<String>) {
-      return await prefs.setStringList(key, value);
-    }
+    if (value is String) return await prefs.setString(key, value);
+    if (value is int) return await prefs.setInt(key, value);
+    if (value is double) return await prefs.setDouble(key, value);
+    if (value is bool) return await prefs.setBool(key, value);
+    if (value is List<String>) return await prefs.setStringList(key, value);
     return false;
   }
 
@@ -44,90 +47,68 @@ class LocalStorage {
     return await prefs.clear();
   }
 
-  // Specific methods for common keys
-  static Future<bool> setToken(String token) async {
-    return await setData('token', token);
+  // --- Token Management ---
+  // Access Token
+  static Future<bool> setAccessToken(String token) => setData('accessToken', token);
+  static String? getAccessToken() => getData('accessToken');
+  static Future<bool> removeAccessToken() => removeData('accessToken');
+
+  // Refresh Token
+  static Future<bool> setRefreshToken(String token) => setData('refreshToken', token);
+  static String? getRefreshToken() => getData('refreshToken');
+  static Future<bool> removeRefreshToken() => removeData('refreshToken');
+
+  // Generic Token (Used in your Service)
+  static Future<bool> setToken(String token) => setData('token', token);
+  static String? getToken() => getData('token');
+  static Future<bool> removeToken() => removeData('token');
+
+  // --- User Model Management ---
+
+  /// Saves the entire UserModel object to local storage
+  static Future<bool> setUserModel(UserModel user) async {
+    try {
+      final String userJson = jsonEncode(user.toJson());
+      return await setData('userData', userJson);
+    } catch (e) {
+      print('Error encoding UserModel: $e');
+      return false;
+    }
   }
 
-  static String? getToken() {
-    return getData('token');
-  }
-
-  static Future<bool> removeToken() async {
-    return await removeData('token');
-  }
-
-  // Methods for handling access tokens
-  static Future<bool> setAccessToken(String token) async {
-    return await setData('accessToken', token);
-  }
-
-  static String? getAccessToken() {
-    return getData('accessToken');
-  }
-
-  static Future<bool> removeAccessToken() async {
-    return await removeData('accessToken');
-  }
-
-  // Methods for handling refresh tokens
-  static Future<bool> setRefreshToken(String token) async {
-    return await setData('refreshToken', token);
-  }
-
-  static String? getRefreshToken() {
-    return getData('refreshToken');
-  }
-
-  static Future<bool> removeRefreshToken() async {
-    return await removeData('refreshToken');
-  }
-
-  // Methods for handling user data
-  static Future<bool> setUserData(Map<String, dynamic> userData) async {
-    final userDataJson = jsonEncode(userData);
-    return await setData('userData', userDataJson);
-  }
-
-  static Map<String, dynamic>? getUserData() {
-    final userDataStr = getData('userData') as String?;
-    if (userDataStr != null) {
+  /// Retrieves the UserModel object with full type safety
+  static UserModel? getUserModel() {
+    final String? userStr = getData('userData');
+    if (userStr != null) {
       try {
-        final decodedData = jsonDecode(userDataStr);
-        return decodedData as Map<String, dynamic>;
+        return UserModel.fromJson(jsonDecode(userStr));
       } catch (e) {
-        print('Error decoding user data: $e');
+        print('Error parsing UserModel: $e');
         return null;
       }
     }
     return null;
   }
 
-  static Future<bool> removeUserData() async {
-    return await removeData('userData');
-  }
+  /// Helper to check if a user is logged in based on model existence
+  static bool hasUserModel() => getUserModel() != null;
 
-  static Future<bool> setOnboardingCompleted(bool completed) async {
-    return await setData('onboardingCompleted', completed);
-  }
+  // --- App Settings ---
+  static Future<bool> setOnboardingCompleted(bool completed) => setData('onboardingCompleted', completed);
+  static bool getOnboardingCompleted() => getData('onboardingCompleted', defaultValue: false);
 
-  static bool getOnboardingCompleted() {
-    return getData('onboardingCompleted', defaultValue: false) as bool;
-  }
+  static Future<bool> setLanguage(String code) => setData('languageCode', code);
+  static String getLanguage() => getData('languageCode', defaultValue: 'en');
 
-  static Future<bool> setLanguage(String languageCode) async {
-    return await setData('languageCode', languageCode);
-  }
+  static Future<bool> setThemeMode(String mode) => setData('themeMode', mode);
+  static String getThemeMode() => getData('themeMode', defaultValue: 'system');
 
-  static String getLanguage() {
-    return getData('languageCode', defaultValue: 'en') as String;
-  }
-
-  static Future<bool> setThemeMode(String themeMode) async {
-    return await setData('themeMode', themeMode);
-  }
-
-  static String getThemeMode() {
-    return getData('themeMode', defaultValue: 'system') as String;
+  // --- Logout Helper ---
+  /// Clears all session data while preserving app settings (Language/Theme)
+  static Future<void> clearUserSession() async {
+    await removeAccessToken();
+    await removeRefreshToken();
+    await removeToken();
+    await removeData('userData');
   }
 }

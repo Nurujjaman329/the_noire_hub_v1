@@ -234,7 +234,7 @@ class _VendorStoreScreenState extends State<VendorStoreScreen> {
                 Get.toNamed(RouteConstants.orderFullFillMent);
               },
                 onClose: () {
-                  Get.find<AccountController>().dismissDialog();
+                  // Get.find<AccountController>().dismissDialog();
                 }
             );
           },

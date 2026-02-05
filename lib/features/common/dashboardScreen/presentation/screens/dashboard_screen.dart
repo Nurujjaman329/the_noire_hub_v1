@@ -3,12 +3,13 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import '../../../../../core/accountController/account_controller.dart';
+import 'package:the_noire_hub_v1/core/constants/api_constants.dart';
+import 'package:the_noire_hub_v1/core/widgets/custom_network_image.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/route_constants.dart';
 import '../../../../../core/storage/local_storage.dart';
 import '../../../../../core/widgets/custom_text.dart';
-import '../../../../../core/widgets/dialog_helper.dart';
+import '../../../../authentication/login/data/login_response_model.dart';
 import '../widget/dashboard_drawer.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -18,22 +19,19 @@ class DashboardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 1. Get User Data directly from Local Storage
-    final userData = LocalStorage.getUserData();
-    final String role = (userData?['role'] ?? 'user').toString().toLowerCase();
+    // 1. Get the Strongly-Typed Model (The "Pro" Way)
+    final user = LocalStorage.getUserModel();
 
-    // 2. Define Role Booleans
+    // 2. Extract logic directly from the object
+    final String role = user?.role.toLowerCase() ?? 'user';
     final bool isVendor = role.contains('vendor');
     final bool isBeautician = role.contains('beautician');
-    final String userName = userData?['name'] ?? "Ada’s Body Shop";
+    final String businessName = user?.businessName ?? "Ada’s Body Shop";
 
     // 3. Handle Auto-Dialog for Beauticians
-    // Note: You can use a simple RxBool in a small 'DashboardController'
-    // or just show it once per session.
     if (isBeautician) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        // You might want to add a check here to only show once
-        // showQuickTipDialog(context);
+        // You could also add a check here like: if (!LocalStorage.getTipDismissed()) ...
       });
     }
 
@@ -49,7 +47,7 @@ class DashboardScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildHeader(context, userData),
+                _buildHeader(context, user), // Pass the full user object
                 SizedBox(height: 20.h),
                 Center(
                   child: CustomText(
@@ -60,7 +58,7 @@ class DashboardScreen extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 25.h),
-                _buildStoreBanner(userName),
+                _buildStoreBanner(businessName),
                 SizedBox(height: 25.h),
                 _buildProductsSection(isVendor, isBeautician, context),
                 SizedBox(height: 25.h),
@@ -74,8 +72,9 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, Map<String, dynamic>? userData) {
-    final String profileImg = userData?['image'] ?? "https://images.pexels.com/photos/674010/pexels-photo-674010.jpeg";
+  // --- Helper Widgets ---
+
+  Widget _buildHeader(BuildContext context, UserModel? user) {
 
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 10.h),
@@ -91,7 +90,8 @@ class DashboardScreen extends StatelessWidget {
               Icon(Icons.location_on, size: 18.sp, color: AppColors.textPrimary),
               SizedBox(width: 5.w),
               CustomText(
-                text: "Toronto, ON", // This could also come from LocalStorage if saved
+                // You could pull this from user?.addresses.first.city if needed
+                text: "Toronto, ON",
                 fontSize: 16.sp,
                 fontWeight: FontWeight.bold,
               ),
@@ -102,7 +102,15 @@ class DashboardScreen extends StatelessWidget {
             onTap: () => Get.toNamed(RouteConstants.profileScreen),
             child: CircleAvatar(
               radius: 22.r,
-              backgroundImage: NetworkImage(profileImg),
+              backgroundColor: AppColors.primary.withOpacity(0.1), // Nice soft background
+              // 1. Use NetworkImage (ImageProvider) instead of a Widget
+              backgroundImage: user != null && user.fullProfileImageUrl.isNotEmpty
+                  ? NetworkImage(user.fullProfileImageUrl)
+                  : null,
+              // 2. Show Icon only if image is missing
+              child: (user == null || user.fullProfileImageUrl.isEmpty)
+                  ? Icon(Icons.person, size: 24.sp, color: AppColors.primaryDark)
+                  : null,
             ),
           ),
         ],
@@ -111,6 +119,9 @@ class DashboardScreen extends StatelessWidget {
   }
 
   Widget _buildStoreBanner(String name) {
+    // Logic for splitting name if it's too long
+    final displayName = name.contains(' ') ? name.replaceFirst(' ', '\n') : name;
+
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(20.r),
@@ -124,7 +135,7 @@ class DashboardScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CustomText(
-                text: name.replaceFirst(' ', '\n'), // Wraps name to two lines
+                text: displayName,
                 fontSize: 24.sp,
                 fontWeight: FontWeight.bold,
                 color: const Color(0XFF1D3826),
@@ -143,8 +154,7 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProductsSection(bool isVendor, bool isBeautician, BuildContext context)
-  {
+  Widget _buildProductsSection(bool isVendor, bool isBeautician, BuildContext context) {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(vertical: 20.h, horizontal: 15.w),
@@ -181,7 +191,6 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-
   Widget _buildAddButton(bool isBeautician, BuildContext context) {
     return GestureDetector(
       onTap: () {
@@ -189,50 +198,6 @@ class DashboardScreen extends StatelessWidget {
           showQuickTipDialog(context);
         } else {
           Get.toNamed(RouteConstants.addProductsScreen);
-        }
-      },
-      child: Container(
-        width: 100.w,
-        height: 110.h,
-        margin: EdgeInsets.symmetric(horizontal: 8.w),
-        decoration: BoxDecoration(
-          color: AppColors.primary,
-          borderRadius: BorderRadius.circular(25.r),
-          border: Border.all(color: AppColors.white, width: 4),
-        ),
-        child: Icon(Icons.add, size: 35.sp, color: AppColors.primaryDark),
-      ),
-    );
-  }
-
-  Widget _buildAddProductTile(BuildContext context) {
-    final AccountController accountCtrl = Get.find<AccountController>();
-
-    return GestureDetector(
-      onTap: () {
-        // 1. Check if the user is a Beautician first
-        if (accountCtrl.isBeautician) {
-          showQuickTipDialog(context);
-          return; // Exit here so other logic doesn't run
-        }
-
-        // 2. Existing flow for Vendors/others
-        if (accountCtrl.hasDismissedActionDialog.value) {
-          Get.toNamed(RouteConstants.addProductsScreen);
-        } else {
-          GlobalDialogs.showActionRequiredDialog(
-              onVerifyTap: () {
-                accountCtrl.dismissDialog();
-                Get.toNamed(RouteConstants.businessScreen);
-              },
-              onFulfillmentTap: () {
-                accountCtrl.dismissDialog();
-                Get.toNamed(RouteConstants.orderFullFillMent);
-              },
-              onClose: () {
-                accountCtrl.dismissDialog();
-              }
-          );
         }
       },
       child: Container(
@@ -262,14 +227,12 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  // --- Revenue Section ---
   Widget _buildRevenueSection() {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.all(20.r),
       decoration: BoxDecoration(
-        color: Color(0XFF3F592B),
-        // color: AppColors.background, // Dark forest green background
+        color: const Color(0XFF3F592B),
         borderRadius: BorderRadius.circular(25.r),
       ),
       child: Column(
@@ -340,12 +303,11 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
+  // 🔥 AccountController removed from here
   void showQuickTipDialog(BuildContext context) {
-    final AccountController accountCtrl = Get.find<AccountController>();
-
     showDialog(
       context: context,
-      barrierDismissible: false, // Force interaction
+      barrierDismissible: true, // Set to true if you don't need the controller to "dismiss" it permanently
       builder: (BuildContext context) {
         return Dialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40.r)),
@@ -358,15 +320,14 @@ class DashboardScreen extends StatelessWidget {
                   alignment: Alignment.topRight,
                   child: GestureDetector(
                     onTap: () {
-                      accountCtrl.dismissDialog(); // MARK AS DISMISSED
                       Navigator.pop(context);
-                      Get.toNamed(RouteConstants.addProductsScreen); // Go to Add Products
+                      Get.toNamed(RouteConstants.addProductsScreen);
                     },
                     child: Icon(Icons.close, color: const Color(0xFF1D3826), size: 24.sp),
                   ),
                 ),
                 SizedBox(height: 10.h),
-                Text("Quick Tip", style: TextStyle(color: Color(0xFF6B8E23), fontSize: 28.sp, fontWeight: FontWeight.bold)),
+                Text("Quick Tip", style: TextStyle(color: const Color(0xFF6B8E23), fontSize: 28.sp, fontWeight: FontWeight.bold)),
                 SizedBox(height: 20.h),
                 Text(
                   "Add beautician certifications to attract more customers",
@@ -378,15 +339,14 @@ class DashboardScreen extends StatelessWidget {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () {
-                      accountCtrl.dismissDialog(); // MARK AS DISMISSED
                       Navigator.pop(context);
-                      Get.toNamed(RouteConstants.businessScreen); // Go to Certifications
+                      Get.toNamed(RouteConstants.businessScreen);
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF6B7E50),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
                     ),
-                    child: Text("Add Now", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    child: const Text("Add Now", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                   ),
                 ),
               ],
@@ -396,5 +356,4 @@ class DashboardScreen extends StatelessWidget {
       },
     );
   }
-
 }

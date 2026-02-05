@@ -20,15 +20,16 @@ class LoginService {
       );
 
       final loginResponse = LoginResponseModel.fromJson(response.data);
+      final attributes = loginResponse.data.attributes;
 
-      await LocalStorage.setAccessToken(
-          loginResponse.data.attributes.tokens.access.token);
-      await LocalStorage.setRefreshToken(
-          loginResponse.data.attributes.tokens.refresh.token);
-      await LocalStorage.setUserData(
-          loginResponse.data.attributes.user.toJson());
-      await LocalStorage.setToken(
-          loginResponse.data.attributes.tokens.access.token);
+      // Batch saving data to LocalStorage
+      // Using the specific model setter we defined for type safety
+      await Future.wait([
+        LocalStorage.setAccessToken(attributes.tokens.access.token),
+        LocalStorage.setRefreshToken(attributes.tokens.refresh.token),
+        LocalStorage.setToken(attributes.tokens.access.token),
+        LocalStorage.setUserModel(attributes.user),
+      ]);
 
       return loginResponse;
     } on AppException {
@@ -38,13 +39,11 @@ class LoginService {
     }
   }
 
-    Future<void> logout() async {
+  Future<void> logout() async {
     try {
-      // Remove tokens and user data from local storage
-      await LocalStorage.removeAccessToken();
-      await LocalStorage.removeRefreshToken();
-      await LocalStorage.removeUserData();
-      await LocalStorage.removeToken(); // Remove the main token too
+      // Use the centralized helper from LocalStorage
+      // This ensures session data is cleared but settings (theme/lang) remain
+      await LocalStorage.clearUserSession();
     } catch (e) {
       throw Exception('Logout failed: $e');
     }
@@ -52,6 +51,7 @@ class LoginService {
 
   Future<bool> isLoggedIn() async {
     final accessToken = LocalStorage.getAccessToken();
-    return accessToken != null && accessToken.isNotEmpty;
+    // Use the helper method we added to check for the user model
+    return accessToken != null && accessToken.isNotEmpty && LocalStorage.hasUserModel();
   }
 }
