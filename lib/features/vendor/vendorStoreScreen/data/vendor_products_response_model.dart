@@ -65,7 +65,7 @@ class VendorProductModel {
   final Vendor vendor;
   final Location location;
   final Weight? weight;
-  final List<VariantModel> variants;
+  final List<ProductVariantModel> variants;
 
   VendorProductModel({
     required this.id,
@@ -114,13 +114,13 @@ class VendorProductModel {
       location: Location.fromJson(json['location'] ?? {}),
       weight: json['weight'] != null ? Weight.fromJson(json['weight']) : null,
       variants: (json['variants'] as List<dynamic>? ?? [])
-          .map((e) => VariantModel.fromJson(e))
+          .map((e) => ProductVariantModel.fromJson(e))
           .toList(),
     );
   }
 }
 
-class VariantModel {
+class ProductVariantModel {
   final String id;
   final String name;
   final String description;
@@ -131,7 +131,7 @@ class VariantModel {
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
-  VariantModel({
+  ProductVariantModel({
     required this.id,
     required this.name,
     required this.description,
@@ -143,8 +143,8 @@ class VariantModel {
     this.updatedAt,
   });
 
-  factory VariantModel.fromJson(Map<String, dynamic> json) {
-    return VariantModel(
+  factory ProductVariantModel.fromJson(Map<String, dynamic> json) {
+    return ProductVariantModel(
       id: json['_id'] ?? '',
       name: json['name'] ?? '',
       description: json['description'] ?? '',

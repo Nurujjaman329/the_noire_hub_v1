@@ -67,6 +67,7 @@ import '../../features/vendor/orderFullFillment/presentation/screen/order_full_f
 import '../../features/vendor/storeSetUp/presentation/screens/store_setup_screen.dart';
 import '../../features/vendor/vendorBillingSection/presentation/screens/vendor_billing_section.dart';
 import '../../features/vendor/vendorOrderScreen/presentation/screens/vendor_order_screen.dart';
+import '../../features/vendor/vendorProductDetailsScreen/presentation/bindings/vendor_product_details_bindings.dart';
 import '../../features/vendor/vendorProductDetailsScreen/presentation/vendor_product_details_screen.dart';
 import '../../features/vendor/vendorStoreScreen/presentation/screens/vendor_store_screen.dart';
 
@@ -364,6 +365,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.vendorProductDetailScreen,
       page: () => const VendorProductDetailsScreen(),
+      binding: VendorProductDetailsBinding(),
       transition: Transition.cupertino,
     ),
     GetPage(

@@ -216,7 +216,7 @@ class VendorStoreScreen extends GetView<VendorProductController> {
 
   Widget _buildProductCard(VendorProductModel product) {
     return GestureDetector(
-      onTap: () => Get.toNamed(RouteConstants.vendorProductDetailScreen, arguments: product),
+      onTap: () => Get.toNamed(RouteConstants.vendorProductDetailScreen, arguments: product.id),
       child: Container(
         decoration: BoxDecoration(
           color: const Color(0XFFF0F0EC),
