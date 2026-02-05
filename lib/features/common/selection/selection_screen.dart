@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import '../../../core/accountController/account_controller.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/route_constants.dart';
