@@ -1,13 +1,13 @@
-
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import '../../../../../core/constants/api_constants.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/route_constants.dart';
-import '../../../../../core/storage/local_storage.dart';
+import '../../../../../core/services/cache_service.dart';
 import '../../../../../core/widgets/custom_text.dart';
-import '../../../../authentication/login/data/login_response_model.dart';
 import '../widget/dashboard_drawer.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -18,20 +18,18 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // 1. Get the Strongly-Typed Model (The "Pro" Way)
-    final user = LocalStorage.getUserModel();
+    final String role = CacheService.role.toLowerCase();
+    final String businessName = CacheService.businessName.isNotEmpty
+        ? CacheService.businessName
+        : "Ada’s Body Shop";
+    final image = CacheService.userImage;
+    final fullImageUrl = image.isNotEmpty
+        ? ApiConstants.baseImageUrl + image
+        : null;
 
     // 2. Extract logic directly from the object
-    final String role = user?.role.toLowerCase() ?? 'user';
     final bool isVendor = role.contains('vendor');
     final bool isBeautician = role.contains('beautician');
-    final String businessName = user?.businessName ?? "Ada’s Body Shop";
-
-    // 3. Handle Auto-Dialog for Beauticians
-    if (isBeautician) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        // You could also add a check here like: if (!LocalStorage.getTipDismissed()) ...
-      });
-    }
 
     return Scaffold(
       key: _scaffoldKey,
@@ -45,7 +43,8 @@ class DashboardScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildHeader(context, user), // Pass the full user object
+                // We no longer pass 'user', we just build the header
+                _buildHeader(context, fullImageUrl: fullImageUrl),
                 SizedBox(height: 20.h),
                 Center(
                   child: CustomText(
@@ -72,8 +71,7 @@ class DashboardScreen extends StatelessWidget {
 
   // --- Helper Widgets ---
 
-  Widget _buildHeader(BuildContext context, UserModel? user) {
-
+  Widget _buildHeader(BuildContext context, {String? fullImageUrl}) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 10.h),
       child: Row(
@@ -85,30 +83,56 @@ class DashboardScreen extends StatelessWidget {
           ),
           Row(
             children: [
-              Icon(Icons.location_on, size: 18.sp, color: AppColors.textPrimary),
+              Icon(
+                Icons.location_on,
+                size: 18.sp,
+                color: AppColors.textPrimary,
+              ),
               SizedBox(width: 5.w),
               CustomText(
-                // You could pull this from user?.addresses.first.city if needed
                 text: "Toronto, ON",
                 fontSize: 16.sp,
                 fontWeight: FontWeight.bold,
               ),
-              Icon(Icons.keyboard_arrow_down, size: 18.sp, color: AppColors.textPrimary),
+              Icon(
+                Icons.keyboard_arrow_down,
+                size: 18.sp,
+                color: AppColors.textPrimary,
+              ),
             ],
           ),
+
           GestureDetector(
             onTap: () => Get.toNamed(RouteConstants.profileScreen),
-            child: CircleAvatar(
-              radius: 22.r,
-              backgroundColor: AppColors.primary.withValues(alpha: 0.1), // Nice soft background
-              // 1. Use NetworkImage (ImageProvider) instead of a Widget
-              backgroundImage: user != null && user.fullProfileImageUrl.isNotEmpty
-                  ? NetworkImage(user.fullProfileImageUrl)
-                  : null,
-              // 2. Show Icon only if image is missing
-              child: (user == null || user.fullProfileImageUrl.isEmpty)
-                  ? Icon(Icons.person, size: 24.sp, color: AppColors.primaryDark)
-                  : null,
+            child: Container(
+              height: 44.r,
+              width: 44.r,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.primary.withValues(alpha: 0.1),
+              ),
+              child: ClipOval(
+                child: fullImageUrl != null && fullImageUrl.isNotEmpty
+                    ? CachedNetworkImage(
+                        imageUrl: fullImageUrl,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Center(
+                          child: SizedBox(
+                            width: 20.w,
+                            height: 20.h,
+                            child: const CircularProgressIndicator(
+                              strokeWidth: 2,
+                            ),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Icon(
+                          Icons.person,
+                          size: 25.sp,
+                          color: AppColors.primary,
+                        ),
+                      )
+                    : Icon(Icons.person, size: 25.sp, color: AppColors.primary),
+              ),
             ),
           ),
         ],
@@ -118,7 +142,9 @@ class DashboardScreen extends StatelessWidget {
 
   Widget _buildStoreBanner(String name) {
     // Logic for splitting name if it's too long
-    final displayName = name.contains(' ') ? name.replaceFirst(' ', '\n') : name;
+    final displayName = name.contains(' ')
+        ? name.replaceFirst(' ', '\n')
+        : name;
 
     return Container(
       width: double.infinity,
@@ -145,14 +171,22 @@ class DashboardScreen extends StatelessWidget {
           Positioned(
             right: 0,
             bottom: 0,
-            child: Icon(Icons.eco_outlined, size: 80.sp, color: AppColors.primaryDark.withValues(alpha: 0.3)),
-          )
+            child: Icon(
+              Icons.eco_outlined,
+              size: 80.sp,
+              color: AppColors.primaryDark.withValues(alpha: 0.3),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildProductsSection(bool isVendor, bool isBeautician, BuildContext context) {
+  Widget _buildProductsSection(
+    bool isVendor,
+    bool isBeautician,
+    BuildContext context,
+  ) {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(vertical: 20.h, horizontal: 15.w),
@@ -179,17 +213,25 @@ class DashboardScreen extends StatelessWidget {
             child: Row(
               children: [
                 _buildAddButton(isBeautician, isVendor, context),
-                _buildProductTile("https://images.pexels.com/photos/4041391/pexels-photo-4041391.jpeg"),
-                _buildProductTile("https://images.pexels.com/photos/3762882/pexels-photo-3762882.jpeg"),
+                _buildProductTile(
+                  "https://images.pexels.com/photos/4041391/pexels-photo-4041391.jpeg",
+                ),
+                _buildProductTile(
+                  "https://images.pexels.com/photos/3762882/pexels-photo-3762882.jpeg",
+                ),
               ],
             ),
-          )
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildAddButton(bool isBeautician, bool isVendor, BuildContext context) {
+  Widget _buildAddButton(
+    bool isBeautician,
+    bool isVendor,
+    BuildContext context,
+  ) {
     return GestureDetector(
       onTap: () {
         if (isBeautician) {
@@ -220,7 +262,9 @@ class DashboardScreen extends StatelessWidget {
       barrierDismissible: true,
       builder: (BuildContext context) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40.r)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(40.r),
+          ),
           child: Container(
             padding: EdgeInsets.all(24.r),
             child: Column(
@@ -234,7 +278,11 @@ class DashboardScreen extends StatelessWidget {
                       // Navigate to Beautician Service Screen
                       Get.toNamed(RouteConstants.beauticiansAddServiceScreen);
                     },
-                    child: Icon(Icons.close, color: const Color(0xFF1D3826), size: 24.sp),
+                    child: Icon(
+                      Icons.close,
+                      color: const Color(0xFF1D3826),
+                      size: 24.sp,
+                    ),
                   ),
                 ),
                 SizedBox(height: 10.h),
@@ -263,11 +311,16 @@ class DashboardScreen extends StatelessWidget {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF6B7E50),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20.r),
+                      ),
                     ),
                     child: const Text(
                       "Add Now",
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -278,7 +331,6 @@ class DashboardScreen extends StatelessWidget {
       },
     );
   }
-
 
   Widget _buildProductTile(String url) {
     return Container(
@@ -319,26 +371,32 @@ class DashboardScreen extends StatelessWidget {
                   show: true,
                   drawVerticalLine: false,
                   getDrawingHorizontalLine: (value) => FlLine(
-                    color: AppColors.white.withValues(alpha:0.1),
+                    color: AppColors.white.withValues(alpha: 0.1),
                     strokeWidth: 1,
                   ),
                 ),
                 titlesData: FlTitlesData(
                   show: true,
-                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  rightTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                  topTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
                       getTitlesWidget: (value, meta) => CustomText(
                         text: '${value.toInt()}K',
-                        color: AppColors.white.withValues(alpha:0.6),
+                        color: AppColors.white.withValues(alpha: 0.6),
                         fontSize: 10.sp,
                       ),
                       reservedSize: 30,
                     ),
                   ),
-                  bottomTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  bottomTitles: const AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
                 ),
                 borderData: FlBorderData(show: false),
                 lineBarsData: [
@@ -357,7 +415,7 @@ class DashboardScreen extends StatelessWidget {
                     dotData: const FlDotData(show: true),
                     belowBarData: BarAreaData(
                       show: true,
-                      color: AppColors.primary.withValues(alpha:0.1),
+                      color: AppColors.primary.withValues(alpha: 0.1),
                     ),
                   ),
                 ],

@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import '../../../../../core/api/api_exception.dart';
+import '../../../../../core/services/cache_service.dart';
 import '../../../../../core/storage/local_storage.dart';
 import '../../../../../core/utils/app_snackbar.dart';
 import '../../../../authentication/login/data/login_response_model.dart';
@@ -28,15 +29,11 @@ class EditProfileController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    final user = LocalStorage.getUserModel();
-    if (user != null) {
-      fullNameController.text = user.fullName;
-      phoneController.text = user.phoneNumber.toString();
-      bioController.text = user.bio;
-      businessNameController.text = user.businessName;
-      // Taking the first address as default for editing
-      addressController.text = user.addresses.isNotEmpty ? user.addresses.first.city : "";
-    }
+    // ✅ COMPLETELY DECOUPLED: Pre-filling from CacheService strings
+    fullNameController.text = CacheService.userFullName;
+    businessNameController.text = CacheService.businessName;
+    phoneController.text = CacheService.phone;
+    bioController.text = CacheService.bio;
   }
 
   // --- Image Picking Logic ---
@@ -56,7 +53,6 @@ class EditProfileController extends GetxController {
         'phoneNumber': phoneController.text,
         'bio': bioController.text,
         'businessName': businessNameController.text,
-        // Add other fields as per your API requirements
       };
 
       final response = await _service.updateProfile(
@@ -64,12 +60,24 @@ class EditProfileController extends GetxController {
         imagePath: selectedImagePath.value,
       );
 
-      final userJson = response.data.user.toJson();
-      final userModelForStorage = UserModel.fromJson(userJson);
-      await LocalStorage.setUserModel(userModelForStorage);
+      final updatedUser = response.data.user;
 
+      // ✅ SYNC CACHE: Store everything back as strings
+      await CacheService.saveSession(
+        token: CacheService.token,
+        userId: updatedUser.id,
+        role: updatedUser.role,
+        businessName: updatedUser.businessName,
+        fullName: updatedUser.fullName,
+        phone: updatedUser.phoneNumber,
+        bio: updatedUser.bio,
+        image: updatedUser.image,
+      );
+
+      // We still update the other controller IF it's alive,
+      // but the screen isn't dependent on it.
       if (Get.isRegistered<PersonalInfoController>()) {
-        Get.find<PersonalInfoController>().userProfile.value = UserProfileModel.fromJson(userJson);
+        Get.find<PersonalInfoController>().userProfile.value = UserProfileModel.fromJson(updatedUser.toJson());
       }
 
       Get.back();
@@ -77,11 +85,10 @@ class EditProfileController extends GetxController {
     } on AppException catch (e) {
       AppSnackbar.error(e.message);
     } catch (e) {
-      const fallback = "Something went wrong. Please try again.";
-      errorMessage.value = fallback;
-      AppSnackbar.error(fallback);
+      AppSnackbar.error("Something went wrong.");
     } finally {
       isLoading.value = false;
     }
   }
+
 }

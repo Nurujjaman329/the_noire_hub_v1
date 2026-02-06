@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/route_constants.dart';
+import '../../../../core/services/cache_service.dart';
 import '../../../../core/storage/local_storage.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/widgets/custom_network_image.dart';
@@ -14,18 +15,14 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 1. Get Strongly-Typed Model
-    final user = LocalStorage.getUserModel();
+    // 1. Get simple strings directly from static CacheService
+    final String role = CacheService.role.toLowerCase();
+    final String fullName = CacheService.userFullName.isNotEmpty ? CacheService.userFullName : "User Name";
+    final String profileImg = CacheService.userImage;
 
-    // 2. Define Role Logic from Model
-    final String role = user?.role.toLowerCase() ?? 'user';
-    final bool isCustomer = role == 'user';
+    // 2. Pure logic without model overhead
+    final bool isCustomer = role == 'user' || role == 'customer';
     final bool isBeautician = role.contains('beautician');
-    // final bool isVendor = role.contains('vendor');
-
-    // 3. Extract User Display Info
-    final String fullName = user?.fullName ?? "User Name";
-    final String profileImg = user?.image ?? "";
 
     return Scaffold(
       backgroundColor: const Color(0XFF3F592B),
@@ -54,7 +51,7 @@ class ProfileScreen extends StatelessWidget {
                 children: [
                   SizedBox(height: 75.h),
 
-                  // Dynamic Name
+                  // Dynamic Name from Cache
                   CustomText(
                     text: fullName,
                     fontSize: 26.sp,
@@ -75,13 +72,13 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
 
-          // Dynamic Profile Image
+          // Dynamic Profile Image from Cache
           Positioned(
             top: 0,
             child: CustomNetworkImage(
               imageUrl: profileImg.isNotEmpty
                   ? profileImg
-                  : "https://ui-avatars.com/api/?name=$fullName&background=random", // Fallback avatar
+                  : "https://ui-avatars.com/api/?name=$fullName&background=random",
               height: 120.h,
               width: 120.w,
               boxShape: BoxShape.circle,

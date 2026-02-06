@@ -5,6 +5,7 @@ import '../../../../../core/constants/api_constants.dart';
 import '../../../../../core/constants/app_assets.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/route_constants.dart';
+import '../../../../../core/services/cache_service.dart';
 import '../../../../../core/storage/local_storage.dart';
 import '../../../../../core/widgets/custom_network_image.dart';
 import '../../../../../core/widgets/custom_text.dart';
@@ -17,8 +18,12 @@ class VendorStoreScreen extends GetView<VendorProductController> {
 
   @override
   Widget build(BuildContext context) {
-    // Pull logged in user info for the store header
-    final user = LocalStorage.getUserModel();
+    // ✅ NO MODELS: Getting specific data directly from CacheService
+    final String businessName = CacheService.businessName.isNotEmpty
+        ? CacheService.businessName
+        : "My Shop";
+    final String profileImg = CacheService.userImage;
+    final String userRole = CacheService.role;
 
     return Scaffold(
       backgroundColor: AppColors.white,
@@ -49,7 +54,7 @@ class VendorStoreScreen extends GetView<VendorProductController> {
                         children: [
                           Transform.translate(
                             offset: Offset(0, -60.h),
-                            child: _buildFloatingProfileImage(user),
+                            child: _buildFloatingProfileImage(profileImg),
                           ),
                           Transform.translate(
                             offset: Offset(0, -40.h),
@@ -57,7 +62,8 @@ class VendorStoreScreen extends GetView<VendorProductController> {
                               padding: EdgeInsets.symmetric(horizontal: 20.w),
                               child: Column(
                                 children: [
-                                  _buildStoreInfo(user),
+                                  // Pass simple strings instead of the Model
+                                  _buildStoreInfo(businessName, userRole),
                                   Padding(
                                     padding: EdgeInsets.symmetric(vertical: 15.h),
                                     child: Divider(color: AppColors.geryColor.withValues(alpha:0.2), thickness: 1),
@@ -65,7 +71,6 @@ class VendorStoreScreen extends GetView<VendorProductController> {
                                   _buildTextButtonsToggle(),
                                   SizedBox(height: 10.h),
 
-                                  // Group products by category dynamically
                                   if (controller.productList.isEmpty)
                                     _buildEmptyState()
                                   else
@@ -115,12 +120,12 @@ class VendorStoreScreen extends GetView<VendorProductController> {
     );
   }
 
-  Widget _buildFloatingProfileImage(UserModel? user) {
+  Widget _buildFloatingProfileImage(String imageUrl) {
     return Container(
       padding: EdgeInsets.all(5.r),
       decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
       child: CustomNetworkImage(
-        imageUrl: user?.fullProfileImageUrl ?? "",
+        imageUrl: imageUrl,
         height: 110.r,
         width: 110.r,
         boxShape: BoxShape.circle,
@@ -128,18 +133,18 @@ class VendorStoreScreen extends GetView<VendorProductController> {
     );
   }
 
-  Widget _buildStoreInfo(UserModel? user) {
+  Widget _buildStoreInfo(String name, String role) {
     return Column(
       children: [
         CustomText(
-          text: user?.businessName ?? "My Shop",
+          text: name,
           fontSize: 22.sp,
           fontWeight: FontWeight.bold,
           color: const Color(0XFF1D3826),
         ),
         SizedBox(height: 10.h),
         CustomText(
-          text: user?.bio ?? "Welcome to our store.",
+          text: "Welcome to our store. Browse our latest $role inventory.",
           textAlign: TextAlign.center,
           fontSize: 11.sp,
           color: const Color(0x80000000),
@@ -153,9 +158,9 @@ class VendorStoreScreen extends GetView<VendorProductController> {
             children: [
               _infoTile("Verified Vendor"),
               _infoDivider(),
-              _infoTile(user?.email ?? ""),
+              _infoTile(CacheService.userId.substring(0, 8)), // Example: showing a shortened ID
               _infoDivider(),
-              _infoTile(user?.role.toUpperCase() ?? ""),
+              _infoTile(role.toUpperCase()),
             ],
           ),
         ),

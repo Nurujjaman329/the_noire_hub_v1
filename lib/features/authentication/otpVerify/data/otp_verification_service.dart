@@ -1,15 +1,8 @@
-
-
-
-
 import '../../../../core/api/api_client.dart';
 import '../../../../core/api/api_exception.dart';
 import '../../../../core/constants/api_constants.dart';
-import '../../../../core/storage/local_storage.dart';
-
+import '../../../../core/services/cache_service.dart';
 import 'package:flutter/foundation.dart';
-
-import '../../login/data/login_response_model.dart';
 import 'otp_verification_response_model.dart';
 
 class OtpVerificationService {
@@ -31,19 +24,21 @@ class OtpVerificationService {
 
       final verificationResponse = OtpVerificationResponseModel.fromJson(response.data);
 
+      // Only save session if it's not a password reset flow
       if (flowType != "forgot_password") {
         final attributes = verificationResponse.data.attributes;
 
-        // Convert OtpUserModel to Map, then Map to the expected UserModel
-        final userJson = attributes.user.toJson();
-        final userModel = UserModel.fromJson(userJson);
+        // --- Simplified Saving logic ---
+        // No more manual mapping or Future.wait lists.
+        // We just save the essentials to CacheService.
 
-        await Future.wait([
-          LocalStorage.setAccessToken(attributes.tokens.access.token),
-          LocalStorage.setRefreshToken(attributes.tokens.refresh.token),
-          LocalStorage.setToken(attributes.tokens.access.token),
-          LocalStorage.setUserModel(userModel),
-        ]);
+        await CacheService.saveSession(
+          token: attributes.tokens.access.token,
+          userId: attributes.user.id,
+          role: attributes.user.role,
+          businessName: attributes.user.businessName,
+        );
+
       }
 
       return verificationResponse;
@@ -56,13 +51,11 @@ class OtpVerificationService {
   }
 
   Future<void> resendOtp(String email) async {
-    debugPrint('🔄 [Resend OTP]: $email');
     try {
       await _apiClient.postJson(
         ApiConstants.resendOtp,
         data: {'email': email},
       );
-      debugPrint('✅ [Resend OTP Success]');
     } on AppException {
       rethrow;
     } catch (e) {

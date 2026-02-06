@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'core/services/cache_service.dart';
+import 'package:the_noire_hub_v1/core/services/cache_service.dart';
 import 'app.dart';
-import 'core/storage/local_storage.dart';
 
 void main() async {
-  // Ensure Flutter is ready before calling native code (SystemChrome/Storage)
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 1. Initialize Storage/Cache first (Critical for Interceptors)
-  await CacheService().init();
-  await LocalStorage.init();
+  await CacheService.init();
 
   // 2. Font Management
   GoogleFonts.config.allowRuntimeFetching = true;

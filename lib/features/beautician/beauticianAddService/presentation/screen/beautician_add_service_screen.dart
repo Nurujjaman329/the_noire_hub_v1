@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../../../core/constants/app_assets.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/route_constants.dart';
+import '../../../../../core/services/cache_service.dart';
 import '../../../../../core/storage/local_storage.dart';
 import '../../../../../core/widgets/custom_button.dart';
 import '../../../../../core/widgets/custom_network_image.dart';
@@ -41,13 +42,11 @@ class _BeauticianAddServiceScreenState extends State<BeauticianAddServiceScreen>
     "Spa": ["Facial", "Massage", "Waxing", "Skin Treatment"],
   };
 
-  String get businessName => user?.businessName ?? "My Studio";
+  String get businessName => CacheService.businessName.isNotEmpty
+      ? CacheService.businessName
+      : "My Studio";
 
-  @override
-  void initState() {
-    super.initState();
-    user = LocalStorage.getUserModel();
-  }
+
 
   @override
   Widget build(BuildContext context) {

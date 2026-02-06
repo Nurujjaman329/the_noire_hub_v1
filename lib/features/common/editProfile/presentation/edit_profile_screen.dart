@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/services/cache_service.dart';
 import '../../../../core/storage/local_storage.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/widgets/custom_button.dart';
@@ -49,7 +50,8 @@ class EditProfileScreen extends GetView<EditProfileController> {
   }
 
   Widget _buildEditableImage() {
-    final user = LocalStorage.getUserModel();
+    // ✅ NO MORE MODEL: Use the controller's path or the cached image URL
+    // You can add 'static String get userImage => _prefs.getString('user_image') ?? "";' to CacheService
     return Center(
       child: GestureDetector(
         onTap: () => _showImageSourceSheet(),
@@ -63,7 +65,8 @@ class EditProfileScreen extends GetView<EditProfileController> {
               ),
               child: controller.selectedImagePath.isEmpty
                   ? CustomNetworkImage(
-                imageUrl: user?.fullProfileImageUrl ?? "",
+                // Pull from CacheService directly
+                imageUrl: CacheService.userImage,
                 height: 100.h, width: 100.w,
                 borderRadius: BorderRadius.circular(50.r),
               )

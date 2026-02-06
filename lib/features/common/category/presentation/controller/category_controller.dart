@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import '../../../../../core/api/api_exception.dart';
+import '../../../../../core/services/cache_service.dart';
 import '../../../../../core/storage/local_storage.dart';
 import '../../data/category_response_model.dart';
 import '../../data/category_service.dart';
@@ -27,9 +28,8 @@ class CategoryController extends GetxController {
     String? finalType = categoryType ?? this.categoryType;
 
     if (finalType == null) {
-      // PRO AUTO-DETECTION: Using the strongly-typed UserModel
-      final user = LocalStorage.getUserModel();
-      final String role = user?.role.toLowerCase() ?? '';
+      // ✅ CLEANER DETECTION: Using the primitive role string from CacheService
+      final String role = CacheService.role.toLowerCase();
 
       if (role.contains('vendor')) {
         finalType = 'product';

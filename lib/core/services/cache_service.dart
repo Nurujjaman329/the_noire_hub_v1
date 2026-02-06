@@ -1,53 +1,56 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CacheService {
-  // Singleton Pattern
-  static final CacheService _instance = CacheService._internal();
-  factory CacheService() => _instance;
-  CacheService._internal();
+  static SharedPreferences? _prefs;
 
-  late SharedPreferences _prefs;
-
-  /// Initialize the SharedPreferences instance
-  /// Call this in main(): await CacheService().init();
-  Future<void> init() async {
+  static Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
   }
 
-  // --- Generic Methods ---
+  // --- Keys ---
+  static const String _tokenKey = 'auth_token';
+  static const String _userIdKey = 'user_id';
+  static const String _roleKey = 'user_role';
+  static const String _businessNameKey = 'business_name';
+  static const String _imageKey = 'user_image';
+  static const String _fullNameKey = 'user_fullName';
+  static const String _phoneKey = 'user_phone';
+  static const String _bioKey = 'user_bio';
 
-  bool containsKey(String key) => _prefs.containsKey(key);
+  // --- Getters ---
+  static String get token => _prefs?.getString(_tokenKey) ?? '';
+  static String get userId => _prefs?.getString(_userIdKey) ?? '';
+  static String get role => _prefs?.getString(_roleKey) ?? '';
+  static String get businessName => _prefs?.getString(_businessNameKey) ?? '';
+  static bool get isLoggedIn => token.isNotEmpty;
+  static String get userImage => _prefs?.getString(_imageKey) ?? '';
+  static String get userFullName => _prefs?.getString(_fullNameKey) ?? '';
+  static String get phone => _prefs?.getString(_phoneKey) ?? '';
+  static String get bio => _prefs?.getString(_bioKey) ?? '';
 
-  Future<bool> remove(String key) => _prefs.remove(key);
+  // --- Setters ---
+  static Future<void> saveSession({
+    required String token,
+    required String userId,
+    String? role,
+    String? businessName,
+    String? image,
+    String? fullName,
+    String? phone,
+    String? bio,
+  }) async {
+    await _prefs?.setString(_tokenKey, token);
+    await _prefs?.setString(_userIdKey, userId);
+    if (role != null) await _prefs?.setString(_roleKey, role);
+    if (businessName != null) await _prefs?.setString(_businessNameKey, businessName);
+    if (image != null) await _prefs?.setString(_imageKey, image);
+    if (fullName != null) await _prefs?.setString(_fullNameKey, fullName);
+    if (phone != null) await _prefs?.setString(_phoneKey, phone);
+    if (bio != null) await _prefs?.setString(_bioKey, bio);
 
-  Future<bool> clear() => _prefs.clear();
+  }
 
-  // --- Type-Specific Getters (Synchronous) ---
-
-  String getString(String key, {String defaultValue = ''}) =>
-      _prefs.getString(key) ?? defaultValue;
-
-  bool getBool(String key, {bool defaultValue = false}) =>
-      _prefs.getBool(key) ?? defaultValue;
-
-  int getInt(String key, {int defaultValue = 0}) =>
-      _prefs.getInt(key) ?? defaultValue;
-
-  double getDouble(String key, {double defaultValue = 0.0}) =>
-      _prefs.getDouble(key) ?? defaultValue;
-
-  List<String> getStringList(String key) =>
-      _prefs.getStringList(key) ?? [];
-
-  // --- Type-Specific Setters (Asynchronous) ---
-
-  Future<bool> setString(String key, String value) => _prefs.setString(key, value);
-
-  Future<bool> setBool(String key, bool value) => _prefs.setBool(key, value);
-
-  Future<bool> setInt(String key, int value) => _prefs.setInt(key, value);
-
-  Future<bool> setDouble(String key, double value) => _prefs.setDouble(key, value);
-
-  Future<bool> setStringList(String key, List<String> value) => _prefs.setStringList(key, value);
+  static Future<void> clear() async {
+    await _prefs?.clear();
+  }
 }

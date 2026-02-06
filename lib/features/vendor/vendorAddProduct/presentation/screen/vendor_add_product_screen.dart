@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import '../../../../../core/services/cache_service.dart';
 import '../../../../../core/storage/local_storage.dart';
 import '../../../../../core/widgets/custom_text.dart';
 import '../../../../authentication/login/data/login_response_model.dart';
@@ -25,26 +26,25 @@ class VendorAddProductScreen extends StatefulWidget {
 
 class _VendorAddProductScreenState extends State<VendorAddProductScreen> {
   String selectedCategory = "Hair";
-  UserModel? user;
 
+  // Professional Product Categories for Vendors
   final Map<String, List<String>> categoryData = {
     "Hair": ["Shampoo", "Extensions", "Wigs", "Conditioner", "Oils"],
     "Make Up": ["Lipstick", "Foundation", "Brushes", "Eyeliner"],
     "Nails": ["Polish", "Acrylic", "Gel", "Nail Art"],
   };
 
-  String get businessName => user?.businessName ?? "Braids By Mia";
+  // ✅ CLEAN: Get business name directly from cache string
+  String get businessName => CacheService.businessName.isNotEmpty
+      ? CacheService.businessName
+      : "Braids By Mia";
 
-  @override
-  void initState() {
-    super.initState();
-    user = LocalStorage.getUserModel();
-  }
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1D3826), // Dark Green Header
+      backgroundColor: const Color(0xFF1D3826),
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
@@ -68,7 +68,7 @@ class _VendorAddProductScreenState extends State<VendorAddProductScreen> {
                       child: CustomText(
                         text: businessName,
                         fontSize: 28.sp,
-                        color: const Color(0xFF1D3826).withValues(alpha:0.7),
+                        color: const Color(0xFF1D3826).withValues(alpha: 0.7),
                       ),
                     ),
                     SizedBox(height: 25.h),

@@ -1,10 +1,12 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import '../../../../../core/api/api_exception.dart';
+import '../../../../../core/services/cache_service.dart';
 import '../../../../../core/storage/local_storage.dart';
 import '../../../../authentication/login/data/login_response_model.dart';
 import '../../data/personal_info_response_model.dart';
 import '../../data/personal_info_service.dart';
+
 
 class PersonalInfoController extends GetxController {
   final PersonalInfoService _profileService;
@@ -13,23 +15,15 @@ class PersonalInfoController extends GetxController {
   var isLoading = false.obs;
   var errorMessage = ''.obs;
 
-  // Reactive profile data (Specific to this screen/feature)
+  // This still holds the full model for the detailed UI
   var userProfile = Rxn<UserProfileModel>();
 
   @override
   void onInit() {
     super.onInit();
-    // Pre-fill from LocalStorage if available for instant UI loading
-    _loadInitialData();
+    // No more mapping from LocalStorage.
+    // The UI can grab simple strings from CacheService directly.
     fetchProfile();
-  }
-
-  void _loadInitialData() {
-    final storedUser = LocalStorage.getUserModel();
-    if (storedUser != null) {
-      // Map the generic UserModel back to the specific UserProfileModel for the UI
-      userProfile.value = UserProfileModel.fromJson(storedUser.toJson());
-    }
   }
 
   Future<void> fetchProfile() async {
@@ -39,17 +33,20 @@ class PersonalInfoController extends GetxController {
       final response = await _profileService.getProfile();
       final fetchedUser = response.data.attributes.user;
 
-      // 1. Update the local reactive state
+      // 1. Update the detailed reactive state for this screen
       userProfile.value = fetchedUser;
 
-      // 2. Map to the main UserModel and save to LocalStorage
-      // This bridges the gap between different model classes
-      final userJson = fetchedUser.toJson();
-      final userModel = UserModel.fromJson(userJson);
+      // 2. Sync the "Core" strings to CacheService
+      // This ensures Dashboard and other screens are up to date
+      await CacheService.saveSession(
+        token: CacheService.token,
+        userId: fetchedUser.id,
+        role: fetchedUser.role,
+        businessName: fetchedUser.businessName,
+        // If you added image/name to CacheService, sync them here too
+      );
 
-      await LocalStorage.setUserModel(userModel);
-
-      debugPrint("✅ Personal Info synced to LocalStorage");
+      debugPrint("✅ Core info synced to CacheService");
     } on AppException catch (e) {
       errorMessage.value = e.message;
     } catch (e) {

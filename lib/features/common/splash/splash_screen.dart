@@ -10,6 +10,8 @@ import '../../../core/storage/local_storage.dart';
 import '../../../features/authentication/login/data/login_response_model.dart';
 import '../../../core/widgets/custom_text.dart';
 
+import '../../../../core/services/cache_service.dart';
+
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -25,33 +27,33 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _initializeApp() async {
-    // 1. Initialize local storage (one single reliable call)
-    await LocalStorage.init();
+    // 1. Initialize CacheService (Uses SharedPreferences internally)
+    await CacheService.init();
 
     // 2. Wait for branding/animations (3 seconds)
     await Future.delayed(const Duration(seconds: 3));
 
-    // 3. Determine Navigation
-    final String? token = LocalStorage.getAccessToken();
-    final user = LocalStorage.getUserModel();
+    // 3. Determine Navigation based on simple strings
+    final String token = CacheService.token;
+    final String role = CacheService.role;
 
-    if (token != null && token.isNotEmpty && user != null) {
-      // User is authenticated and we have their profile
-      _navigateBasedOnRole(user);
+    if (token.isNotEmpty && role.isNotEmpty) {
+      // User is authenticated and we know their role
+      _navigateBasedOnRole(role);
     } else {
-      // Not logged in or data is corrupted/missing
+      // Not logged in or cache was cleared
       Get.offAllNamed(RouteConstants.login);
     }
   }
 
-  void _navigateBasedOnRole(UserModel user) {
-    final String userRole = user.role.toLowerCase();
+  void _navigateBasedOnRole(String role) {
+    final String userRole = role.toLowerCase();
     debugPrint("🚀 Navigating user with role: $userRole");
 
     if (userRole.contains('vendor') || userRole.contains('beautician')) {
       Get.offAllNamed(RouteConstants.vendorMainContainer);
     } else {
-      // Default to customer container for 'customer', 'user', or any unknown roles
+      // Default to customer container for 'user/customer'
       Get.offAllNamed(RouteConstants.customerMainContainer);
     }
   }
@@ -62,15 +64,12 @@ class _SplashScreenState extends State<SplashScreen> {
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          // Background Image
           Positioned.fill(
             child: Image.asset(
               AppAssets.splashImage,
               fit: BoxFit.cover,
             ),
           ),
-
-          // Logo and Tagline
           Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -88,7 +87,6 @@ class _SplashScreenState extends State<SplashScreen> {
                   top: 12.h,
                 ),
                 SizedBox(height: 40.h),
-                // Branding Dots
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(
