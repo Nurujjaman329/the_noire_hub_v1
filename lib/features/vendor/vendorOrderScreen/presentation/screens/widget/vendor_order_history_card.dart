@@ -52,7 +52,7 @@ class VendorOrderHistoryCard extends StatelessWidget {
                     CustomText(
                         text: "05/10/2020",
                         fontSize: 12.sp,
-                        color: const Color(0xFF000000).withOpacity(0.7)
+                        color: const Color(0xFF000000).withValues(alpha:0.7)
                     ),
                   ],
                 ),
@@ -60,7 +60,7 @@ class VendorOrderHistoryCard extends StatelessWidget {
                 CustomText(
                     text: serviceName,
                     fontSize: 10.sp,
-                    color: const Color(0xFF000000).withOpacity(0.7)
+                    color: const Color(0xFF000000).withValues(alpha:0.7)
                 ),
                 SizedBox(height: 8.h),
                 Row(
@@ -70,7 +70,7 @@ class VendorOrderHistoryCard extends StatelessWidget {
                       text: "\$175.89",
                       fontSize: 14.sp,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF3F592B).withOpacity(0.8),
+                      color: const Color(0xFF3F592B).withValues(alpha:0.8),
                     ),
                     _buildActionButton(context),
                   ],

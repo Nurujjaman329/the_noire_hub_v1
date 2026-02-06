@@ -205,7 +205,7 @@ class CustomerServiceScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(35.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.06),
+            color: Colors.black.withValues(alpha:0.06),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -434,7 +434,7 @@ class CustomerServiceScreen extends StatelessWidget {
               ), // High radius for that soft square look
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.15),
+                  color: Colors.black.withValues(alpha:0.15),
                   blurRadius: 10,
                   offset: const Offset(
                     0,
@@ -572,7 +572,7 @@ class CustomerServiceScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(25.r),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.08),
+                        color: Colors.black.withValues(alpha:0.08),
                         blurRadius: 12,
                         offset: const Offset(0, 6),
                       ),
@@ -635,7 +635,7 @@ class CustomerServiceScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(30.r),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha:0.1),
               blurRadius: 10,
               offset: const Offset(0, 5),
             ),
@@ -662,7 +662,7 @@ class CustomerServiceScreen extends StatelessWidget {
                   right: 12.w,
                   child: CircleAvatar(
                     radius: 18.r,
-                    backgroundColor: const Color(0xFF1D3826).withOpacity(0.8),
+                    backgroundColor: const Color(0xFF1D3826).withValues(alpha:0.8),
                     child: Icon(
                       Icons.favorite,
                       color: const Color(0xFFF1F0B2),

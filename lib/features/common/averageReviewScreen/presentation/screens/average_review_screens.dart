@@ -179,7 +179,7 @@ class ReviewsScreen extends StatelessWidget {
           CustomText(
             text: comment,
             fontSize: 13.sp,
-            color: AppColors.textPrimary.withOpacity(0.8),
+            color: AppColors.textPrimary.withValues(alpha:0.8),
           ),
         ],
       ),

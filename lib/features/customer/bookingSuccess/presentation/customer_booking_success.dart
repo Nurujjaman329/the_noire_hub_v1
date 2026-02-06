@@ -138,7 +138,7 @@ class CustomerBookingSuccess extends StatelessWidget {
           decoration: BoxDecoration(
             color: const Color(0xFFF1F0B2),
             borderRadius: BorderRadius.circular(15.r),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4))],
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.1), blurRadius: 10, offset: const Offset(0, 4))],
           ),
           child: Icon(icon, size: 30, color: const Color(0xFF2D3E2F)),
         ),

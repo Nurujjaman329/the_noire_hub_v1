@@ -42,7 +42,7 @@ class ServiceProviderDetailScreen extends StatelessWidget {
                   child: GestureDetector(
                     onTap: () => Get.back(), // GetX back navigation
                     child: CircleAvatar(
-                      backgroundColor: Colors.black.withOpacity(0.5),
+                      backgroundColor: Colors.black.withValues(alpha:0.5),
                       child: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 18),
                     ),
                   ),
@@ -164,7 +164,7 @@ class ServiceProviderDetailScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(25.r),
           boxShadow: [
             BoxShadow(
-                color: Colors.black.withOpacity(0.05),
+                color: Colors.black.withValues(alpha:0.05),
                 blurRadius: 5,
                 offset: const Offset(0, 3))
           ],

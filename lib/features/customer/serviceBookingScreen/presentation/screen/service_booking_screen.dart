@@ -101,7 +101,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha:0.05),
             blurRadius: 10,
             offset: const Offset(0, -5),
           )
@@ -140,7 +140,7 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
           child: GestureDetector(
             onTap: () => Get.back(),
             child: CircleAvatar(
-              backgroundColor: Colors.black.withOpacity(0.5),
+              backgroundColor: Colors.black.withValues(alpha:0.5),
               child: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 18),
             ),
           ),
@@ -240,9 +240,9 @@ class _ServiceBookingScreenState extends State<ServiceBookingScreen> {
           Container(
             padding: EdgeInsets.all(15.r),
             decoration: BoxDecoration(
-              color: const Color(0xFFF1F4D3).withOpacity(0.3),
+              color: const Color(0xFFF1F4D3).withValues(alpha:0.3),
               borderRadius: BorderRadius.circular(20.r),
-              border: Border.all(color: const Color(0xFFC4C99A).withOpacity(0.5)),
+              border: Border.all(color: const Color(0xFFC4C99A).withValues(alpha:0.5)),
             ),
             child: Column(
               children: [

@@ -235,19 +235,6 @@ class AppTheme {
     );
   }
 
-  static CardTheme _buildCardTheme({bool darkMode = false}) {
-    return CardTheme(
-      color: darkMode ? AppColors.surfaceVariant : AppColors.white,
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: BorderSide(
-          color: darkMode ? AppColors.divider : AppColors.dividerVariant,
-        ),
-      ),
-      clipBehavior: Clip.antiAlias,
-    );
-  }
 
   static BottomNavigationBarThemeData _buildBottomNavigationBarTheme({bool darkMode = false}) {
     return BottomNavigationBarThemeData(
@@ -276,15 +263,4 @@ class AppTheme {
     );
   }
 
-  static DialogTheme _buildDialogTheme({bool darkMode = false}) {
-    return DialogTheme(
-      backgroundColor: darkMode ? AppColors.surfaceVariant : AppColors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: darkMode ? AppColors.divider : AppColors.divider,
-        ),
-      ),
-    );
-  }
 }

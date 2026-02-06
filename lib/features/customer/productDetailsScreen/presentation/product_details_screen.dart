@@ -3,11 +3,9 @@ import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/route_constants.dart';
-import '../../../../core/navigationController/app_navigation_controller.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/widgets/custom_network_image.dart';
 import '../../../../core/widgets/custom_text.dart';
-import '../../../common/bottomNavBar/customer/customer_main_controller.dart';
 
 
 class ProductDetailScreen extends StatefulWidget {
@@ -383,7 +381,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primaryDark : AppColors.white,
           borderRadius: BorderRadius.circular(10.r),
-          border: Border.all(color: isSelected ? AppColors.primaryDark : AppColors.geryColor.withOpacity(0.3)),
+          border: Border.all(color: isSelected ? AppColors.primaryDark : AppColors.geryColor.withValues(alpha:0.3)),
         ),
         child: CustomText(
           text: size,

@@ -141,7 +141,7 @@ class _BeauticiansAddVariantSheetState extends State<BeauticiansAddVariantSheet>
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: set.subVariants.length,
-          separatorBuilder: (_, __) => SizedBox(height: 10.h),
+          separatorBuilder: (_, _) => SizedBox(height: 10.h),
           itemBuilder: (context, subIndex) {
             return Row(
               children: [

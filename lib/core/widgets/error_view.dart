@@ -9,11 +9,11 @@ class ErrorView extends StatelessWidget {
   final String? buttonText;
 
   const ErrorView({
-    Key? key,
+    super.key,
     this.message = 'Something went wrong!',
     this.onPressed,
     this.buttonText = 'Retry',
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

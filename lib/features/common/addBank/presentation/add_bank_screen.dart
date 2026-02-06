@@ -66,7 +66,7 @@ class AddBankScreen extends StatelessWidget {
       padding: EdgeInsets.all(20.r),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(color: const Color(0xFF9BB575).withOpacity(0.5)),
+        border: Border.all(color: const Color(0xFF9BB575).withValues(alpha:0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -52,7 +52,7 @@ class BookingCard extends StatelessWidget {
                     CustomText(
                         text: "05/10/2020",
                         fontSize: 12.sp,
-                        color: const Color(0xFF000000).withOpacity(0.7)
+                        color: const Color(0xFF000000).withValues(alpha:0.7)
                     ),
                   ],
                 ),
@@ -60,7 +60,7 @@ class BookingCard extends StatelessWidget {
                 CustomText(
                     text: serviceName,
                     fontSize: 10.sp,
-                    color: const Color(0xFF000000).withOpacity(0.7)
+                    color: const Color(0xFF000000).withValues(alpha:0.7)
                 ),
                 SizedBox(height: 8.h),
                 Row(
@@ -70,7 +70,7 @@ class BookingCard extends StatelessWidget {
                       text: "\$175.89",
                       fontSize: 14.sp,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF3F592B).withOpacity(0.8),
+                      color: const Color(0xFF3F592B).withValues(alpha:0.8),
                     ),
                     _buildActionButton(context),
                   ],
@@ -88,7 +88,7 @@ class BookingCard extends StatelessWidget {
       case "Pending":
         return GestureDetector(
           onTap: () => _showActionDialog(context, "Cancel Booking", "Are you sure you want to cancel?"),
-          child: _statusBadge("Cancel", const Color(0xFFFF0000), const Color(0xFFFF0000).withOpacity(0.25)),
+          child: _statusBadge("Cancel", const Color(0xFFFF0000), const Color(0xFFFF0000).withValues(alpha:0.25)),
         );
       case "In Progress":
         return Row(
@@ -98,7 +98,7 @@ class BookingCard extends StatelessWidget {
             // Cancel Button
             GestureDetector(
               onTap: () => _showActionDialog(context, "Cancel Booking", "Are you sure you want to cancel this in-progress service?"),
-              child: _statusBadge("Cancel", const Color(0xFFFF0000), const Color(0xFFFF0000).withOpacity(0.1)),
+              child: _statusBadge("Cancel", const Color(0xFFFF0000), const Color(0xFFFF0000).withValues(alpha:0.1)),
             ),
             SizedBox(width: 8.w),
             // Complete Button

@@ -9,7 +9,6 @@ import '../../../../../core/widgets/custom_button.dart';
 import '../../../../../core/widgets/custom_network_image.dart';
 import '../../../../../core/widgets/custom_text.dart';
 import '../../../../authentication/login/data/login_response_model.dart';
-import '../../../../vendor/vendorAddVariant/vendor_add_variant_sheet.dart';
 import '../../../beauticiansVariantAdd/presentation/beauticians_add_variant_sheet.dart';
 
 
@@ -238,7 +237,7 @@ class _BeauticianAddServiceScreenState extends State<BeauticianAddServiceScreen>
                   if (index > 0) ...[
                     SizedBox(height: 20.h),
                     IconButton(
-                      icon: Icon(Icons.delete_outline, color: Colors.red.withOpacity(0.5)),
+                      icon: Icon(Icons.delete_outline, color: Colors.red.withValues(alpha: 0.5)),
                       onPressed: () => setState(() => serviceList.removeAt(index)),
                     )
                   ]
@@ -256,7 +255,7 @@ class _BeauticianAddServiceScreenState extends State<BeauticianAddServiceScreen>
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10.w),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.2),
+        color: AppColors.primary.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(10.r),
         border: Border.all(color: AppColors.primary),
       ),

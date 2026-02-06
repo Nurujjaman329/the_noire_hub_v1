@@ -22,9 +22,9 @@ class StoreSetupScreen extends GetView<RegistrationController> {
   Widget build(BuildContext context) {
     final catCtrl = Get.find<CategoryController>();
     final subCtrl = Get.find<SubCategoryController>();
-    String? userRole = controller.userRole.value;
-    bool isVendor = (userRole == "vendor");
-    bool isBeauticians = (userRole == "beautician");
+    // String? userRole = controller.userRole.value;
+    // bool isVendor = (userRole == "vendor");
+    // bool isBeauticians = (userRole == "beautician");
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 1. Get the chosen role from SelectionScreen via RegistrationController
@@ -199,7 +199,7 @@ class StoreSetupScreen extends GetView<RegistrationController> {
         child: Row(
           children: subCtrl.subCategories.map((sub) {
             bool isSelected = controller.selectedCategories.isNotEmpty &&
-                (controller.selectedCategories.first.subcategories.contains(sub.id) ?? false);
+                (controller.selectedCategories.first.subcategories.contains(sub.id));
 
             return GestureDetector(
               onTap: () {
@@ -230,12 +230,12 @@ class StoreSetupScreen extends GetView<RegistrationController> {
         color: isSelected ? const Color(0XFF1D3826) : Colors.white,
         borderRadius: BorderRadius.circular(20.r),
         border: Border.all(
-          color: isSelected ? Colors.transparent : const Color(0XFFB5B475).withOpacity(0.3),
+          color: isSelected ? Colors.transparent : const Color(0XFFB5B475).withValues(alpha:0.3),
           width: 1.5,
         ),
         boxShadow: isSelected ? [
           BoxShadow(
-            color: const Color(0XFF1D3826).withOpacity(0.3),
+            color: const Color(0XFF1D3826).withValues(alpha:0.3),
             blurRadius: 8,
             offset: const Offset(0, 4),
           )

@@ -148,7 +148,7 @@ class ServiceDetailsScreen extends StatelessWidget {
         child: Container(
           margin: EdgeInsets.only(right: 10.w),
           decoration: BoxDecoration(
-            color: const Color(0xFFF1F0B2).withOpacity(0.5),
+            color: const Color(0xFFF1F0B2).withValues(alpha:0.5),
             borderRadius: BorderRadius.circular(8.r),
           ),
           child: Column(
@@ -178,7 +178,7 @@ class ServiceDetailsScreen extends StatelessWidget {
       padding: EdgeInsets.all(15.r),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(15.r),
-        border: Border.all(color: const Color(0xFF1D3826).withOpacity(0.3)),
+        border: Border.all(color: const Color(0xFF1D3826).withValues(alpha:0.3)),
       ),
       child: IntrinsicHeight(
         child: Row(

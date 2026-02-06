@@ -2,7 +2,6 @@
 
 import '../../../../core/api/api_client.dart';
 import '../../../../core/constants/api_constants.dart';
-import 'package:flutter/foundation.dart';
 
 class GmailVerificationService {
   final ApiClient _apiClient;

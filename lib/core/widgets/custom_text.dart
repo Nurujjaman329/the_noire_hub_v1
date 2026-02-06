@@ -22,7 +22,7 @@ class CustomText extends StatelessWidget {
   final double right;
 
   const CustomText({
-    Key? key,
+    super.key,
     required this.text,
     this.fontSize,
     this.color,
@@ -38,7 +38,7 @@ class CustomText extends StatelessWidget {
     this.bottom = 0,
     this.left = 0,
     this.right = 0,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

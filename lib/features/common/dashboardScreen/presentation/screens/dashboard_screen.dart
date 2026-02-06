@@ -3,8 +3,6 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import 'package:the_noire_hub_v1/core/constants/api_constants.dart';
-import 'package:the_noire_hub_v1/core/widgets/custom_network_image.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/route_constants.dart';
 import '../../../../../core/storage/local_storage.dart';
@@ -102,7 +100,7 @@ class DashboardScreen extends StatelessWidget {
             onTap: () => Get.toNamed(RouteConstants.profileScreen),
             child: CircleAvatar(
               radius: 22.r,
-              backgroundColor: AppColors.primary.withOpacity(0.1), // Nice soft background
+              backgroundColor: AppColors.primary.withValues(alpha: 0.1), // Nice soft background
               // 1. Use NetworkImage (ImageProvider) instead of a Widget
               backgroundImage: user != null && user.fullProfileImageUrl.isNotEmpty
                   ? NetworkImage(user.fullProfileImageUrl)
@@ -147,7 +145,7 @@ class DashboardScreen extends StatelessWidget {
           Positioned(
             right: 0,
             bottom: 0,
-            child: Icon(Icons.eco_outlined, size: 80.sp, color: AppColors.primaryDark.withOpacity(0.3)),
+            child: Icon(Icons.eco_outlined, size: 80.sp, color: AppColors.primaryDark.withValues(alpha: 0.3)),
           )
         ],
       ),
@@ -321,7 +319,7 @@ class DashboardScreen extends StatelessWidget {
                   show: true,
                   drawVerticalLine: false,
                   getDrawingHorizontalLine: (value) => FlLine(
-                    color: AppColors.white.withOpacity(0.1),
+                    color: AppColors.white.withValues(alpha:0.1),
                     strokeWidth: 1,
                   ),
                 ),
@@ -334,7 +332,7 @@ class DashboardScreen extends StatelessWidget {
                       showTitles: true,
                       getTitlesWidget: (value, meta) => CustomText(
                         text: '${value.toInt()}K',
-                        color: AppColors.white.withOpacity(0.6),
+                        color: AppColors.white.withValues(alpha:0.6),
                         fontSize: 10.sp,
                       ),
                       reservedSize: 30,
@@ -359,7 +357,7 @@ class DashboardScreen extends StatelessWidget {
                     dotData: const FlDotData(show: true),
                     belowBarData: BarAreaData(
                       show: true,
-                      color: AppColors.primary.withOpacity(0.1),
+                      color: AppColors.primary.withValues(alpha:0.1),
                     ),
                   ),
                 ],

@@ -75,7 +75,7 @@ class SelectionScreen extends StatelessWidget {
                 CustomText(
                   text: "We are currently onboarding\nBeauticians and Vendors",
                   fontSize: 16.sp,
-                  color: AppColors.primary.withOpacity(0.9),
+                  color: AppColors.primary.withValues(alpha:0.9),
                   textAlign: TextAlign.left,
                   top: 20.h,
                   bottom: 25.h,

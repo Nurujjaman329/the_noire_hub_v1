@@ -31,7 +31,7 @@ class VendorStoreListScreen extends StatelessWidget {
                 child: GestureDetector(
                   onTap: () => Get.back(), // GetX back navigation
                   child: CircleAvatar(
-                    backgroundColor: Colors.black.withOpacity(0.5),
+                    backgroundColor: Colors.black.withValues(alpha:0.5),
                     child: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 18),
                   ),
                 ),
@@ -52,7 +52,7 @@ class VendorStoreListScreen extends StatelessWidget {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
+                      color: Colors.black.withValues(alpha:0.08),
                       blurRadius: 12,
                       offset: const Offset(0, -4),
                     ),

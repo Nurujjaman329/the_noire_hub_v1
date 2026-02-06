@@ -63,7 +63,7 @@ class ServicePopularNearYouScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(25.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha:0.05),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -89,7 +89,7 @@ class ServicePopularNearYouScreen extends StatelessWidget {
                   right: 10.w,
                   child: CircleAvatar(
                     radius: 15.r,
-                    backgroundColor: const Color(0xFF1D3826).withOpacity(0.8),
+                    backgroundColor: const Color(0xFF1D3826).withValues(alpha:0.8),
                     child: Icon(Icons.favorite, color: const Color(0xFFF1F0B2), size: 16.sp),
                   ),
                 ),

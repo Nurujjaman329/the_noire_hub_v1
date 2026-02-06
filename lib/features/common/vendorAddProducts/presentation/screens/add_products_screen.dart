@@ -279,7 +279,7 @@
 //                   if (index > 0) ...[
 //                     SizedBox(height: 20.h),
 //                     IconButton(
-//                       icon: Icon(Icons.delete_outline, color: Colors.red.withOpacity(0.5)),
+//                       icon: Icon(Icons.delete_outline, color: Colors.red.withValues(alpha:0.5)),
 //                       onPressed: () => setState(() => productList.removeAt(index)),
 //                     )
 //                   ]
@@ -297,7 +297,7 @@
 //     return Container(
 //       padding: EdgeInsets.symmetric(horizontal: 10.w),
 //       decoration: BoxDecoration(
-//         color: AppColors.primary.withOpacity(0.2),
+//         color: AppColors.primary.withValues(alpha:0.2),
 //         borderRadius: BorderRadius.circular(10.r),
 //         border: Border.all(color: AppColors.primary),
 //       ),

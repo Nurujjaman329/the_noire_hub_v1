@@ -312,7 +312,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         width: 105.w,
         padding: EdgeInsets.all(12.r),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.surfaceVariant : AppColors.surfaceVariant.withOpacity(0.5),
+          color: isSelected ? AppColors.surfaceVariant : AppColors.surfaceVariant.withValues(alpha:0.5),
           borderRadius: BorderRadius.circular(15.r),
           border: Border.all(color: isSelected ? AppColors.chipActive : Colors.transparent, width: 2),
         ),

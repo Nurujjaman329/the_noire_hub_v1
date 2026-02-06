@@ -220,7 +220,7 @@ class _VendorAddVariantSheetState extends State<VendorAddVariantSheet> {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 12.w),
       decoration: BoxDecoration(
-        color: const Color(0xFFCADA9F).withOpacity(0.5),
+        color: const Color(0xFFCADA9F).withValues(alpha:0.5),
         borderRadius: BorderRadius.circular(12.r),
       ),
       child: child,

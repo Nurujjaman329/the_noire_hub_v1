@@ -42,7 +42,7 @@ class CustomDropdown<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Widget dropdown = DropdownButtonFormField<T>(
-      value: value,
+      initialValue: value,
       icon: Icon(
         Icons.keyboard_arrow_down,
         color: iconColor ?? AppColors.geryColor,
@@ -84,7 +84,7 @@ class CustomDropdown<T> extends StatelessWidget {
             CustomText(
               text: labelText!,
               fontSize: 13.sp,
-              color: AppColors.geryColor.withOpacity(0.8),
+              color: AppColors.geryColor.withValues(alpha:0.8),
               bottom: 8.h,
             ),
           SizedBox(
@@ -101,7 +101,7 @@ class CustomDropdown<T> extends StatelessWidget {
 
   UnderlineInputBorder _buildUnderlineBorder({Color color = Colors.grey}) {
     return UnderlineInputBorder(
-      borderSide: BorderSide(width: 1.w, color: color.withOpacity(0.5)),
+      borderSide: BorderSide(width: 1.w, color: color.withValues(alpha:0.5)),
     );
   }
 }

@@ -19,7 +19,7 @@ class CustomBottomNavbar extends StatelessWidget {
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha:0.2),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -37,7 +37,7 @@ class CustomBottomNavbar extends StatelessWidget {
           // backgroundColor: AppColors.background,
           type: BottomNavigationBarType.fixed,
           selectedItemColor: AppColors.primary,
-          unselectedItemColor: AppColors.primary.withOpacity(0.6),
+          unselectedItemColor: AppColors.primary.withValues(alpha:0.6),
           showUnselectedLabels: true,
 
           // Adjusting the font size and height pushes labels down

@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import '../../../../../core/constants/app_assets.dart';
-import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/storage/local_storage.dart';
-import '../../../../../core/widgets/custom_button.dart';
-import '../../../../../core/widgets/custom_network_image.dart';
 import '../../../../../core/widgets/custom_text.dart';
 import '../../../../authentication/login/data/login_response_model.dart';
 import '../../../vendorAddVariant/vendor_add_variant_sheet.dart';
@@ -72,7 +68,7 @@ class _VendorAddProductScreenState extends State<VendorAddProductScreen> {
                       child: CustomText(
                         text: businessName,
                         fontSize: 28.sp,
-                        color: const Color(0xFF1D3826).withOpacity(0.7),
+                        color: const Color(0xFF1D3826).withValues(alpha:0.7),
                       ),
                     ),
                     SizedBox(height: 25.h),
@@ -128,7 +124,7 @@ class _VendorAddProductScreenState extends State<VendorAddProductScreen> {
             width: 105.w,
             height: 110.h,
             decoration: BoxDecoration(
-              color: isSelected ? const Color(0xFFB7C591) : const Color(0xFFCADA9F).withOpacity(0.6),
+              color: isSelected ? const Color(0xFFB7C591) : const Color(0xFFCADA9F).withValues(alpha:0.6),
               borderRadius: BorderRadius.circular(25.r),
               boxShadow: isSelected ? [BoxShadow(color: Colors.black12, blurRadius: 10, offset: Offset(0, 4))] : [],
             ),

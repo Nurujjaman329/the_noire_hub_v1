@@ -1,15 +1,7 @@
-
+import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../features/authentication/login/data/login_response_model.dart';
-
-
-import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class LocalStorage {
   static SharedPreferences? _prefs;
@@ -71,7 +63,7 @@ class LocalStorage {
       final String userJson = jsonEncode(user.toJson());
       return await setData('userData', userJson);
     } catch (e) {
-      print('Error encoding UserModel: $e');
+      debugPrint('Error encoding UserModel: $e');
       return false;
     }
   }
@@ -83,7 +75,7 @@ class LocalStorage {
       try {
         return UserModel.fromJson(jsonDecode(userStr));
       } catch (e) {
-        print('Error parsing UserModel: $e');
+        debugPrint('Error parsing UserModel: $e');
         return null;
       }
     }

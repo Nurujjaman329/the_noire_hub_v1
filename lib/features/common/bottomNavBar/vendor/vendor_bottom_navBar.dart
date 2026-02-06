@@ -14,7 +14,7 @@ class VendorBottomNavbar extends StatelessWidget {
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha:0.3),
             blurRadius: 15,
             offset: const Offset(0, -2),
           ),
@@ -32,7 +32,7 @@ class VendorBottomNavbar extends StatelessWidget {
             backgroundColor: const Color(0XFF1D3826),
             type: BottomNavigationBarType.fixed,
             selectedItemColor: const Color(0XFFF1F0B2),
-            unselectedItemColor: Colors.white.withOpacity(0.6),
+            unselectedItemColor: Colors.white.withValues(alpha:0.6),
             showUnselectedLabels: true,
             iconSize: 24.sp,
             selectedLabelStyle: TextStyle(

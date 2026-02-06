@@ -152,7 +152,7 @@ class _CustomerAppoinmentScreenState extends State<CustomerAppoinmentScreen> {
           // Direct Inline Calendar (Requires table_calendar package)
           Container(
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.5),
+              color: Colors.white.withValues(alpha:0.5),
               borderRadius: BorderRadius.circular(15.r),
               border: Border.all(color: Colors.grey.shade300),
             ),

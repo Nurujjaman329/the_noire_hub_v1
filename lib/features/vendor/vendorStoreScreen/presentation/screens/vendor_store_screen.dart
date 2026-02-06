@@ -60,7 +60,7 @@ class VendorStoreScreen extends GetView<VendorProductController> {
                                   _buildStoreInfo(user),
                                   Padding(
                                     padding: EdgeInsets.symmetric(vertical: 15.h),
-                                    child: Divider(color: AppColors.geryColor.withOpacity(0.2), thickness: 1),
+                                    child: Divider(color: AppColors.geryColor.withValues(alpha:0.2), thickness: 1),
                                   ),
                                   _buildTextButtonsToggle(),
                                   SizedBox(height: 10.h),
@@ -323,7 +323,7 @@ class VendorStoreScreen extends GetView<VendorProductController> {
 
   // Re-used Helpers
   Widget _infoTile(String text) => CustomText(text: text, fontSize: 9.sp, color: const Color(0XFFB5B475), fontWeight: FontWeight.w500);
-  Widget _infoDivider() => Padding(padding: EdgeInsets.symmetric(horizontal: 8.w), child: CustomText(text: "|", fontSize: 10.sp, color: AppColors.geryColor.withOpacity(0.5)));
+  Widget _infoDivider() => Padding(padding: EdgeInsets.symmetric(horizontal: 8.w), child: CustomText(text: "|", fontSize: 10.sp, color: AppColors.geryColor.withValues(alpha:0.5)));
 
   Widget _buildTextButtonsToggle() {
     return Row(

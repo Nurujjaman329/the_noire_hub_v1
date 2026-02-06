@@ -40,7 +40,7 @@ class VendorBillingSection extends StatelessWidget {
                             child: Container(
                               padding: EdgeInsets.all(8.w),
                               decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.1),
+                                color: Colors.black.withValues(alpha:0.1),
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(Icons.arrow_back_ios_new, color: AppColors.white, size: 18.sp),

@@ -203,7 +203,7 @@ class CustomerConfirmBookings extends StatelessWidget {
                 CircleAvatar(backgroundColor: Colors.red, radius: 8.r),
                 Transform.translate(
                   offset: Offset(-6.w, 0),
-                  child: CircleAvatar(backgroundColor: Colors.orange.withOpacity(0.8), radius: 8.r),
+                  child: CircleAvatar(backgroundColor: Colors.orange.withValues(alpha:0.8), radius: 8.r),
                 ),
               ],
             ),

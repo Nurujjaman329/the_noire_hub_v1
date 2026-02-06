@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../core/constants/route_constants.dart';
-import '../../../core/navigationController/app_navigation_controller.dart';
 import '../../../core/widgets/custom_button.dart';
 import '../../../core/widgets/custom_text.dart';
-import '../../common/bottomNavBar/customer/customer_main_controller.dart';
 
 class OrderSuccessScreen extends StatelessWidget {
   const OrderSuccessScreen({super.key});

@@ -116,7 +116,7 @@ class _VendorAvailabilitySectionState extends State<VendorAvailabilitySection> {
                       onTap: () => Get.back(),
                       child: CircleAvatar(
                         radius: 18.r,
-                        backgroundColor: Colors.black.withOpacity(0.2),
+                        backgroundColor: Colors.black.withValues(alpha:0.2),
                         child: Icon(Icons.arrow_back_ios_new, color: AppColors.white, size: 16.sp),
                       ),
                     ),
@@ -141,7 +141,7 @@ class _VendorAvailabilitySectionState extends State<VendorAvailabilitySection> {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(color: AppColors.geryColor.withOpacity(0.1)),
+        border: Border.all(color: AppColors.geryColor.withValues(alpha:0.1)),
       ),
       child: TableCalendar(
         availableGestures: AvailableGestures.horizontalSwipe,
@@ -192,7 +192,7 @@ class _VendorAvailabilitySectionState extends State<VendorAvailabilitySection> {
         calendarStyle: CalendarStyle(
           selectedDecoration: const BoxDecoration(color: Color(0XFF1D3826), shape: BoxShape.circle),
           selectedTextStyle: const TextStyle(color: Colors.white),
-          todayDecoration: BoxDecoration(color: const Color(0XFF627E4C).withOpacity(0.2), shape: BoxShape.circle),
+          todayDecoration: BoxDecoration(color: const Color(0XFF627E4C).withValues(alpha:0.2), shape: BoxShape.circle),
           todayTextStyle: const TextStyle(color: Color(0XFF1D3826), fontWeight: FontWeight.bold),
           defaultTextStyle: const TextStyle(color: Colors.black87),
           weekendTextStyle: const TextStyle(color: Colors.redAccent),
@@ -359,7 +359,7 @@ class _VendorAvailabilitySectionState extends State<VendorAvailabilitySection> {
       alignment: Alignment.center,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8.r),
-        border: Border.all(color: AppColors.geryColor.withOpacity(0.3)),
+        border: Border.all(color: AppColors.geryColor.withValues(alpha:0.3)),
       ),
       child: CustomText(text: value, color: AppColors.primaryDark, fontWeight: FontWeight.bold, fontSize: 16.sp),
     );
@@ -408,7 +408,11 @@ class _VendorAvailabilitySectionState extends State<VendorAvailabilitySection> {
     );
     if (picked != null) {
       setState(() {
-        if (isStart) startTime = picked; else endTime = picked;
+        if (isStart) {
+          startTime = picked;
+        } else {
+          endTime = picked;
+        }
       });
     }
   }

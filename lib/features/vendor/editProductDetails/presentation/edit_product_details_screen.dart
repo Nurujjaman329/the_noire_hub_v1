@@ -164,7 +164,7 @@ class EditProductDetailsScreen extends StatelessWidget {
       height: isLarge ? 120.h : 48.h,
       padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: isLarge ? 10.h : 0),
       decoration: BoxDecoration(
-        color: const Color(0xFF9BB575).withOpacity(0.9), // Moss Green Field
+        color: const Color(0xFF9BB575).withValues(alpha:0.9), // Moss Green Field
         borderRadius: BorderRadius.circular(12.r),
       ),
       child: TextField(
@@ -174,7 +174,7 @@ class EditProductDetailsScreen extends StatelessWidget {
           border: InputBorder.none,
           hintText: hint,
           hintStyle: TextStyle(
-            color: Colors.white.withOpacity(0.9),
+            color: Colors.white.withValues(alpha:0.9),
             fontSize: 13.sp,
           ),
         ),

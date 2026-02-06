@@ -31,13 +31,13 @@ class AddVariantSheet extends StatelessWidget {
             Container(
               width: double.infinity,
               padding: EdgeInsets.all(12.r),
-              decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.2), borderRadius: BorderRadius.circular(10.r)),
+              decoration: BoxDecoration(color: AppColors.primary.withValues(alpha:0.2), borderRadius: BorderRadius.circular(10.r)),
               child: CustomText(text: "Variant Name", color: AppColors.geryColor, fontSize: 14.sp),
             ),
             SizedBox(height: 15.h),
             Container(
               padding: EdgeInsets.all(15.r),
-              decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.2), borderRadius: BorderRadius.circular(20.r)),
+              decoration: BoxDecoration(color: AppColors.primary.withValues(alpha:0.2), borderRadius: BorderRadius.circular(20.r)),
               child: Column(
                 children: [
                   Row(

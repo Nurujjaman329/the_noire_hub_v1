@@ -39,7 +39,6 @@ import '../../features/common/rating/presentation/rating_screen.dart';
 import '../../features/common/selection/selection_screen.dart';
 import '../../features/common/splash/splash_screen.dart';
 import '../../features/common/termsOfService/presentation/screen/terms_of_service_screen.dart';
-import '../../features/common/vendorAddProducts/presentation/screens/add_products_screen.dart';
 import '../../features/common/walletScreen/presentation/screen/wallet_screen.dart';
 import '../../features/common/welcomeScreen/welcome_screen.dart';
 import '../../features/customer/addPromo/presentation/add_promo_screen.dart';

@@ -9,7 +9,6 @@ import '../../../../core/storage/local_storage.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_network_image.dart';
-import '../../../../core/widgets/custom_text.dart';
 import 'controller/edit_profile_controller.dart';
 
 

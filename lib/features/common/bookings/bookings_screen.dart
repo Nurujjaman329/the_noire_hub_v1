@@ -68,7 +68,7 @@ class BookingsScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(10.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha:0.1),
             blurRadius: 5,
             offset: const Offset(0, 2),
           ),
@@ -91,7 +91,7 @@ class BookingsScreen extends StatelessWidget {
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
                 decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.1),
+                  color: statusColor.withValues(alpha:0.1),
                   borderRadius: BorderRadius.circular(15.r),
                 ),
                 child: CustomText(

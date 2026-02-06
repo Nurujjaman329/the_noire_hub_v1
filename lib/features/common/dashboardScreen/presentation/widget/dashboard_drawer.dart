@@ -1,4 +1,3 @@
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -37,7 +36,7 @@ class DashboardDrawer extends StatelessWidget {
                 GestureDetector(
                   onTap: () => Get.back(),
                   child: CircleAvatar(
-                    backgroundColor: AppColors.primaryDark.withOpacity(0.1),
+                    backgroundColor: AppColors.primaryDark.withValues(alpha:0.1),
                     child: Icon(Icons.close, color: AppColors.primaryDark),
                   ),
                 ),

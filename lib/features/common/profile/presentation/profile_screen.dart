@@ -21,7 +21,7 @@ class ProfileScreen extends StatelessWidget {
     final String role = user?.role.toLowerCase() ?? 'user';
     final bool isCustomer = role == 'user';
     final bool isBeautician = role.contains('beautician');
-    final bool isVendor = role.contains('vendor');
+    // final bool isVendor = role.contains('vendor');
 
     // 3. Extract User Display Info
     final String fullName = user?.fullName ?? "User Name";
@@ -199,7 +199,7 @@ class ProfileScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(25.r),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha:0.05),
               blurRadius: 10,
               offset: const Offset(0, 5),
             ),
@@ -310,7 +310,7 @@ class ProfileScreen extends StatelessWidget {
             Container(
               padding: EdgeInsets.all(8.r),
               decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
+                color: Colors.red.withValues(alpha:0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(Icons.logout, color: Colors.redAccent, size: 22.sp),
@@ -329,18 +329,18 @@ class ProfileScreen extends StatelessWidget {
   }
 
 
-  void _handleMenuNavigation(String label) {
-    switch (label) {
-      case "Personal Info": Get.toNamed(RouteConstants.personalInfoScreen); break;
-      case "Invite Friends": Get.toNamed(RouteConstants.inviteScreens); break;
-      case "About": Get.toNamed(RouteConstants.aboutUsScreen); break;
-      case "Terms of Service": Get.toNamed(RouteConstants.termsOfServiceScreen); break;
-      case "Deals & Promos": Get.toNamed(RouteConstants.dealsPromos); break;
-      case "Add Promo Code": Get.toNamed(RouteConstants.addDealsPromos); break;
-      case "Help": Get.toNamed(RouteConstants.helpScreen); break;
-      case "Change Password": Get.toNamed(RouteConstants.changePassword); break;
-    }
-  }
+  // void _handleMenuNavigation(String label) {
+  //   switch (label) {
+  //     case "Personal Info": Get.toNamed(RouteConstants.personalInfoScreen); break;
+  //     case "Invite Friends": Get.toNamed(RouteConstants.inviteScreens); break;
+  //     case "About": Get.toNamed(RouteConstants.aboutUsScreen); break;
+  //     case "Terms of Service": Get.toNamed(RouteConstants.termsOfServiceScreen); break;
+  //     case "Deals & Promos": Get.toNamed(RouteConstants.dealsPromos); break;
+  //     case "Add Promo Code": Get.toNamed(RouteConstants.addDealsPromos); break;
+  //     case "Help": Get.toNamed(RouteConstants.helpScreen); break;
+  //     case "Change Password": Get.toNamed(RouteConstants.changePassword); break;
+  //   }
+  // }
 
   void _showLogoutDialog() {
     // Controller logic remains good

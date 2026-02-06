@@ -171,7 +171,7 @@ class _EditServicesScreenState extends State<EditServicesScreen> {
     return Container(
       height: isLarge ? 100.h : 45.h,
       decoration: BoxDecoration(
-        color: const Color(0xFF9BB575).withOpacity(0.7), // Moss green opacity
+        color: const Color(0xFF9BB575).withValues(alpha:0.7), // Moss green opacity
         borderRadius: BorderRadius.circular(10.r),
       ),
       child: TextField(
@@ -192,7 +192,7 @@ class _EditServicesScreenState extends State<EditServicesScreen> {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(color: AppColors.geryColor.withOpacity(0.1)),
+        border: Border.all(color: AppColors.geryColor.withValues(alpha:0.1)),
       ),
       child: TableCalendar(
         availableGestures: AvailableGestures.horizontalSwipe,
@@ -243,7 +243,7 @@ class _EditServicesScreenState extends State<EditServicesScreen> {
         calendarStyle: CalendarStyle(
           selectedDecoration: const BoxDecoration(color: Color(0XFF1D3826), shape: BoxShape.circle),
           selectedTextStyle: const TextStyle(color: Colors.white),
-          todayDecoration: BoxDecoration(color: const Color(0XFF627E4C).withOpacity(0.2), shape: BoxShape.circle),
+          todayDecoration: BoxDecoration(color: const Color(0XFF627E4C).withValues(alpha:0.2), shape: BoxShape.circle),
           todayTextStyle: const TextStyle(color: Color(0XFF1D3826), fontWeight: FontWeight.bold),
           defaultTextStyle: const TextStyle(color: Colors.black87),
           weekendTextStyle: const TextStyle(color: Colors.redAccent),
@@ -300,7 +300,11 @@ class _EditServicesScreenState extends State<EditServicesScreen> {
     );
     if (picked != null) {
       setState(() {
-        if (isStart) startTime = picked; else endTime = picked;
+        if (isStart) {
+          startTime = picked;
+        } else {
+          endTime = picked;
+        }
       });
     }
   }
@@ -343,7 +347,7 @@ class _EditServicesScreenState extends State<EditServicesScreen> {
       alignment: Alignment.center,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8.r),
-        border: Border.all(color: AppColors.geryColor.withOpacity(0.3)),
+        border: Border.all(color: AppColors.geryColor.withValues(alpha:0.3)),
       ),
       child: CustomText(text: value, color: AppColors.primaryDark, fontWeight: FontWeight.bold, fontSize: 16.sp),
     );

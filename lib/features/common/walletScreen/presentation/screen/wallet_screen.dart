@@ -159,10 +159,10 @@ class WalletScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(color: const Color(0xFF9BB575).withOpacity(0.5)),
+        border: Border.all(color: const Color(0xFF9BB575).withValues(alpha:0.5)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha:0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           )
@@ -198,7 +198,7 @@ class WalletScreen extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(15.r),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)
+          BoxShadow(color: Colors.black.withValues(alpha:0.05), blurRadius: 10)
         ],
       ),
       child: Column(

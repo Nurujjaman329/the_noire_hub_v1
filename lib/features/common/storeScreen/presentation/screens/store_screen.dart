@@ -67,7 +67,7 @@
 //
 //                               Padding(
 //                                 padding: EdgeInsets.symmetric(vertical: 15.h),
-//                                 child: Divider(color: AppColors.geryColor.withOpacity(0.2), thickness: 1),
+//                                 child: Divider(color: AppColors.geryColor.withValues(alpha:0.2), thickness: 1),
 //                               ),
 //
 //                               _buildTextButtonsToggle(),
@@ -215,7 +215,7 @@
 //       child: CustomText(
 //         text: "|",
 //         fontSize: 10.sp,
-//         color: AppColors.geryColor.withOpacity(0.5),
+//         color: AppColors.geryColor.withValues(alpha:0.5),
 //       ),
 //     );
 //   }

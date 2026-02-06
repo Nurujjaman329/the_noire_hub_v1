@@ -7,9 +7,7 @@ import 'package:the_noire_hub_v1/features/customer/customerBookingList/presentat
 import 'package:the_noire_hub_v1/features/customer/customerBookingList/presentation/screen/widget/pending_bookings.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/route_constants.dart';
-import '../../../../../core/navigationController/app_navigation_controller.dart';
 import '../../../../../core/widgets/custom_text.dart';
-import '../../../../common/bottomNavBar/customer/customer_main_controller.dart';
 import '../controller/customer_booking_list_tab_controller.dart';
 
 class CustomerBookingsList extends StatelessWidget {

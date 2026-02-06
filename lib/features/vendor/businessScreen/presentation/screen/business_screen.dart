@@ -39,7 +39,7 @@ class _BusinessScreenState extends State<BusinessScreen> {
               Container(
                 margin: EdgeInsets.symmetric(horizontal: 20.w),
                 decoration: BoxDecoration(
-                  color: AppColors.divider.withOpacity(0.5),
+                  color: AppColors.divider.withValues(alpha:0.5),
                   borderRadius: BorderRadius.circular(30.r),
                 ),
                 child: TabBar(
@@ -182,7 +182,7 @@ class _BusinessScreenState extends State<BusinessScreen> {
       padding: EdgeInsets.all(15.w),
       decoration: BoxDecoration(
         color: Color(0XFFE3E6DB),
-        // color: AppColors.divider.withOpacity(0.3),
+        // color: AppColors.divider.withValues(alpha:0.3),
         borderRadius: BorderRadius.circular(15.r),
       ),
       child: Column(
@@ -220,7 +220,7 @@ class _BusinessScreenState extends State<BusinessScreen> {
       margin: EdgeInsets.only(bottom: 15.h),
       padding: EdgeInsets.all(15.w),
       decoration: BoxDecoration(
-        color: AppColors.divider.withOpacity(0.2),
+        color: AppColors.divider.withValues(alpha:0.2),
         borderRadius: BorderRadius.circular(15.r),
         border: Border.all(color: AppColors.divider),
       ),
@@ -311,7 +311,7 @@ class _BusinessScreenState extends State<BusinessScreen> {
                 borderRadius: BorderRadius.circular(15.r),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha:0.1),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   )
@@ -472,7 +472,7 @@ class _BusinessScreenState extends State<BusinessScreen> {
       padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
       decoration: BoxDecoration(
         color: Color(0XFF9BB575),
-        // color: AppColors.primaryLight.withOpacity(0.7),
+        // color: AppColors.primaryLight.withValues(alpha:0.7),
         borderRadius: BorderRadius.circular(20.r),
       ),
       child: CustomText(text: label, color: Colors.white, fontSize: 11.sp, fontWeight: FontWeight.w500),

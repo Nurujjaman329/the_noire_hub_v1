@@ -154,7 +154,7 @@ class VendorProductDetailsScreen extends GetView<VendorProductDetailsController>
           decoration: BoxDecoration(
             color: const Color(0xFFF9F9F4),
             borderRadius: BorderRadius.circular(15.r),
-            border: Border.all(color: const Color(0xFF9BB575).withOpacity(0.2)),
+            border: Border.all(color: const Color(0xFF9BB575).withValues(alpha:0.2)),
           ),
           child: Column(
             children: [
@@ -162,7 +162,7 @@ class VendorProductDetailsScreen extends GetView<VendorProductDetailsController>
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 12.h),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1D3826).withOpacity(0.03),
+                  color: const Color(0xFF1D3826).withValues(alpha:0.03),
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(15.r),
                     topRight: Radius.circular(15.r),
@@ -237,7 +237,7 @@ class VendorProductDetailsScreen extends GetView<VendorProductDetailsController>
         if (!isLast)
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 15.w),
-            child: Divider(color: Colors.grey.withOpacity(0.1), height: 1),
+            child: Divider(color: Colors.grey.withValues(alpha:0.1), height: 1),
           ),
       ],
     );

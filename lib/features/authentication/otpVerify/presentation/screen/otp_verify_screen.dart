@@ -112,7 +112,7 @@ class OtpVerificationScreen extends GetView<OtpVerificationController> {
       width: 70.w,
       height: 70.h,
       decoration: BoxDecoration(
-        color: const Color(0xFFD9E8B9).withOpacity(0.5),
+        color: const Color(0xFFD9E8B9).withValues(alpha:0.5),
         borderRadius: BorderRadius.circular(15.r),
         border: Border.all(color: Colors.transparent, width: 2),
       ),

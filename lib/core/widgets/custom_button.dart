@@ -42,7 +42,7 @@ class CustomButton extends StatelessWidget {
         onPressed: loading ? null : onTap,
         style: ElevatedButton.styleFrom(
           // Uses buttonPrimary if color is null
-          disabledBackgroundColor: (color ?? AppColors.buttonPrimary).withOpacity(0.6),
+          disabledBackgroundColor: (color ?? AppColors.buttonPrimary).withValues(alpha:0.6),
           shape: RoundedRectangleBorder(
             side: BorderSide(
                 width: 1.w,
