@@ -329,7 +329,11 @@ class VendorStoreScreen extends GetView<VendorProductController> {
       icon: Icon(Icons.more_vert, size: 18.sp, color: AppColors.geryColor),
       onSelected: (value) {
         if (value == 'edit') {
-          Get.toNamed(RouteConstants.editProductDetailScreen, arguments: product);
+          Get.toNamed(
+            RouteConstants.vendorEditProductScreen,
+            arguments: product,
+          );
+
         } else if (value == 'delete') {
           _showDeleteConfirmation(product);
         }

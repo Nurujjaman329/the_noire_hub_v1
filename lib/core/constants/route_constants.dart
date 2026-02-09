@@ -54,6 +54,7 @@ class RouteConstants {
   static const String editProductDetailScreen = '/editProductDetailScreen';
   static const String vendorProductDetailScreen = '/vendorProductDetailScreen';
   static const String vendorAddProductScreen = '/vendorAddProductScreen';
+  static const String vendorEditProductScreen = '/vendorEditProductScreen';
 
 
   // Beautician

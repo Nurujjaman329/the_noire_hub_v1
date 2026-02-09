@@ -69,6 +69,8 @@ import '../../features/vendor/orderFullFillment/presentation/screen/order_full_f
 import '../../features/vendor/storeSetUp/presentation/screens/store_setup_screen.dart';
 import '../../features/vendor/vendorAddProduct/presentation/bindings/vendor_add_product_bindings.dart';
 import '../../features/vendor/vendorBillingSection/presentation/screens/vendor_billing_section.dart';
+import '../../features/vendor/vendorEditProduct/presentation/bindings/vendor_edit_product_bindings.dart';
+import '../../features/vendor/vendorEditProduct/presentation/screen/vendor_edit_product_screen.dart';
 import '../../features/vendor/vendorOrderScreen/presentation/screens/vendor_order_screen.dart';
 import '../../features/vendor/vendorProductDetailsScreen/presentation/bindings/vendor_product_details_bindings.dart';
 import '../../features/vendor/vendorProductDetailsScreen/presentation/vendor_product_details_screen.dart';
@@ -401,6 +403,12 @@ class AppPages {
     GetPage(
       name: RouteConstants.beauticiansAddServiceScreen,
       page: () => const BeauticianAddServiceScreen(),
+      transition: Transition.cupertino,
+    ),
+    GetPage(
+      name: RouteConstants.vendorEditProductScreen,
+      page: () => VendorEditProductScreen(product: Get.arguments),
+      binding: VendorEditProductBindings(),
       transition: Transition.cupertino,
     ),
   ];

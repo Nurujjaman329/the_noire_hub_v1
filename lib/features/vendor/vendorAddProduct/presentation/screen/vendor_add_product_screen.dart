@@ -61,17 +61,6 @@ class _VendorAddProductScreenState extends State<VendorAddProductScreen> {
       return;
     }
 
-    // // Optional: if variants are mandatory in your flow
-    // if (productController.selectedVariants.isEmpty) {
-    //   Get.snackbar(
-    //     "Required",
-    //     "Please add at least one variant",
-    //     backgroundColor: Colors.redAccent,
-    //     colorText: Colors.white,
-    //   );
-    //   return;
-    // }
-
     final productData = VendorAddProductPostBody(
       images: productController.selectedImages,
       name: nameController.text.trim(),
