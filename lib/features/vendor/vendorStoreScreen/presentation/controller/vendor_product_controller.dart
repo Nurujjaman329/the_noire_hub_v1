@@ -8,8 +8,10 @@ class VendorProductController extends GetxController {
   final VendorProductList _service;
   VendorProductController(this._service);
 
+  // Observables
   var isLoading = false.obs;
-  var productList = <VendorProductModel>[].obs;
+  var isMoreLoading = false.obs;
+  var productList = <Product>[].obs;
   var errorMessage = ''.obs;
 
   // Pagination Variables
@@ -22,35 +24,53 @@ class VendorProductController extends GetxController {
     fetchProducts();
   }
 
+  /// Initial fetch or Pull-to-refresh
+  Future<void> refreshProducts() async {
+    await fetchProducts(isLoadMore: false);
+  }
+
   Future<void> fetchProducts({bool isLoadMore = false}) async {
+    // 1. Prevent unnecessary calls
     if (isLoadMore) {
-      if (!hasNextPage) return;
+      if (!hasNextPage || isMoreLoading.value) return;
+      isMoreLoading.value = true;
       currentPage++;
     } else {
       currentPage = 1;
-      productList.clear();
+      hasNextPage = true;
       isLoading.value = true;
+      productList.clear(); // Clear list for fresh data
     }
 
     errorMessage.value = '';
 
     try {
+      // 2. Fetch data from service
       final response = await _service.getVendorProducts(
         page: currentPage,
         limit: 10,
       );
 
-      productList.addAll(response.data.results);
+      // 3. Drill down into the response model: response.data.attributes.results
+      final newProducts = response.data.attributes.results;
 
-      // Check if more pages exist
-      hasNextPage = currentPage < response.data.totalPages;
+      if (newProducts.isNotEmpty) {
+        productList.addAll(newProducts);
+      }
+
+      // 4. Update pagination state from attributes
+      hasNextPage = currentPage < response.data.attributes.totalPages;
 
     } on AppException catch (e) {
       errorMessage.value = e.message;
+      // Revert page count on failure
+      if (isLoadMore) currentPage--;
     } catch (e) {
       errorMessage.value = "An unexpected error occurred";
+      if (isLoadMore) currentPage--;
     } finally {
       isLoading.value = false;
+      isMoreLoading.value = false;
     }
   }
 }

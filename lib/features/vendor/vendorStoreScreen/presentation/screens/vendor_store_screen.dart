@@ -18,7 +18,6 @@ class VendorStoreScreen extends GetView<VendorProductController> {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ NO MODELS: Getting specific data directly from CacheService
     final String businessName = CacheService.businessName.isNotEmpty
         ? CacheService.businessName
         : "My Shop";
@@ -28,13 +27,15 @@ class VendorStoreScreen extends GetView<VendorProductController> {
     return Scaffold(
       backgroundColor: AppColors.white,
       body: Obx(() {
+        // Show loading only on initial empty state
         if (controller.isLoading.value && controller.productList.isEmpty) {
           return const Center(child: CircularProgressIndicator(color: Color(0xFF707E5F)));
         }
 
         return RefreshIndicator(
-          onRefresh: () => controller.fetchProducts(),
+          onRefresh: () => controller.refreshProducts(),
           child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
             child: Stack(
               children: [
                 _buildHeaderBackground(),
@@ -62,19 +63,25 @@ class VendorStoreScreen extends GetView<VendorProductController> {
                               padding: EdgeInsets.symmetric(horizontal: 20.w),
                               child: Column(
                                 children: [
-                                  // Pass simple strings instead of the Model
                                   _buildStoreInfo(businessName, userRole),
                                   Padding(
                                     padding: EdgeInsets.symmetric(vertical: 15.h),
-                                    child: Divider(color: AppColors.geryColor.withValues(alpha:0.2), thickness: 1),
+                                    child: Divider(color: AppColors.geryColor.withValues(alpha: 0.2), thickness: 1),
                                   ),
                                   _buildTextButtonsToggle(),
                                   SizedBox(height: 10.h),
 
-                                  if (controller.productList.isEmpty)
+                                  if (controller.productList.isEmpty && !controller.isLoading.value)
                                     _buildEmptyState()
                                   else
                                     _buildDynamicProductList(),
+
+                                  // Pagination Loader
+                                  if (controller.isMoreLoading.value)
+                                    Padding(
+                                      padding: EdgeInsets.symmetric(vertical: 20.h),
+                                      child: const CircularProgressIndicator(color: Color(0xFF707E5F)),
+                                    ),
 
                                   SizedBox(height: 100.h),
                                 ],
@@ -119,6 +126,9 @@ class VendorStoreScreen extends GetView<VendorProductController> {
       ),
     );
   }
+
+
+
 
   Widget _buildFloatingProfileImage(String imageUrl) {
     return Container(
@@ -169,11 +179,10 @@ class VendorStoreScreen extends GetView<VendorProductController> {
   }
 
   Widget _buildDynamicProductList() {
-    // Simple logic to show all products or group them if you have categories
     return _buildProductSection("All Products", controller.productList);
   }
 
-  Widget _buildProductSection(String title, List<VendorProductModel> products) {
+  Widget _buildProductSection(String title, List<Product> products) {
     return Column(
       children: [
         Padding(
@@ -183,7 +192,7 @@ class VendorStoreScreen extends GetView<VendorProductController> {
             children: [
               CustomText(text: title, fontSize: 18.sp, fontWeight: FontWeight.bold),
               GestureDetector(
-               // onTap: () => Get.toNamed(RouteConstants.addProduct),
+                onTap: () => Get.toNamed(RouteConstants.vendorAddProductScreen),
                 child: Row(
                   children: [
                     Icon(Icons.add_circle_outline, size: 18.sp, color: const Color(0xFF707E5F)),
@@ -217,7 +226,8 @@ class VendorStoreScreen extends GetView<VendorProductController> {
     );
   }
 
-  Widget _buildProductCard(VendorProductModel product) {
+
+  Widget _buildProductCard(Product product) {
     return GestureDetector(
       onTap: () => Get.toNamed(RouteConstants.vendorProductDetailScreen, arguments: product.id),
       child: Container(
@@ -234,7 +244,10 @@ class VendorStoreScreen extends GetView<VendorProductController> {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(15.r),
                   child: CustomNetworkImage(
-                    imageUrl: "${ApiConstants.baseImageUrl}${product.image}",
+                    // Using index 0 of images list as per your Product model
+                    imageUrl: product.images.isNotEmpty
+                        ? "${ApiConstants.baseImageUrl}${product.images[0]}"
+                        : "",
                     width: double.infinity,
                     fit: BoxFit.cover, height: 70,
                   ),
@@ -254,7 +267,8 @@ class VendorStoreScreen extends GetView<VendorProductController> {
                   ),
                   SizedBox(height: 4.h),
                   CustomText(
-                    text: product.category,
+                    // Note: Product model 'category' is a String ID
+                    text: "Stock: ${product.stock}",
                     fontSize: 9.sp,
                     color: const Color(0x99000000),
                   ),
@@ -279,7 +293,8 @@ class VendorStoreScreen extends GetView<VendorProductController> {
     );
   }
 
-  Widget _buildProductMenu(VendorProductModel product) {
+
+  Widget _buildProductMenu(Product product) {
     return PopupMenuButton<String>(
       color: const Color(0XFF627E4C),
       icon: Icon(Icons.more_vert, size: 18.sp, color: AppColors.geryColor),
@@ -287,7 +302,7 @@ class VendorStoreScreen extends GetView<VendorProductController> {
         if (value == 'edit') {
           Get.toNamed(RouteConstants.editProductDetailScreen, arguments: product);
         } else if (value == 'delete') {
-          // Add delete confirmation dialog
+
         }
       },
       itemBuilder: (context) => [

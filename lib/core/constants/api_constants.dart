@@ -27,9 +27,11 @@ class ApiConstants {
 
 
   //beauticians
+
+
   //vendor
 
-  static const String vendorProductList = "products";
+  static const String vendorProductList = "products/my-products";
   static const String vendorSingleProduct = "products/";
   static const String vendorDeleteSingleProduct = "products/";
   static const String vendorCreateProduct = "products/";

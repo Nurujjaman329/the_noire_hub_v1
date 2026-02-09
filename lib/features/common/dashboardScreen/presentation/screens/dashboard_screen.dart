@@ -8,12 +8,14 @@ import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/route_constants.dart';
 import '../../../../../core/services/cache_service.dart';
 import '../../../../../core/widgets/custom_text.dart';
+import '../../../../vendor/vendorStoreScreen/presentation/controller/vendor_product_controller.dart';
 import '../widget/dashboard_drawer.dart';
 
 class DashboardScreen extends StatelessWidget {
   DashboardScreen({super.key});
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final controller = Get.find<VendorProductController>();
 
   @override
   Widget build(BuildContext context) {
@@ -36,32 +38,37 @@ class DashboardScreen extends StatelessWidget {
       drawer: DashboardDrawer(isVendor: isVendor, isBeautician: isBeautician),
       backgroundColor: AppColors.white,
       body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20.w),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // We no longer pass 'user', we just build the header
-                _buildHeader(context, fullImageUrl: fullImageUrl),
-                SizedBox(height: 20.h),
-                Center(
-                  child: CustomText(
-                    text: "Dashboard",
-                    fontSize: 28.sp,
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0XFF000000),
+        child: RefreshIndicator(
+          onRefresh: () => controller.refreshProducts(),
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeader(context, fullImageUrl: fullImageUrl),
+                  SizedBox(height: 20.h),
+                  Center(
+                    child: CustomText(
+                      text: "Dashboard",
+                      fontSize: 28.sp,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0XFF000000),
+                    ),
                   ),
-                ),
-                SizedBox(height: 25.h),
-                _buildStoreBanner(businessName),
-                SizedBox(height: 25.h),
-                _buildProductsSection(isVendor, isBeautician, context),
-                SizedBox(height: 25.h),
-                _buildRevenueSection(),
-                SizedBox(height: 30.h),
-              ],
+                  SizedBox(height: 25.h),
+                  _buildStoreBanner(businessName),
+                  SizedBox(height: 25.h),
+
+                  // 2. Wrap the section in Obx to listen for real data
+                  Obx(() => _buildProductsSection(isVendor, isBeautician, context)),
+
+                  SizedBox(height: 25.h),
+                  _buildRevenueSection(),
+                  SizedBox(height: 30.h),
+                ],
+              ),
             ),
           ),
         ),
@@ -183,10 +190,10 @@ class DashboardScreen extends StatelessWidget {
   }
 
   Widget _buildProductsSection(
-    bool isVendor,
-    bool isBeautician,
-    BuildContext context,
-  ) {
+      bool isVendor,
+      bool isBeautician,
+      BuildContext context,
+      ) {
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(vertical: 20.h, horizontal: 15.w),
@@ -213,12 +220,21 @@ class DashboardScreen extends StatelessWidget {
             child: Row(
               children: [
                 _buildAddButton(isBeautician, isVendor, context),
-                _buildProductTile(
-                  "https://images.pexels.com/photos/4041391/pexels-photo-4041391.jpeg",
-                ),
-                _buildProductTile(
-                  "https://images.pexels.com/photos/3762882/pexels-photo-3762882.jpeg",
-                ),
+
+                // 3. Show loading state or real products
+                if (controller.isLoading.value)
+                  const Padding(
+                    padding: EdgeInsets.all(20.0),
+                    child: CircularProgressIndicator(color: Colors.white),
+                  )
+                else
+                  ...controller.productList.take(5).map((product) {
+                    // Get the first image from the product's image list
+                    String imageUrl = product.images.isNotEmpty
+                        ? "${ApiConstants.baseImageUrl}${product.images[0]}"
+                        : "";
+                    return _buildProductTile(imageUrl);
+                  }),
               ],
             ),
           ),
@@ -338,9 +354,18 @@ class DashboardScreen extends StatelessWidget {
       height: 110.h,
       margin: EdgeInsets.symmetric(horizontal: 8.w),
       decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(25.r),
         border: Border.all(color: AppColors.white, width: 4),
-        image: DecorationImage(image: NetworkImage(url), fit: BoxFit.cover),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20.r), // Match border radius minus border width
+        child: CachedNetworkImage(
+          imageUrl: url,
+          fit: BoxFit.cover,
+          placeholder: (context, url) => const Center(child: Icon(Icons.image, color: Colors.white)),
+          errorWidget: (context, url, error) => const Icon(Icons.error),
+        ),
       ),
     );
   }

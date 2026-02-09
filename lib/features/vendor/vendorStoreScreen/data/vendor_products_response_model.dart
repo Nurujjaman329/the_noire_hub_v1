@@ -1,7 +1,7 @@
 class VendorProductsResponseModel {
   final int code;
   final String message;
-  final ProductData data;
+  final ProductsData data;
 
   VendorProductsResponseModel({
     required this.code,
@@ -13,19 +13,31 @@ class VendorProductsResponseModel {
     return VendorProductsResponseModel(
       code: json['code'] ?? 0,
       message: json['message'] ?? '',
-      data: ProductData.fromJson(json['data']?['attributes'] ?? {}),
+      data: ProductsData.fromJson(json['data'] ?? {}),
     );
   }
 }
 
-class ProductData {
-  final List<VendorProductModel> results;
+class ProductsData {
+  final ProductAttributes attributes;
+
+  ProductsData({required this.attributes});
+
+  factory ProductsData.fromJson(Map<String, dynamic> json) {
+    return ProductsData(
+      attributes: ProductAttributes.fromJson(json['attributes'] ?? {}),
+    );
+  }
+}
+
+class ProductAttributes {
+  final List<Product> results;
   final int page;
   final int limit;
   final int totalPages;
   final int totalResults;
 
-  ProductData({
+  ProductAttributes({
     required this.results,
     required this.page,
     required this.limit,
@@ -33,10 +45,10 @@ class ProductData {
     required this.totalResults,
   });
 
-  factory ProductData.fromJson(Map<String, dynamic> json) {
-    return ProductData(
+  factory ProductAttributes.fromJson(Map<String, dynamic> json) {
+    return ProductAttributes(
       results: (json['results'] as List<dynamic>? ?? [])
-          .map((e) => VendorProductModel.fromJson(e))
+          .map((e) => Product.fromJson(e))
           .toList(),
       page: json['page'] ?? 1,
       limit: json['limit'] ?? 10,
@@ -46,118 +58,69 @@ class ProductData {
   }
 }
 
-class VendorProductModel {
+class Product {
   final String id;
   final String name;
   final String description;
-  final String image;
-  final List<String> images;
   final double price;
-  final double discount;
+  final String category;
+  final String subcategory;
+  final String vendor;
+  final Weight weight;
+  final List<String> images;
+  final int discount;
   final double rating;
   final int totalReviews;
   final int stock;
-  final bool isApproved;
   final bool isActive;
-  final DateTime? createdAt;
-  final String category;
-  final String subcategory;
-  final Vendor vendor;
+  final bool isApproved;
+  final List<ProductVariant> variants;
   final Location location;
-  final Weight? weight;
-  final List<ProductVariantModel> variants;
+  final DateTime createdAt;
 
-  VendorProductModel({
+  Product({
     required this.id,
     required this.name,
     required this.description,
-    required this.image,
-    required this.images,
     required this.price,
+    required this.category,
+    required this.subcategory,
+    required this.vendor,
+    required this.weight,
+    required this.images,
     required this.discount,
     required this.rating,
     required this.totalReviews,
     required this.stock,
-    required this.isApproved,
     required this.isActive,
-    this.createdAt,
-    required this.category,
-    required this.subcategory,
-    required this.vendor,
-    required this.location,
-    this.weight,
+    required this.isApproved,
     required this.variants,
+    required this.location,
+    required this.createdAt,
   });
 
-  factory VendorProductModel.fromJson(Map<String, dynamic> json) {
-    return VendorProductModel(
+  factory Product.fromJson(Map<String, dynamic> json) {
+    return Product(
       id: json['id'] ?? '',
       name: json['name'] ?? '',
       description: json['description'] ?? '',
-      image: json['image'] ?? '',
-      images: (json['images'] as List<dynamic>? ?? [])
-          .map((e) => e.toString())
-          .toList(),
       price: (json['price'] ?? 0).toDouble(),
-      discount: (json['discount'] ?? 0).toDouble(),
+      category: json['category'] ?? '',
+      subcategory: json['subcategory'] ?? '',
+      vendor: json['vendor'] ?? '',
+      weight: Weight.fromJson(json['weight'] ?? {}),
+      images: (json['images'] as List<dynamic>? ?? []).map((e) => e.toString()).toList(),
+      discount: json['discount'] ?? 0,
       rating: (json['rating'] ?? 0).toDouble(),
       totalReviews: json['totalReviews'] ?? 0,
       stock: json['stock'] ?? 0,
+      isActive: json['isActive'] ?? false,
       isApproved: json['isApproved'] ?? false,
-      isActive: json['isActive'] ?? false,
-      createdAt: json['createdAt'] != null
-          ? DateTime.tryParse(json['createdAt'])
-          : null,
-      category: json['category'] ?? '',
-      subcategory: json['subcategory'] ?? '',
-      vendor: Vendor.fromJson(json['vendor'] ?? {}),
-      location: Location.fromJson(json['location'] ?? {}),
-      weight: json['weight'] != null ? Weight.fromJson(json['weight']) : null,
       variants: (json['variants'] as List<dynamic>? ?? [])
-          .map((e) => ProductVariantModel.fromJson(e))
+          .map((e) => ProductVariant.fromJson(e))
           .toList(),
-    );
-  }
-}
-
-class ProductVariantModel {
-  final String id;
-  final String name;
-  final String description;
-  final String image;
-  final double price;
-  final int quantity;
-  final bool isActive;
-  final DateTime? createdAt;
-  final DateTime? updatedAt;
-
-  ProductVariantModel({
-    required this.id,
-    required this.name,
-    required this.description,
-    required this.image,
-    required this.price,
-    required this.quantity,
-    required this.isActive,
-    this.createdAt,
-    this.updatedAt,
-  });
-
-  factory ProductVariantModel.fromJson(Map<String, dynamic> json) {
-    return ProductVariantModel(
-      id: json['_id'] ?? '',
-      name: json['name'] ?? '',
-      description: json['description'] ?? '',
-      image: json['image'] ?? '',
-      price: (json['price'] ?? 0).toDouble(),
-      quantity: json['quantity'] ?? 0,
-      isActive: json['isActive'] ?? false,
-      createdAt: json['createdAt'] != null
-          ? DateTime.tryParse(json['createdAt'])
-          : null,
-      updatedAt: json['updatedAt'] != null
-          ? DateTime.tryParse(json['updatedAt'])
-          : null,
+      location: Location.fromJson(json['location'] ?? {}),
+      createdAt: DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
     );
   }
 }
@@ -176,13 +139,26 @@ class Weight {
   }
 }
 
-class Vendor {
+class ProductVariant {
   final String id;
+  final String color;
+  final double price;
+  final Weight weight;
 
-  Vendor({required this.id});
+  ProductVariant({
+    required this.id,
+    required this.color,
+    required this.price,
+    required this.weight,
+  });
 
-  factory Vendor.fromJson(Map<String, dynamic> json) {
-    return Vendor(id: json['id'] ?? '');
+  factory ProductVariant.fromJson(Map<String, dynamic> json) {
+    return ProductVariant(
+      id: json['_id'] ?? '',
+      color: json['color'] ?? '',
+      price: (json['price'] ?? 0).toDouble(),
+      weight: Weight.fromJson(json['weight'] ?? {}),
+    );
   }
 }
 
@@ -195,9 +171,10 @@ class Location {
   factory Location.fromJson(Map<String, dynamic> json) {
     return Location(
       type: json['type'] ?? '',
-      coordinates: List<double>.from(
-          (json['coordinates'] as List<dynamic>? ?? [])
-              .map((e) => (e as num).toDouble())),
+      coordinates: ((json['coordinates'] as List<dynamic>? ?? [])
+          .map((e) => (e ?? 0).toDouble())
+          .toList())
+          .cast<double>(),
     );
   }
 }
