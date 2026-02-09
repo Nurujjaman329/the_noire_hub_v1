@@ -17,12 +17,10 @@ class VendorProductDetailsScreen extends GetView<VendorProductDetailsController>
     return Scaffold(
       backgroundColor: Colors.white,
       body: Obx(() {
-        // 1. Handle Loading State
         if (controller.isLoading.value) {
           return const Center(child: CircularProgressIndicator(color: Color(0xFF1D3826)));
         }
 
-        // 2. Handle Error State
         if (controller.errorMessage.isNotEmpty) {
           return Center(child: CustomText(text: controller.errorMessage.value));
         }
@@ -32,7 +30,6 @@ class VendorProductDetailsScreen extends GetView<VendorProductDetailsController>
 
         return CustomScrollView(
           slivers: [
-            // Header with Dynamic Image
             SliverAppBar(
               expandedHeight: 380.h,
               pinned: true,
@@ -53,14 +50,15 @@ class VendorProductDetailsScreen extends GetView<VendorProductDetailsController>
                     ClipRRect(
                       borderRadius: BorderRadius.circular(25.r),
                       child: CustomNetworkImage(
-                        imageUrl: "${ApiConstants.baseImageUrl}${product.image}",
+                        imageUrl: product.images.isNotEmpty
+                            ? "${ApiConstants.baseImageUrl}${product.images[0]}"
+                            : "",
                         height: 300.h,
                         width: 340.w,
                         fit: BoxFit.cover,
                       ),
                     ),
                     SizedBox(height: 15.h),
-                    // Dynamic Dots for Image Gallery (if multiple images exist)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: List.generate(
@@ -72,8 +70,6 @@ class VendorProductDetailsScreen extends GetView<VendorProductDetailsController>
                 ),
               ),
             ),
-
-            // Product Information
             SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
@@ -112,7 +108,7 @@ class VendorProductDetailsScreen extends GetView<VendorProductDetailsController>
                     ),
                     SizedBox(height: 25.h),
 
-                    // Dynamic Variant List
+                    // Updated Variant Section
                     if (product.variants.isNotEmpty)
                       _buildVariantSection(product.variants),
 
@@ -124,18 +120,6 @@ class VendorProductDetailsScreen extends GetView<VendorProductDetailsController>
           ],
         );
       }),
-    );
-  }
-
-  Widget _buildDot({required bool isActive}) {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 3.w),
-      height: 6.r,
-      width: 6.r,
-      decoration: BoxDecoration(
-        color: isActive ? const Color(0xFF1D3826) : Colors.grey.shade300,
-        shape: BoxShape.circle,
-      ),
     );
   }
 
@@ -154,15 +138,15 @@ class VendorProductDetailsScreen extends GetView<VendorProductDetailsController>
           decoration: BoxDecoration(
             color: const Color(0xFFF9F9F4),
             borderRadius: BorderRadius.circular(15.r),
-            border: Border.all(color: const Color(0xFF9BB575).withValues(alpha:0.2)),
+            border: Border.all(color: const Color(0xFF9BB575).withValues(alpha: 0.2)),
           ),
           child: Column(
             children: [
-              // Table Header
+              // Header
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 12.h),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1D3826).withValues(alpha:0.03),
+                  color: const Color(0xFF1D3826).withValues(alpha: 0.05),
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(15.r),
                     topRight: Radius.circular(15.r),
@@ -171,23 +155,24 @@ class VendorProductDetailsScreen extends GetView<VendorProductDetailsController>
                 child: Row(
                   children: [
                     Expanded(
-                        child: CustomText(
-                            text: "Unit/Size",
-                            fontSize: 12.sp,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey.shade600)),
-                    CustomText(
-                        text: "Price",
+                      child: CustomText(
+                        text: "Variant Options",
                         fontSize: 12.sp,
                         fontWeight: FontWeight.bold,
-                        color: Colors.grey.shade600),
-                    SizedBox(width: 20.w),
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                    CustomText(
+                      text: "Price",
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey.shade700,
+                    ),
+                    SizedBox(width: 10.w),
                   ],
                 ),
               ),
               const Divider(height: 1, thickness: 1),
-
-              // Dynamic Variant Rows
               ListView.builder(
                 padding: EdgeInsets.zero,
                 shrinkWrap: true,
@@ -195,9 +180,8 @@ class VendorProductDetailsScreen extends GetView<VendorProductDetailsController>
                 itemCount: variants.length,
                 itemBuilder: (context, index) {
                   final variant = variants[index];
-                  return _buildTableRow(
-                    variant.name,
-                    "\$${variant.price.toStringAsFixed(2)}",
+                  return _buildVariantRow(
+                    variant,
                     isLast: index == variants.length - 1,
                   );
                 },
@@ -209,37 +193,155 @@ class VendorProductDetailsScreen extends GetView<VendorProductDetailsController>
     );
   }
 
-  Widget _buildTableRow(String label, String price, {bool isLast = false}) {
+  Widget _buildVariantRow(VariantModel variant, {bool isLast = false}) {
     return Column(
       children: [
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 14.h),
           child: Row(
             children: [
+              // 1. Precise Color Swatch
+              if (variant.color != null && variant.color!.isNotEmpty) ...[
+                _buildColorCircle(variant.color!),
+                SizedBox(width: 12.w),
+              ],
+
+              // 2. Info Section
               Expanded(
-                child: CustomText(
-                  text: label,
-                  fontSize: 15.sp,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF1D3826),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomText(
+                      // If it's a hex code, we show a clean label or the code itself
+                      text: _getColorName(variant.color),
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF1D3826),
+                    ),
+                    if (variant.weight != null)
+                      CustomText(
+                        text: "${variant.weight!.value} ${variant.weight!.unit}",
+                        fontSize: 11.sp,
+                        color: Colors.black45,
+                      ),
+                  ],
                 ),
               ),
+
+              // 3. Price
               CustomText(
-                text: price,
-                fontSize: 15.sp,
+                text: "\$${variant.price.toStringAsFixed(2)}",
+                fontSize: 16.sp,
                 fontWeight: FontWeight.bold,
                 color: const Color(0xFF1D3826),
               ),
-              SizedBox(width: 10.w),
             ],
           ),
         ),
         if (!isLast)
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 15.w),
-            child: Divider(color: Colors.grey.withValues(alpha:0.1), height: 1),
+            child: Divider(color: Colors.grey.withValues(alpha: 0.1), height: 1),
           ),
       ],
     );
   }
+
+  Widget _buildColorCircle(String hexCode) {
+    Color displayColor;
+    try {
+      // Standardize the string: remove 0X, #, and whitespace
+      String cleanHex = hexCode.toUpperCase().replaceAll('0X', '').replaceAll('#', '').trim();
+
+      // If API sends 0XFF0000 (6 chars after 0X), it needs the FF alpha prefix
+      if (cleanHex.length == 6) {
+        cleanHex = 'FF$cleanHex';
+      }
+
+      displayColor = Color(int.parse('0x$cleanHex'));
+    } catch (e) {
+      displayColor = const Color(0xFF9BB575); // Fallback to brand green
+    }
+
+    return Container(
+      width: 24.r, // Slightly larger for better visibility
+      height: 24.r,
+      decoration: BoxDecoration(
+        color: displayColor,
+        shape: BoxShape.circle,
+        // Thin border so white/light colors don't disappear on white background
+        border: Border.all(color: Colors.black.withValues(alpha: 0.1), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: displayColor.withValues(alpha: 0.3),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          )
+        ],
+      ),
+    );
+  }
+
+// Helper to keep the UI clean if the color is just a hex string
+  String _getColorName(String? colorValue) {
+    if (colorValue == null || colorValue.isEmpty) return "Standard";
+
+    try {
+      // Convert hex string to Color
+      String cleanHex = colorValue.toUpperCase().replaceAll('0X', '').replaceAll('#', '').trim();
+      if (cleanHex.length == 6) cleanHex = 'FF$cleanHex'; // Add alpha if missing
+      final color = Color(int.parse('0x$cleanHex'));
+
+      return describeColor(color); // <-- Dynamic name
+    } catch (e) {
+      return "Unknown Color";
+    }
+  }
+
+  Widget _buildDot({required bool isActive}) {
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 3.w),
+      height: 6.r,
+      width: 6.r,
+      decoration: BoxDecoration(
+        color: isActive ? const Color(0xFF1D3826) : Colors.grey.shade300,
+        shape: BoxShape.circle,
+      ),
+    );
+  }
+
+  String describeColor(Color color) {
+    final hsl = HSLColor.fromColor(color);
+    final lightness = hsl.lightness;
+    final saturation = hsl.saturation;
+    final hue = hsl.hue;
+
+    String shade = lightness < 0.2
+        ? "Dark"
+        : lightness > 0.8
+        ? "Light"
+        : "";
+
+    String basicColor;
+    if (saturation < 0.25) {
+      basicColor = "Gray";
+    } else if (hue < 30) {
+      basicColor = "Red";
+    } else if (hue < 90) {
+      basicColor = "Yellow";
+    } else if (hue < 150) {
+      basicColor = "Green";
+    } else if (hue < 210) {
+      basicColor = "Cyan";
+    } else if (hue < 270) {
+      basicColor = "Blue";
+    } else if (hue < 330) {
+      basicColor = "Magenta";
+    } else {
+      basicColor = "Red";
+    }
+
+    return "$shade $basicColor".trim();
+  }
+
 }

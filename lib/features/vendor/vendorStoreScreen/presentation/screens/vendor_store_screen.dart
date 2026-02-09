@@ -244,12 +244,12 @@ class VendorStoreScreen extends GetView<VendorProductController> {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(15.r),
                   child: CustomNetworkImage(
-                    // Using index 0 of images list as per your Product model
                     imageUrl: product.images.isNotEmpty
                         ? "${ApiConstants.baseImageUrl}${product.images[0]}"
                         : "",
                     width: double.infinity,
-                    fit: BoxFit.cover, height: 70,
+                    fit: BoxFit.cover,
+                    height: 70,
                   ),
                 ),
               ),
@@ -259,6 +259,7 @@ class VendorStoreScreen extends GetView<VendorProductController> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Product Name
                   CustomText(
                     text: product.name,
                     fontSize: 11.sp,
@@ -266,13 +267,41 @@ class VendorStoreScreen extends GetView<VendorProductController> {
                     maxLines: 1,
                   ),
                   SizedBox(height: 4.h),
-                  CustomText(
-                    // Note: Product model 'category' is a String ID
-                    text: "Stock: ${product.stock}",
-                    fontSize: 9.sp,
-                    color: const Color(0x99000000),
+
+                  // Row for Stock and Weight
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CustomText(
+                        text: "Stock: ${product.stock}",
+                        fontSize: 9.sp,
+                        color: const Color(0x99000000),
+                      ),
+                      CustomText(
+                        text: "${product.weight.value}${product.weight.unit}",
+                        fontSize: 9.sp,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0XFFB5B475), // Using your accent color
+                      ),
+                    ],
                   ),
+                  SizedBox(height: 2.h),
+
+                  // Rating Row
+                  Row(
+                    children: [
+                      Icon(Icons.star, size: 10.sp, color: Colors.orange),
+                      CustomText(
+                        text: " ${product.rating.toStringAsFixed(1)} (${product.totalReviews})",
+                        fontSize: 8.sp,
+                        color: Colors.grey,
+                      ),
+                    ],
+                  ),
+
                   SizedBox(height: 5.h),
+
+                  // Price and Menu Row
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -280,6 +309,7 @@ class VendorStoreScreen extends GetView<VendorProductController> {
                         text: "\$${product.price.toStringAsFixed(2)}",
                         fontSize: 12.sp,
                         fontWeight: FontWeight.bold,
+                        color: const Color(0XFF1D3826),
                       ),
                       _buildProductMenu(product),
                     ],
@@ -292,7 +322,6 @@ class VendorStoreScreen extends GetView<VendorProductController> {
       ),
     );
   }
-
 
   Widget _buildProductMenu(Product product) {
     return PopupMenuButton<String>(

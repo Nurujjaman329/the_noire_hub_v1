@@ -233,7 +233,7 @@ class DashboardScreen extends StatelessWidget {
                     String imageUrl = product.images.isNotEmpty
                         ? "${ApiConstants.baseImageUrl}${product.images[0]}"
                         : "";
-                    return _buildProductTile(imageUrl);
+                    return _buildProductTile(imageUrl,product.id);
                   }),
               ],
             ),
@@ -348,23 +348,26 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProductTile(String url) {
-    return Container(
-      width: 100.w,
-      height: 110.h,
-      margin: EdgeInsets.symmetric(horizontal: 8.w),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(25.r),
-        border: Border.all(color: AppColors.white, width: 4),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20.r), // Match border radius minus border width
-        child: CachedNetworkImage(
-          imageUrl: url,
-          fit: BoxFit.cover,
-          placeholder: (context, url) => const Center(child: Icon(Icons.image, color: Colors.white)),
-          errorWidget: (context, url, error) => const Icon(Icons.error),
+  Widget _buildProductTile(String url, String prodcutId) {
+    return GestureDetector(
+      onTap: () => Get.toNamed(RouteConstants.vendorProductDetailScreen, arguments: prodcutId),
+      child: Container(
+        width: 100.w,
+        height: 110.h,
+        margin: EdgeInsets.symmetric(horizontal: 8.w),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.2),
+          borderRadius: BorderRadius.circular(25.r),
+          border: Border.all(color: AppColors.white, width: 4),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20.r), // Match border radius minus border width
+          child: CachedNetworkImage(
+            imageUrl: url,
+            fit: BoxFit.cover,
+            placeholder: (context, url) => const Center(child: Icon(Icons.image, color: Colors.white)),
+            errorWidget: (context, url, error) => const Icon(Icons.error),
+          ),
         ),
       ),
     );

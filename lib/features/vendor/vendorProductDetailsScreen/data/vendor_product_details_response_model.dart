@@ -22,11 +22,10 @@ class ProductDetailData {
   final String id;
   final String name;
   final String description;
-  final String image;
   final List<String> images;
   final double price;
   final double discount;
-  final int totalQuantity;
+  final int stock;
   final bool isApproved;
   final bool isActive;
   final DateTime? createdAt;
@@ -35,17 +34,17 @@ class ProductDetailData {
   final Subcategory subcategory;
   final Vendor vendor;
   final Ratings ratings;
+  final Weight weight;
   final List<VariantModel> variants;
 
   ProductDetailData({
     required this.id,
     required this.name,
     required this.description,
-    required this.image,
     required this.images,
     required this.price,
     required this.discount,
-    required this.totalQuantity,
+    required this.stock,
     required this.isApproved,
     required this.isActive,
     required this.createdAt,
@@ -54,6 +53,7 @@ class ProductDetailData {
     required this.subcategory,
     required this.vendor,
     required this.ratings,
+    required this.weight,
     required this.variants,
   });
 
@@ -62,23 +62,19 @@ class ProductDetailData {
       id: json['id'] ?? '',
       name: json['name'] ?? '',
       description: json['description'] ?? '',
-      image: json['image'] ?? '',
-      images: (json['images'] as List<dynamic>? ?? [])
-          .map((e) => e.toString())
-          .toList(),
+      images: (json['images'] as List<dynamic>? ?? []).map((e) => e.toString()).toList(),
       price: (json['price'] ?? 0).toDouble(),
       discount: (json['discount'] ?? 0).toDouble(),
-      totalQuantity: json['totalQuantity'] ?? 0,
+      stock: json['stock'] ?? 0,
       isApproved: json['isApproved'] ?? false,
       isActive: json['isActive'] ?? false,
-      createdAt: json['createdAt'] != null
-          ? DateTime.tryParse(json['createdAt'])
-          : null,
+      createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt']) : null,
       location: Location.fromJson(json['location'] ?? {}),
       category: Category.fromJson(json['category'] ?? {}),
       subcategory: Subcategory.fromJson(json['subcategory'] ?? {}),
       vendor: Vendor.fromJson(json['vendor'] ?? {}),
       ratings: Ratings.fromJson(json['ratings'] ?? {}),
+      weight: Weight.fromJson(json['weight'] ?? {}),
       variants: (json['variants'] as List<dynamic>? ?? [])
           .map((e) => VariantModel.fromJson(e))
           .toList(),
@@ -96,8 +92,22 @@ class Location {
     return Location(
       type: json['type'] ?? '',
       coordinates: List<double>.from(
-          (json['coordinates'] as List<dynamic>? ?? [])
-              .map((e) => (e as num).toDouble())),
+          (json['coordinates'] as List<dynamic>? ?? []).map((e) => (e as num).toDouble())
+      ),
+    );
+  }
+}
+
+class Weight {
+  final double value;
+  final String unit;
+
+  Weight({required this.value, required this.unit});
+
+  factory Weight.fromJson(Map<String, dynamic> json) {
+    return Weight(
+      value: (json['value'] ?? 0).toDouble(),
+      unit: json['unit'] ?? '',
     );
   }
 }
@@ -172,42 +182,23 @@ class Ratings {
 
 class VariantModel {
   final String id;
-  final String name;
-  final String description;
-  final String image;
+  final Weight? weight;
+  final String? color;
   final double price;
-  final int quantity;
-  final bool isActive;
-  final DateTime? createdAt;
-  final DateTime? updatedAt;
 
   VariantModel({
     required this.id,
-    required this.name,
-    required this.description,
-    required this.image,
+    this.weight,
+    this.color,
     required this.price,
-    required this.quantity,
-    required this.isActive,
-    this.createdAt,
-    this.updatedAt,
   });
 
   factory VariantModel.fromJson(Map<String, dynamic> json) {
     return VariantModel(
       id: json['_id'] ?? '',
-      name: json['name'] ?? '',
-      description: json['description'] ?? '',
-      image: json['image'] ?? '',
+      weight: json['weight'] != null ? Weight.fromJson(json['weight']) : null,
+      color: json['color'],
       price: (json['price'] ?? 0).toDouble(),
-      quantity: json['quantity'] ?? 0,
-      isActive: json['isActive'] ?? false,
-      createdAt: json['createdAt'] != null
-          ? DateTime.tryParse(json['createdAt'])
-          : null,
-      updatedAt: json['updatedAt'] != null
-          ? DateTime.tryParse(json['updatedAt'])
-          : null,
     );
   }
 }
