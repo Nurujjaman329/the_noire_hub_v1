@@ -5,6 +5,7 @@ import 'package:the_noire_hub_v1/features/authentication/gmailVerification/prese
 import 'package:the_noire_hub_v1/features/authentication/registration/presentation/bindings/registration_bindings.dart';
 import 'package:the_noire_hub_v1/features/authentication/resetPassword/presentation/bindings/reset_password_bindings.dart';
 import 'package:the_noire_hub_v1/features/beautician/beauticianAddService/presentation/screen/beautician_add_service_screen.dart';
+import 'package:the_noire_hub_v1/features/common/businessDocument/presentation/bindings/business_documents_bindings.dart';
 import 'package:the_noire_hub_v1/features/common/changePassword/presentation/bindings/change_password_bindings.dart';
 import 'package:the_noire_hub_v1/features/vendor/vendorAddProduct/presentation/screen/vendor_add_product_screen.dart';
 import 'package:the_noire_hub_v1/features/vendor/vendorStoreScreen/presentation/binding/vendor_product_binding.dart';
@@ -27,6 +28,7 @@ import '../../features/common/addDealsPromos/presentation/screen/add_deals_pomos
 import '../../features/common/averageReviewScreen/presentation/screens/average_review_screens.dart';
 import '../../features/common/bottomNavBar/customer/customer_main_container.dart';
 import '../../features/common/bottomNavBar/vendor/vendor_main_container.dart';
+import '../../features/common/businessDocument/presentation/screen/business_screen.dart';
 import '../../features/common/changePassword/presentation/screen/change_password_screen.dart';
 import '../../features/common/editProfile/presentation/binding/edit_profile_binding.dart';
 import '../../features/common/editProfile/presentation/edit_profile_screen.dart';
@@ -62,7 +64,6 @@ import '../../features/customer/popularNearYou/presentation/service_popular_near
 import '../../features/customer/productDetailsScreen/presentation/product_details_screen.dart';
 import '../../features/customer/serviceBookingScreen/presentation/screen/service_booking_screen.dart';
 import '../../features/customer/vendorStoreList/presentation/screens/vendor_store_list_screen.dart';
-import '../../features/vendor/businessScreen/presentation/screen/business_screen.dart';
 import '../../features/vendor/editProductDetails/presentation/edit_product_details_screen.dart';
 import '../../features/vendor/orderFullFillment/presentation/screen/order_full_fillment_screen.dart';
 import '../../features/vendor/storeSetUp/presentation/screens/store_setup_screen.dart';
@@ -217,6 +218,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.businessScreen,
       page: () => const BusinessScreen(),
+      binding: BusinessDocumentsBindings(),
       transition: Transition.cupertino,
     ),
 

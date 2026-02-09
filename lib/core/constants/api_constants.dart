@@ -21,9 +21,10 @@ class ApiConstants {
   static const String changePassword = "auth/change-password";
   static const String getProfile = "users/self/in";
   static const String updateProfile = "users/self/update";
+  static const String addBusinessDocuments = "business-documents";
+  static const String getBusinessDocuments = "business-documents/my-document";
 
   //customer
-
 
 
   //beauticians

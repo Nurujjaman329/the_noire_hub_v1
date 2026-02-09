@@ -46,7 +46,7 @@ class RouteConstants {
   static const String storeSetUp = '/storeSetUp';
   static const String addProductsScreen = '/addProductsScreen';
   static const String vendorBillingSection = '/vendorBillingSection';
-  static const String businessScreen = '/businessScreen';
+  static const String businessScreen = '/businessDocument';
   static const String orderFullFillMent = '/orderFullFillMent';
   static const String beauticiansAvailabilityScreen = '/beauticiansAvailabilityScreen';
   static const String vendorOrdersScreen = '/vendorOrdersScreen';

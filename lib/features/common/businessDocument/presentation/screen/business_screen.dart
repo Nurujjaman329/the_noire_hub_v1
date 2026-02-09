@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:get/get_utils/src/extensions/widget_extensions.dart';
-
+import 'package:get/get.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/widgets/custom_app_bar.dart';
 import '../../../../../core/widgets/custom_button.dart';
 import '../../../../../core/widgets/custom_network_image.dart';
 import '../../../../../core/widgets/custom_text.dart';
+import '../controller/business_document_controller.dart';
 
 class BusinessScreen extends StatefulWidget {
   const BusinessScreen({super.key});
@@ -17,6 +18,18 @@ class BusinessScreen extends StatefulWidget {
 }
 
 class _BusinessScreenState extends State<BusinessScreen> {
+
+  final controller = Get.find<BusinessDocumentController>();
+
+  // Local state for the category dropdown
+  String selectedDocType = "Government Issued ID";
+  final List<String> docCategories = [
+    "Government Issued ID",
+    "Business Registration Proof",
+    "Proof of Business Address",
+    "Supporting Documents"
+  ];
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
@@ -154,27 +167,159 @@ class _BusinessScreenState extends State<BusinessScreen> {
   }
 
   // MARK: - Documents Tab
+// MARK: - Documents Tab
   Widget _buildDocumentsTab() {
     return SingleChildScrollView(
       padding: EdgeInsets.all(20.w),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildFullDropdown([
-            "Government Issued ID",
-            "Business Registration Proof",
-            "Proof of Business Address",
-            "Supporting Documents"
-          ]),
+          // 1. Dropdown Selection
+          _buildFullDropdown(docCategories),
+
           SizedBox(height: 20.h),
-          _buildUploadBox(),
-          SizedBox(height: 20.h),
-          _buildDocumentTile("Government Issued ID", "9.7 MB uploading...", 0.35),
-          _buildDocumentTile("Proof of Business Registration", "19.7 MB uploaded", 1.0, isDone: true),
-          _buildDocumentTile("Proof of Business Registration", "19.7 MB uploaded", 1.0, isDone: true),
+
+          // 2. Functional Upload Box
+          GestureDetector(
+            onTap: () => _showPickerOptions(),
+            child: _buildUploadBox(),
+          ),
+
+          SizedBox(height: 25.h),
+
+          // 3. Submit Button
+          Obx(() => CustomButton(
+            onTap: controller.isLoading.value ? null : () => controller.submitVerification(),
+            text: controller.isLoading.value ? "Uploading..." : "Submit All Documents",
+            color: const Color(0XFF627E4C),
+            height: 48.h,
+            loading: controller.isLoading.value,
+          )),
+
+          SizedBox(height: 30.h),
+          const Divider(),
+          CustomText(
+              text: "Document Status",
+              fontWeight: FontWeight.bold,
+              fontSize: 18.sp,
+              top: 10.h,
+              bottom: 20.h
+          ),
+
+          // 4. Grouped List Sections
+          Obx(() {
+            final stored = controller.storedDocuments.value;
+
+            return Column(
+              children: [
+                _buildDocumentCategorySection(
+                  "Government Issued ID",
+                  controller.governmentIdPaths,
+                  stored?.governmentId ?? [],
+                ),
+                _buildDocumentCategorySection(
+                  "Business Registration Proof",
+                  controller.registrationPaths,
+                  stored?.businessRegistration ?? [],
+                ),
+                _buildDocumentCategorySection(
+                  "Proof of Business Address",
+                  controller.addressPaths,
+                  stored?.proofOfBusinessAddress ?? [],
+                ),
+                _buildDocumentCategorySection(
+                  "Supporting Documents",
+                  controller.supportingPaths,
+                  stored?.supportingDocuments ?? [], // Assumes supportingDocuments exists in your model
+                ),
+              ],
+            );
+          }),
         ],
       ),
     );
   }
+
+  // New Helper: Builds a header and the list of files for each specific category
+  Widget _buildDocumentCategorySection(String title, RxList<String> localPaths, List<String> serverUrls) {
+    if (localPaths.isEmpty && serverUrls.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CustomText(
+          text: title,
+          fontSize: 14.sp,
+          fontWeight: FontWeight.bold,
+          color: const Color(0XFF627E4C),
+          bottom: 10.h,
+        ),
+        // Local Files
+        ...localPaths.asMap().entries.map((entry) => _buildDocumentTile(
+          entry.value.split('/').last,
+          "Pending Upload",
+          1.0,
+          isDone: true,
+          onDelete: () => localPaths.removeAt(entry.key),
+        )),
+        // Server Files
+        ...serverUrls.map((url) => _buildDocumentTile(
+            url.split('/').last.split('?').first, // Clean filename from URL
+            "Verified & Stored",
+            1.0,
+            isDone: true,
+            isServer: true
+        )),
+        SizedBox(height: 15.h),
+      ],
+    );
+  }
+
+  RxList<String> _getTargetList() {
+    if (selectedDocType == "Government Issued ID") return controller.governmentIdPaths;
+    if (selectedDocType == "Business Registration Proof") return controller.registrationPaths;
+    if (selectedDocType == "Proof of Business Address") return controller.addressPaths;
+    return controller.supportingPaths;
+  }
+
+  // Helper: Build tiles for local paths
+  List<Widget> _buildSectionList(RxList<String> list, String label) {
+    return list.asMap().entries.map((entry) {
+      return _buildDocumentTile(
+        "$label: ${entry.value.split('/').last}",
+        "Ready to upload",
+        1.0,
+        isDone: true,
+        onDelete: () => list.removeAt(entry.key),
+      );
+    }).toList();
+  }
+
+  void _showPickerOptions() {
+    Get.bottomSheet(
+      Container(
+        padding: EdgeInsets.all(20.r),
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(20.r))),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CustomText(text: "Select Source for $selectedDocType", fontWeight: FontWeight.bold, bottom: 15.h),
+            ListTile(
+              leading: const Icon(Icons.camera_alt, color: Color(0XFF627E4C)),
+              title: const Text("Camera"),
+              onTap: () { Get.back(); controller.pickDocument(_getTargetList(), fromCamera: true); },
+            ),
+            ListTile(
+              leading: const Icon(Icons.file_present, color: Color(0XFF627E4C)),
+              title: const Text("Gallery / Files"),
+              onTap: () { Get.back(); controller.pickDocument(_getTargetList(), fromCamera: false); },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
 
   // MARK: - Helper Widgets
   Widget _buildStatCard(String label, String value) {
@@ -215,31 +360,35 @@ class _BusinessScreenState extends State<BusinessScreen> {
     );
   }
 
-  Widget _buildDocumentTile(String title, String subtitle, double progress, {bool isDone = false}) {
+  Widget _buildDocumentTile(String title, String subtitle, double progress, {bool isDone = false, bool isServer = false, VoidCallback? onDelete}) {
     return Container(
-      margin: EdgeInsets.only(bottom: 15.h),
-      padding: EdgeInsets.all(15.w),
+      margin: EdgeInsets.only(bottom: 12.h),
+      padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
-        color: AppColors.divider.withValues(alpha:0.2),
-        borderRadius: BorderRadius.circular(15.r),
-        border: Border.all(color: AppColors.divider),
+        color: isServer ? const Color(0XFFCADA9F).withOpacity(0.1) : AppColors.divider.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: isServer ? const Color(0XFF627E4C) : AppColors.divider),
       ),
       child: Row(
         children: [
-          Icon(Icons.picture_as_pdf, color: AppColors.textPrimary),
+          Icon(isServer ? Icons.cloud_done : Icons.picture_as_pdf, color: const Color(0XFF1D3826)),
           SizedBox(width: 15.w),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CustomText(text: title, fontSize: 13.sp, fontWeight: FontWeight.w600),
-                CustomText(text: subtitle, fontSize: 10.sp, color: Color(0x90000000), top: 2.h),
-                if (!isDone)
-                  LinearProgressIndicator(value: progress, color: AppColors.primaryDark, backgroundColor: AppColors.white, minHeight: 4.h).paddingOnly(top: 8.h),
+                CustomText(text: title, fontSize: 12.sp, fontWeight: FontWeight.w600, maxLines: 1),
+                CustomText(text: subtitle, fontSize: 10.sp, color: Colors.black54, top: 2.h),
               ],
             ),
           ),
-          if (isDone) Icon(Icons.delete_outline, color: AppColors.textPrimary),
+          if (isDone && !isServer)
+            GestureDetector(
+              onTap: onDelete,
+              child: const Icon(Icons.cancel, color: Colors.redAccent),
+            ),
+          if (isServer)
+            const Icon(Icons.check_circle, color: Color(0XFF627E4C), size: 18),
         ],
       ),
     );
@@ -265,23 +414,25 @@ class _BusinessScreenState extends State<BusinessScreen> {
   Widget _buildFullDropdown(List<String> items) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 15.w),
+      width: double.infinity,
       decoration: BoxDecoration(
-        color: AppColors.primaryDark,
+        color: const Color(0XFF1D3826),
         borderRadius: BorderRadius.circular(8.r),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
-          value: items[0],
-          dropdownColor: AppColors.primaryDark,
-          icon: Icon(Icons.keyboard_arrow_down, color: AppColors.white),
+          value: selectedDocType,
+          dropdownColor: const Color(0XFF1D3826),
+          icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white),
           items: items.map((String value) {
-            return DropdownMenuItem<String>(value: value, child: CustomText(text: value, color: AppColors.white));
+            return DropdownMenuItem<String>(value: value, child: CustomText(text: value, color: Colors.white, fontSize: 13.sp));
           }).toList(),
-          onChanged: (_) {},
+          onChanged: (val) => setState(() => selectedDocType = val!),
         ),
       ),
     );
   }
+
 
   Widget _buildSmallDropdown(String value) {
     return Container(

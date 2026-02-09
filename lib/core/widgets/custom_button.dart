@@ -12,7 +12,7 @@ class CustomButton extends StatelessWidget {
     this.broderColor,
     this.textStyle,
     this.padding = EdgeInsets.zero,
-    required this.onTap,
+     this.onTap,
     required this.text,
     this.loading = false,
     this.width,
@@ -21,7 +21,7 @@ class CustomButton extends StatelessWidget {
     this.borderRadius, // Added borderRadius parameter
   });
 
-  final Function() onTap;
+  final Function()? onTap;
   final String text;
   final bool loading;
   final double? height;
