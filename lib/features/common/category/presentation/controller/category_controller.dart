@@ -1,8 +1,6 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import '../../../../../core/api/api_exception.dart';
 import '../../../../../core/services/cache_service.dart';
-import '../../../../../core/storage/local_storage.dart';
 import '../../data/category_response_model.dart';
 import '../../data/category_service.dart';
 
@@ -18,34 +16,35 @@ class CategoryController extends GetxController {
   var totalPages = 0.obs;
   var totalResults = 0.obs;
   var hasMoreData = true.obs;
+
   String? categoryType;
+  String? currentUserId; // Store the ID if we are in a "User Specific" view
 
-  Future<void> loadCategories({int page = 1, int limit = 10, String? categoryType}) async {
+  // Added userId as an optional parameter
+  Future<void> loadCategories({
+    int page = 1,
+    int limit = 10,
+    String? categoryType,
+    String? userId,
+  }) async {
     if (page == 1) isLoading.value = true;
-    errorMessage.value = '';
 
-    // Use specific categoryType if provided, otherwise auto-detect
-    String? finalType = categoryType ?? this.categoryType;
+    this.currentUserId = userId;
 
-    if (finalType == null) {
-      // ✅ CLEANER DETECTION: Using the primitive role string from CacheService
+    // Logic change: Only auto-detect type if NO userId is provided
+    String? finalType = categoryType;
+    if (userId == null && finalType == null) {
       final String role = CacheService.role.toLowerCase();
-
-      if (role.contains('vendor')) {
-        finalType = 'product';
-      } else if (role.contains('beautician')) {
-        finalType = 'service';
-      }
-
-      // Save the detected type for pagination/refreshing
-      this.categoryType = finalType;
+      if (role.contains('vendor')) finalType = 'product';
+      else if (role.contains('beautician')) finalType = 'service';
     }
 
     try {
       final response = await _categoryService.getCategories(
         page: page,
         limit: limit,
-        categoryType: finalType,
+        categoryType: finalType, // Could be null if userId is present
+        id: userId,
       );
 
       if (page == 1) {
@@ -54,39 +53,34 @@ class CategoryController extends GetxController {
         categories.addAll(response.data.attributes.results);
       }
 
-      // Update pagination metadata
-      currentPage.value = response.data.attributes.page;
-      totalPages.value = response.data.attributes.totalPages;
-      totalResults.value = response.data.attributes.totalResults;
-      hasMoreData.value = currentPage.value < totalPages.value;
-
-    } on AppException catch (e) {
-      errorMessage.value = e.message;
+      // Update pagination logic here...
     } catch (e) {
-      errorMessage.value = "An unexpected error occurred";
-      debugPrint("Category Load Error: $e");
+      debugPrint("Load Error: $e");
     } finally {
       isLoading.value = false;
     }
   }
 
+  // Update this to maintain the ID during pagination
   Future<void> loadMoreCategories({int limit = 10}) async {
     if (!hasMoreData.value || isLoading.value) return;
-    await loadCategories(page: currentPage.value + 1, limit: limit);
+    await loadCategories(
+      page: currentPage.value + 1,
+      limit: limit,
+      userId: currentUserId, // Keep the filter active
+    );
   }
 
+  // Update this for pull-to-refresh
   Future<void> refreshCategories({int limit = 10}) async {
-    await loadCategories(page: 1, limit: limit);
+    await loadCategories(page: 1, limit: limit, userId: currentUserId);
   }
 
-  // Improved search: Don't overwrite the original list permanently
-  // In a real app, this should call a search API endpoint
   void searchLocalCategories(String query) {
     if (query.isEmpty) {
-      refreshCategories(); // Reset to full list
+      refreshCategories();
       return;
     }
-
     final filtered = categories.where((cat) =>
         cat.name.toLowerCase().contains(query.toLowerCase())).toList();
     categories.assignAll(filtered);

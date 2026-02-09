@@ -66,6 +66,7 @@ import '../../features/vendor/businessScreen/presentation/screen/business_screen
 import '../../features/vendor/editProductDetails/presentation/edit_product_details_screen.dart';
 import '../../features/vendor/orderFullFillment/presentation/screen/order_full_fillment_screen.dart';
 import '../../features/vendor/storeSetUp/presentation/screens/store_setup_screen.dart';
+import '../../features/vendor/vendorAddProduct/presentation/bindings/vendor_add_product_bindings.dart';
 import '../../features/vendor/vendorBillingSection/presentation/screens/vendor_billing_section.dart';
 import '../../features/vendor/vendorOrderScreen/presentation/screens/vendor_order_screen.dart';
 import '../../features/vendor/vendorProductDetailsScreen/presentation/bindings/vendor_product_details_bindings.dart';
@@ -392,6 +393,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.vendorAddProductScreen,
       page: () => const VendorAddProductScreen(),
+      binding: VendorAddProductBindings(),
       transition: Transition.cupertino,
     ),
     GetPage(

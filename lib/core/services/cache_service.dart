@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CacheService {
@@ -5,6 +6,7 @@ class CacheService {
 
   static Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
+    debugPrint('🟢 CacheService initialized');
   }
 
   // --- Keys ---
@@ -18,15 +20,59 @@ class CacheService {
   static const String _bioKey = 'user_bio';
 
   // --- Getters ---
-  static String get token => _prefs?.getString(_tokenKey) ?? '';
-  static String get userId => _prefs?.getString(_userIdKey) ?? '';
-  static String get role => _prefs?.getString(_roleKey) ?? '';
-  static String get businessName => _prefs?.getString(_businessNameKey) ?? '';
-  static bool get isLoggedIn => token.isNotEmpty;
-  static String get userImage => _prefs?.getString(_imageKey) ?? '';
-  static String get userFullName => _prefs?.getString(_fullNameKey) ?? '';
-  static String get phone => _prefs?.getString(_phoneKey) ?? '';
-  static String get bio => _prefs?.getString(_bioKey) ?? '';
+  static String get token {
+    final value = _prefs?.getString(_tokenKey) ?? '';
+    debugPrint('🔑 Get token: $value');
+    return value;
+  }
+
+  static String get userId {
+    final value = _prefs?.getString(_userIdKey) ?? '';
+    debugPrint('🔑 Get userId: $value');
+    return value;
+  }
+
+  static String get role {
+    final value = _prefs?.getString(_roleKey) ?? '';
+    debugPrint('🔑 Get role: $value');
+    return value;
+  }
+
+  static String get businessName {
+    final value = _prefs?.getString(_businessNameKey) ?? '';
+    debugPrint('🔑 Get businessName: $value');
+    return value;
+  }
+
+  static bool get isLoggedIn {
+    final value = token.isNotEmpty;
+    debugPrint('🔑 Check isLoggedIn: $value');
+    return value;
+  }
+
+  static String get userImage {
+    final value = _prefs?.getString(_imageKey) ?? '';
+    debugPrint('🔑 Get userImage: $value');
+    return value;
+  }
+
+  static String get userFullName {
+    final value = _prefs?.getString(_fullNameKey) ?? '';
+    debugPrint('🔑 Get userFullName: $value');
+    return value;
+  }
+
+  static String get phone {
+    final value = _prefs?.getString(_phoneKey) ?? '';
+    debugPrint('🔑 Get phone: $value');
+    return value;
+  }
+
+  static String get bio {
+    final value = _prefs?.getString(_bioKey) ?? '';
+    debugPrint('🔑 Get bio: $value');
+    return value;
+  }
 
   // --- Setters ---
   static Future<void> saveSession({
@@ -39,18 +85,40 @@ class CacheService {
     String? phone,
     String? bio,
   }) async {
+    debugPrint('💾 Saving session...');
     await _prefs?.setString(_tokenKey, token);
+    debugPrint('💾 token saved: $token');
     await _prefs?.setString(_userIdKey, userId);
-    if (role != null) await _prefs?.setString(_roleKey, role);
-    if (businessName != null) await _prefs?.setString(_businessNameKey, businessName);
-    if (image != null) await _prefs?.setString(_imageKey, image);
-    if (fullName != null) await _prefs?.setString(_fullNameKey, fullName);
-    if (phone != null) await _prefs?.setString(_phoneKey, phone);
-    if (bio != null) await _prefs?.setString(_bioKey, bio);
-
+    debugPrint('💾 userId saved: $userId');
+    if (role != null) {
+      await _prefs?.setString(_roleKey, role);
+      debugPrint('💾 role saved: $role');
+    }
+    if (businessName != null) {
+      await _prefs?.setString(_businessNameKey, businessName);
+      debugPrint('💾 businessName saved: $businessName');
+    }
+    if (image != null) {
+      await _prefs?.setString(_imageKey, image);
+      debugPrint('💾 userImage saved: $image');
+    }
+    if (fullName != null) {
+      await _prefs?.setString(_fullNameKey, fullName);
+      debugPrint('💾 fullName saved: $fullName');
+    }
+    if (phone != null) {
+      await _prefs?.setString(_phoneKey, phone);
+      debugPrint('💾 phone saved: $phone');
+    }
+    if (bio != null) {
+      await _prefs?.setString(_bioKey, bio);
+      debugPrint('💾 bio saved: $bio');
+    }
   }
 
   static Future<void> clear() async {
+    debugPrint('🧹 Clearing CacheService data...');
     await _prefs?.clear();
+    debugPrint('🧹 CacheService cleared');
   }
 }

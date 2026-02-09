@@ -18,20 +18,24 @@ class SubCategoryController extends GetxController {
   var currentPage = 1.obs;
   var hasMoreData = true.obs;
   String? selectedCategoryId;
-  String? categoryType; // Stores the active filter (product/service)
+  String? categoryType;
+  String? currentUserId;
 
   Future<void> fetchSubCategories({
     String? categoryId,
     String? categoryType,
+    String? id, // This is your User/Vendor ID
     bool isRefresh = true
   }) async {
     if (isRefresh) {
       currentPage.value = 1;
       hasMoreData.value = true;
       isLoading.value = true;
+
+      // Maintain state for pagination
       selectedCategoryId = categoryId;
-      // Store the type in state for future pagination/loads
       this.categoryType = categoryType;
+      currentUserId = id;
     } else {
       isMoreLoading.value = true;
     }
@@ -42,7 +46,8 @@ class SubCategoryController extends GetxController {
       final response = await _service.getSubCategories(
         page: currentPage.value,
         categoryId: selectedCategoryId,
-        categoryType: this.categoryType, // Use the stored state
+        categoryType: this.categoryType,
+        id: currentUserId, // Always pass the stored state
       );
 
       if (isRefresh) {
@@ -58,7 +63,6 @@ class SubCategoryController extends GetxController {
       }
     } catch (e) {
       errorMessage.value = e.toString();
-      debugPrint('❌ SubCategory Error: $e');
     } finally {
       isLoading.value = false;
       isMoreLoading.value = false;

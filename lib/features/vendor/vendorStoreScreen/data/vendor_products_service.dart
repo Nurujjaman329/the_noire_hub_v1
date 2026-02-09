@@ -4,9 +4,9 @@ import '../../../../core/api/api_client.dart';
 import '../../../../core/api/api_exception.dart';
 import '../../../../core/constants/api_constants.dart';
 
-class VendorProductService {
+class VendorProductList {
   final ApiClient _apiClient;
-  VendorProductService(this._apiClient);
+  VendorProductList(this._apiClient);
 
   Future<VendorProductsResponseModel> getVendorProducts({
     int page = 1,

@@ -28,7 +28,7 @@ class InitialBinding extends Bindings {
     Get.lazyPut<SubCategoryController>(() => SubCategoryController(Get.find<SubCategoryService>()), fenix: true);
 
     // Vendor Products
-    Get.lazyPut<VendorProductService>(() => VendorProductService(Get.find<ApiClient>()), fenix: true);
-    Get.lazyPut<VendorProductController>(() => VendorProductController(Get.find<VendorProductService>()), fenix: true);
+    Get.lazyPut<VendorProductList>(() => VendorProductList(Get.find<ApiClient>()), fenix: true);
+    Get.lazyPut<VendorProductController>(() => VendorProductController(Get.find<VendorProductList>()), fenix: true);
   }
 }

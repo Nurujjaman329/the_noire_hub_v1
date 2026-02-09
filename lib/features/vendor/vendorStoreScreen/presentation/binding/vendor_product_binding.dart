@@ -8,9 +8,9 @@ class VendorProductBinding extends Bindings {
   @override
   void dependencies() {
     // 1. Inject Service (passing existing ApiClient)
-    Get.lazyPut(() => VendorProductService(Get.find<ApiClient>()));
+    Get.lazyPut(() => VendorProductList(Get.find<ApiClient>()));
 
     // 2. Inject Controller
-    Get.lazyPut(() => VendorProductController(Get.find<VendorProductService>()));
+    Get.lazyPut(() => VendorProductController(Get.find<VendorProductList>()));
   }
 }

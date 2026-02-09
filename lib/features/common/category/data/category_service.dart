@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
 import '../../../../core/api/api_client.dart';
 import '../../../../core/constants/api_constants.dart';
 import 'category_response_model.dart';
@@ -12,15 +13,25 @@ class CategoryService {
     int page = 1,
     int limit = 10,
     String? categoryType,
+    String? id,
   }) async {
     try {
       final queryParams = <String, dynamic>{
         'page': page,
         'limit': limit,
       };
+
       if (categoryType != null) {
         queryParams['categoryType'] = categoryType;
       }
+
+      if (id != null && id.isNotEmpty) {
+        queryParams['id'] = id;
+      }
+
+      // --- DEBUG LOGS ---
+      debugPrint('🚀 [GET] Categories: ${ApiConstants.categories}');
+      debugPrint('Params: $queryParams');
 
       final response = await _apiClient.get(
         ApiConstants.categories,
@@ -28,19 +39,25 @@ class CategoryService {
       );
 
       if (response.statusCode == 200) {
+        debugPrint('✅ Categories Loaded Successfully');
         return CategoryResponse.fromJson(response.data);
       } else {
+        debugPrint('⚠️ Category Server Error: ${response.statusCode}');
         throw Exception('Failed to load categories: ${response.statusMessage}');
       }
     } on DioException catch (e) {
+      debugPrint('❌ Dio Error in getCategories: ${e.response?.data ?? e.message}');
       throw Exception('Failed to load categories: ${e.message}');
     } catch (e) {
+      debugPrint('❌ Unexpected Error in getCategories: $e');
       throw Exception('Failed to load categories: $e');
     }
   }
 
   Future<Category> getCategoryById(String id) async {
     try {
+      debugPrint('🚀 [GET] Category Detail: ${ApiConstants.categories}/$id');
+
       final response = await _apiClient.get(
         '${ApiConstants.categories}/$id',
       );
@@ -52,8 +69,10 @@ class CategoryService {
         throw Exception('Failed to load category: ${response.statusMessage}');
       }
     } on DioException catch (e) {
+      debugPrint('❌ Dio Error in getCategoryById: ${e.message}');
       throw Exception('Failed to load category: ${e.message}');
     } catch (e) {
+      debugPrint('❌ Unexpected Error: $e');
       throw Exception('Failed to load category: $e');
     }
   }

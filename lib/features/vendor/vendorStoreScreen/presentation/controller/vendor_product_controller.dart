@@ -5,7 +5,7 @@ import '../../data/vendor_products_response_model.dart';
 import '../../data/vendor_products_service.dart';
 
 class VendorProductController extends GetxController {
-  final VendorProductService _service;
+  final VendorProductList _service;
   VendorProductController(this._service);
 
   var isLoading = false.obs;
