@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
-
+import 'package:flutter/material.dart';
 import '../../../../../core/api/api_exception.dart';
+import '../../../../../core/utils/app_snackbar.dart';
 import '../../data/vendor_products_response_model.dart';
 import '../../data/vendor_products_service.dart';
 
@@ -71,6 +72,30 @@ class VendorProductController extends GetxController {
     } finally {
       isLoading.value = false;
       isMoreLoading.value = false;
+    }
+  }
+
+
+  Future<void> deleteProduct(String productId) async {
+    try {
+      // We don't necessarily need a global loading state here
+      // unless you want to block the whole screen
+      errorMessage.value = '';
+
+      await _service.deleteProduct(productId);
+
+      // Remove from local list so UI updates instantly
+      productList.removeWhere((p) => p.id == productId);
+
+
+      AppSnackbar.success("Product deleted successfully");
+
+
+    } on AppException catch (e) {
+      AppSnackbar.error(e.message);
+      Get.snackbar("Error", e.message, snackPosition: SnackPosition.BOTTOM);
+    } catch (e) {
+      AppSnackbar.error("Failed to delete product");
     }
   }
 }

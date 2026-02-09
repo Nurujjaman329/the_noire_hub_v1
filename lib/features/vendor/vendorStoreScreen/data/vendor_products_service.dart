@@ -27,4 +27,17 @@ class VendorProductList {
       throw UnknownException(e.toString());
     }
   }
+
+
+  Future<void> deleteProduct(String productId) async {
+    try {
+      await _apiClient.delete(
+        "${ApiConstants.vendorDeleteSingleProduct}$productId",
+      );
+    } on AppException {
+      rethrow;
+    } catch (e) {
+      throw UnknownException(e.toString());
+    }
+  }
 }

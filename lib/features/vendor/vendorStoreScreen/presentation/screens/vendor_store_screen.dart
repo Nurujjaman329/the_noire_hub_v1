@@ -331,13 +331,35 @@ class VendorStoreScreen extends GetView<VendorProductController> {
         if (value == 'edit') {
           Get.toNamed(RouteConstants.editProductDetailScreen, arguments: product);
         } else if (value == 'delete') {
-
+          _showDeleteConfirmation(product);
         }
       },
       itemBuilder: (context) => [
         _buildMenuItem('edit', Icons.edit, "Edit", const Color(0XFFF1F0B2)),
         _buildMenuItem('delete', Icons.delete, "Delete", Colors.red),
       ],
+    );
+  }
+
+  void _showDeleteConfirmation(Product product) {
+    Get.dialog(
+      AlertDialog(
+        title: const Text("Delete Product"),
+        content: Text("Are you sure you want to delete '${product.name}'? This action cannot be undone."),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
+          ),
+          TextButton(
+            onPressed: () {
+              Get.back(); // Close dialog
+              controller.deleteProduct(product.id);
+            },
+            child: const Text("Delete", style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
     );
   }
 

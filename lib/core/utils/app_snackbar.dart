@@ -44,7 +44,7 @@ class AppSnackbar {
   }
 
   /// Predefined error snackbar
-  static void error(String message, {String title = "Error"}) {
+  static void error(String message, {String title = "Error", SnackPosition snackPosition = SnackPosition.BOTTOM}) {
     show(
       title: title,
       message: message,
