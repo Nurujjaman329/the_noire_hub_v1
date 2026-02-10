@@ -37,5 +37,6 @@ class ApiConstants {
   static const String vendorDeleteSingleProduct = "products/";
   static const String vendorCreateProduct = "products/";
   static const String vendorEditProduct = "products/";
+  static const String orderFullFillMent = "order-fulfillment";
 
 }

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
+
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/widgets/custom_app_bar.dart';
 import '../../../../../core/widgets/custom_text.dart';
-
-
+import '../../data/order_full_fillment_post_body.dart';
+import '../../data/order_full_fillment_response_model.dart';
+import '../controller/order_full_fillment_controller.dart';
 
 class OrderFulfillmentScreen extends StatefulWidget {
   const OrderFulfillmentScreen({super.key});
@@ -14,19 +17,98 @@ class OrderFulfillmentScreen extends StatefulWidget {
 }
 
 class _OrderFulfillmentScreenState extends State<OrderFulfillmentScreen> {
-  // Sets to store selected items
-  final Set<String> _selectedShipping = {"Standard (2 - 5 business days)"};
-  final Set<String> _selectedDelivery = {"Standard (2 - 5 business days)", "Pickup"};
-  final Set<String> _selectedCosts = {"Duties & Taxes Handled By Customer"};
+  final controller = Get.find<OrderFullFillmentController>();
 
-  void _toggleSelection(Set<String> selectionSet, String label) {
-    setState(() {
-      if (selectionSet.contains(label)) {
-        selectionSet.remove(label);
-      } else {
-        selectionSet.add(label);
-      }
+  // State Maps
+  final Map<String, bool> _shippingEnabled = {"Turbo": false, "Standard": false, "Basic": false};
+  final Map<String, bool> _deliveryEnabled = {"Turbo": false, "Standard": false, "Basic": false, "Pickup": false};
+  final Map<String, bool> _costsEnabled = {"Vendor": false, "Customer": false, "Free": false};
+
+  // Controllers for Prices
+  final Map<String, TextEditingController> _shippingPrices = {
+    "Turbo": TextEditingController(), "Standard": TextEditingController(), "Basic": TextEditingController(),
+  };
+  final Map<String, TextEditingController> _deliveryPrices = {
+    "Turbo": TextEditingController(), "Standard": TextEditingController(), "Basic": TextEditingController(), "Pickup": TextEditingController(),
+  };
+
+  // Controllers for Times
+  final Map<String, TextEditingController> _shippingTimes = {
+    "Turbo": TextEditingController(), "Standard": TextEditingController(), "Basic": TextEditingController(),
+  };
+  final Map<String, TextEditingController> _deliveryTimes = {
+    "Turbo": TextEditingController(), "Standard": TextEditingController(), "Basic": TextEditingController(),
+  };
+
+  final TextEditingController _freeShippingMinAmount = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    ever(controller.fulfillmentData, (data) {
+      if (data != null) _populateData(data);
     });
+    if (controller.fulfillmentData.value != null) {
+      _populateData(controller.fulfillmentData.value!);
+    }
+  }
+
+  void _populateData(GetOrderFulfillmentAttributes attr) {
+    setState(() {
+      _shippingEnabled["Turbo"] = attr.shippingMethod.turbo.enabled;
+      _shippingPrices["Turbo"]!.text = attr.shippingMethod.turbo.price.toString();
+      _shippingTimes["Turbo"]!.text = attr.shippingMethod.turbo.deliveryTime;
+
+      _shippingEnabled["Standard"] = attr.shippingMethod.standard.enabled;
+      _shippingPrices["Standard"]!.text = attr.shippingMethod.standard.price.toString();
+      _shippingTimes["Standard"]!.text = attr.shippingMethod.standard.deliveryTime;
+
+      _shippingEnabled["Basic"] = attr.shippingMethod.basic.enabled;
+      _shippingPrices["Basic"]!.text = attr.shippingMethod.basic.price.toString();
+      _shippingTimes["Basic"]!.text = attr.shippingMethod.basic.deliveryTime;
+
+      _deliveryEnabled["Turbo"] = attr.deliveryMethod.turbo.enabled;
+      _deliveryPrices["Turbo"]!.text = attr.deliveryMethod.turbo.price.toString();
+      _deliveryTimes["Turbo"]!.text = attr.deliveryMethod.turbo.deliveryTime;
+
+      _deliveryEnabled["Standard"] = attr.deliveryMethod.standard.enabled;
+      _deliveryPrices["Standard"]!.text = attr.deliveryMethod.standard.price.toString();
+      _deliveryTimes["Standard"]!.text = attr.deliveryMethod.standard.deliveryTime;
+
+      _deliveryEnabled["Basic"] = attr.deliveryMethod.basic.enabled;
+      _deliveryPrices["Basic"]!.text = attr.deliveryMethod.basic.price.toString();
+      _deliveryTimes["Basic"]!.text = attr.deliveryMethod.basic.deliveryTime;
+
+      _deliveryEnabled["Pickup"] = attr.deliveryMethod.pickup.enabled;
+      _deliveryPrices["Pickup"]!.text = attr.deliveryMethod.pickup.price.toString();
+
+      _costsEnabled["Vendor"] = attr.costsAndFees.handledByVendor.enabled;
+      _costsEnabled["Customer"] = attr.costsAndFees.handledByCustomer.enabled;
+      _costsEnabled["Free"] = attr.costsAndFees.conditionalFreeShipping.enabled;
+      _freeShippingMinAmount.text = attr.costsAndFees.conditionalFreeShipping.minOrderAmount.toString();
+    });
+  }
+
+  void _handleSave() {
+    final postBody = OrderFullFillmentPostBody(
+      shippingMethod: ShippingMethodConfig(
+        turbo: MethodOption(enabled: _shippingEnabled["Turbo"], deliveryTime: _shippingTimes["Turbo"]!.text, price: double.tryParse(_shippingPrices["Turbo"]!.text)),
+        standard: MethodOption(enabled: _shippingEnabled["Standard"], deliveryTime: _shippingTimes["Standard"]!.text, price: double.tryParse(_shippingPrices["Standard"]!.text)),
+        basic: MethodOption(enabled: _shippingEnabled["Basic"], deliveryTime: _shippingTimes["Basic"]!.text, price: double.tryParse(_shippingPrices["Basic"]!.text)),
+      ),
+      deliveryMethod: DeliveryMethodConfig(
+        turbo: MethodOption(enabled: _deliveryEnabled["Turbo"], deliveryTime: _deliveryTimes["Turbo"]!.text, price: double.tryParse(_deliveryPrices["Turbo"]!.text)),
+        standard: MethodOption(enabled: _deliveryEnabled["Standard"], deliveryTime: _deliveryTimes["Standard"]!.text, price: double.tryParse(_deliveryPrices["Standard"]!.text)),
+        basic: MethodOption(enabled: _deliveryEnabled["Basic"], deliveryTime: _deliveryTimes["Basic"]!.text, price: double.tryParse(_deliveryPrices["Basic"]!.text)),
+        pickup: PickupOption(enabled: _deliveryEnabled["Pickup"], price: double.tryParse(_deliveryPrices["Pickup"]!.text)),
+      ),
+      costsAndFees: CostsAndFeesConfig(
+        handledByVendor: FeeOption(enabled: _costsEnabled["Vendor"], amount: 0),
+        handledByCustomer: FeeOption(enabled: _costsEnabled["Customer"], amount: 0),
+        conditionalFreeShipping: ConditionalFreeShipping(enabled: _costsEnabled["Free"], minOrderAmount: double.tryParse(_freeShippingMinAmount.text)),
+      ),
+    );
+    controller.updateSettings(postBody);
   }
 
   @override
@@ -34,62 +116,128 @@ class _OrderFulfillmentScreenState extends State<OrderFulfillmentScreen> {
     return Scaffold(
       backgroundColor: AppColors.white,
       appBar: CustomAppBar(title: "Order Fulfillment", showBackButton: true),
-      body: SingleChildScrollView(
+      body: Obx(() => controller.isLoading.value
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
         padding: EdgeInsets.symmetric(horizontal: 20.w),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(height: 20.h),
-
-            // 1. Shipping Method Section
             _buildHeader("Shipping Method", subtitle: "(for international orders)"),
-            _buildFulfillmentOption("Turbo (1 - 2 business days)", _selectedShipping),
-            _buildFulfillmentOption("Standard (2 - 5 business days)", _selectedShipping),
-            _buildFulfillmentOption("Basic (5 - 10 business days)", _selectedShipping),
+            _buildOption("Turbo", "Turbo", _shippingEnabled, _shippingPrices, _shippingTimes),
+            _buildOption("Standard", "Standard", _shippingEnabled, _shippingPrices, _shippingTimes),
+            _buildOption("Basic", "Basic", _shippingEnabled, _shippingPrices, _shippingTimes),
 
             SizedBox(height: 30.h),
-
-            // 2. Delivery Method Section
             _buildHeader("Delivery Method", subtitle: "(for local orders)"),
-            _buildFulfillmentOption("Turbo (1 - 2 business days)", _selectedDelivery),
-            _buildFulfillmentOption("Standard (2 - 5 business days)", _selectedDelivery),
-            _buildFulfillmentOption("Basic (5 - 10 business days)", _selectedDelivery),
-            _buildFulfillmentOption("Pickup", _selectedDelivery),
+            _buildOption("Turbo", "Turbo", _deliveryEnabled, _deliveryPrices, _deliveryTimes),
+            _buildOption("Standard", "Standard", _deliveryEnabled, _deliveryPrices, _deliveryTimes),
+            _buildOption("Basic", "Basic", _deliveryEnabled, _deliveryPrices, _deliveryTimes),
+            _buildOption("Pickup", "Pickup", _deliveryEnabled, _deliveryPrices, null),
 
             SizedBox(height: 30.h),
-
-            // 3. Costs & Fees Section
             _buildHeader("Costs & Fees", subtitle: "(time needed before shipping)"),
-            _buildFulfillmentOption("Duties & Taxes Handled By Vendor", _selectedCosts),
-            _buildFulfillmentOption("Duties & Taxes Handled By Customer", _selectedCosts),
-            _buildFulfillmentOption("Conditional Free Shipping", _selectedCosts, extraLabel: "For orders over:"),
+            _buildSimpleToggle("Duties & Taxes Handled By Vendor", "Vendor", _costsEnabled),
+            _buildSimpleToggle("Duties & Taxes Handled By Customer", "Customer", _costsEnabled),
+            _buildOption("Conditional Free Shipping", "Free", _costsEnabled, {"Free": _freeShippingMinAmount}, null, extraLabel: "For orders over:"),
 
             SizedBox(height: 50.h),
-
-            // Save Button
-            SizedBox(
-              width: double.infinity,
-              height: 55.h,
-              child: ElevatedButton(
-                onPressed: () {
-
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1E3020),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.r)),
-                  elevation: 0,
-                ),
-                child: CustomText(
-                  text: "Save",
-                  color: AppColors.white,
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
+            _buildSaveButton(),
             SizedBox(height: 40.h),
           ],
         ),
+      )),
+    );
+  }
+
+  Widget _buildOption(String label, String key, Map<String, bool> enabledMap, Map<String, TextEditingController> priceMap, Map<String, TextEditingController>? timeMap, {String? extraLabel}) {
+    bool isSelected = enabledMap[key] ?? false;
+
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 12.h),
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.geryColor.withOpacity(0.1)))),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (extraLabel != null) CustomText(text: extraLabel, fontSize: 10.sp, color: AppColors.geryColor, bottom: 2.h),
+                Row(
+                  children: [
+                    CustomText(text: label, fontSize: 12.sp, color: AppColors.primaryDark, fontWeight: FontWeight.w500),
+                    if (timeMap != null)
+                      Expanded(
+                        child: Padding(
+                          padding: EdgeInsets.only(left: 4.w),
+                          child: TextField(
+                            controller: timeMap[key],
+                            enabled: isSelected,
+                            style: TextStyle(fontSize: 12.sp, color: AppColors.primaryDark, fontWeight: FontWeight.w500),
+                            decoration: const InputDecoration(
+                              isDense: true,
+                              contentPadding: EdgeInsets.zero,
+                              border: InputBorder.none,
+                              prefixText: " (", // FIXED BRACKET
+                              suffixText: ")",  // FIXED BRACKET
+                              prefixStyle: TextStyle(color: AppColors.primaryDark),
+                              suffixStyle: TextStyle(color: AppColors.primaryDark),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: () => setState(() => enabledMap[key] = !isSelected),
+            icon: Icon(isSelected ? Icons.check_box : Icons.check_box_outline_blank, color: isSelected ? const Color(0xFF4A5D3F) : AppColors.geryColor.withOpacity(0.3)),
+          ),
+          SizedBox(width: 15.w),
+          Container(
+            width: 80.w,
+            padding: EdgeInsets.symmetric(horizontal: 8.w),
+            decoration: BoxDecoration(color: const Color(0xFFEBEBEB), borderRadius: BorderRadius.circular(8.r)),
+            child: TextField(
+              controller: priceMap[key],
+              enabled: isSelected,
+              keyboardType: TextInputType.number,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold, color: AppColors.geryColor),
+              decoration: const InputDecoration(prefixText: "\$ ", border: InputBorder.none),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSimpleToggle(String label, String key, Map<String, bool> enabledMap) {
+    bool isSelected = enabledMap[key] ?? false;
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      title: CustomText(text: label, fontSize: 12.sp, color: AppColors.primaryDark),
+      trailing: Icon(isSelected ? Icons.check_box : Icons.check_box_outline_blank, color: isSelected ? const Color(0xFF4A5D3F) : AppColors.geryColor.withOpacity(0.3)),
+      onTap: () => setState(() => enabledMap[key] = !isSelected),
+    );
+  }
+
+  Widget _buildSaveButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 55.h,
+      child: ElevatedButton(
+        onPressed: controller.isSaving.value ? null : _handleSave,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF1E3020),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.r)),
+        ),
+        child: controller.isSaving.value
+            ? const CircularProgressIndicator(color: Colors.white)
+            : CustomText(text: "Save", color: AppColors.white, fontSize: 18.sp, fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -106,57 +254,9 @@ class _OrderFulfillmentScreenState extends State<OrderFulfillmentScreen> {
           ],
         ),
         SizedBox(height: 4.h),
-        CustomText(text: "Select all that apply", fontSize: 11.sp, color: AppColors.geryColor.withValues(alpha:0.6)),
+        CustomText(text: "Select all that apply", fontSize: 11.sp, color: AppColors.geryColor.withOpacity(0.6)),
         SizedBox(height: 10.h),
       ],
-    );
-  }
-
-  Widget _buildFulfillmentOption(String label, Set<String> selectionSet, {String? extraLabel}) {
-    bool isSelected = selectionSet.contains(label);
-
-    return GestureDetector(
-      onTap: () => _toggleSelection(selectionSet, label),
-      behavior: HitTestBehavior.opaque, // Makes the whole row clickable
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: 12.h),
-        decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: AppColors.geryColor.withValues(alpha:0.1))),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (extraLabel != null)
-                    CustomText(text: extraLabel, fontSize: 10.sp, color: AppColors.geryColor, bottom: 2.h),
-                  CustomText(text: label, fontSize: 12.sp, color: AppColors.primaryDark, fontWeight: FontWeight.w500),
-                ],
-              ),
-            ),
-            Icon(
-              isSelected ? Icons.check_box : Icons.check_box_outline_blank,
-              color: isSelected ? const Color(0xFF4A5D3F) : AppColors.geryColor.withValues(alpha:0.3),
-              size: 24.sp,
-            ),
-            SizedBox(width: 15.w),
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-              decoration: BoxDecoration(
-                color: const Color(0xFFEBEBEB),
-                borderRadius: BorderRadius.circular(8.r),
-              ),
-              child: CustomText(
-                text: "\$ 0.00",
-                fontSize: 12.sp,
-                color: AppColors.geryColor,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

@@ -75,6 +75,12 @@ class DashboardDrawer extends StatelessWidget {
                           isVendor ? "Orders" : "Bookings",
                               () => Get.find<VendorMainController>().goToTab(1),
                         ),
+                        if (isVendor)
+                          _drawerItem(
+                            Icons.bookmark_border_outlined,
+                            "Order Fulfillment",
+                                () => Get.toNamed(RouteConstants.orderFullFillMent),
+                          ),
                         _drawerItem(
                           Icons.payment,
                           "Add Billings",

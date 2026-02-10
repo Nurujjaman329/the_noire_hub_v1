@@ -7,6 +7,7 @@ import 'package:the_noire_hub_v1/features/authentication/resetPassword/presentat
 import 'package:the_noire_hub_v1/features/beautician/beauticianAddService/presentation/screen/beautician_add_service_screen.dart';
 import 'package:the_noire_hub_v1/features/common/businessDocument/presentation/bindings/business_documents_bindings.dart';
 import 'package:the_noire_hub_v1/features/common/changePassword/presentation/bindings/change_password_bindings.dart';
+import 'package:the_noire_hub_v1/features/vendor/orderFullFillment/presentation/bindings/order_full_fillment_bindings.dart';
 import 'package:the_noire_hub_v1/features/vendor/vendorAddProduct/presentation/screen/vendor_add_product_screen.dart';
 import 'package:the_noire_hub_v1/features/vendor/vendorStoreScreen/presentation/binding/vendor_product_binding.dart';
 import 'package:the_noire_hub_v1/features/vendor/vendorStoreScreen/data/vendor_products_response_model.dart';
@@ -286,6 +287,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.orderFullFillMent,
       page: () => const OrderFulfillmentScreen(),
+      binding: OrderFullFillmentBindings(),
       transition: Transition.cupertino,
     ),
     GetPage(
