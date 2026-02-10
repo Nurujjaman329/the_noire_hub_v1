@@ -2,22 +2,23 @@
 class EditProfileResponseModel {
   final int code;
   final String message;
-  final UserUpdateAttributes data;
+  final EditUserModel user;
 
   EditProfileResponseModel({
     required this.code,
     required this.message,
-    required this.data,
+    required this.user,
   });
 
   factory EditProfileResponseModel.fromJson(Map<String, dynamic> json) {
     return EditProfileResponseModel(
       code: json['code'] ?? 0,
       message: json['message'] ?? '',
-      data: UserUpdateAttributes.fromJson(json['data']?['attributes'] ?? {}),
+      user: EditUserModel.fromJson(json['data']?['attributes'] ?? {}),
     );
   }
 }
+
 
 class UserUpdateAttributes {
   final EditUserModel user;

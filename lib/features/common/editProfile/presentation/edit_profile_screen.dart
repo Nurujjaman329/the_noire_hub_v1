@@ -3,8 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/route_constants.dart';
 import '../../../../core/services/cache_service.dart';
 import '../../../../core/storage/local_storage.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
@@ -34,7 +36,13 @@ class EditProfileScreen extends GetView<EditProfileController> {
                   _editTile(label: "Full Name", controller: controller.fullNameController, icon: Icons.person_outline),
                   _editTile(label: "Business Name", controller: controller.businessNameController, icon: Icons.business_outlined),
                   _editTile(label: "Phone Number", controller: controller.phoneController, icon: Icons.phone_android_outlined),
-                  _editTile(label: "Address", controller: controller.addressController, icon: Icons.location_on_outlined),
+                  _editTile(
+                    label: "Address",
+                    controller: controller.addressController,
+                    icon: Icons.location_on_outlined,
+                    readOnly: false,
+                    mainController: controller
+                  ),
                   _editTile(label: "Bio", controller: controller.bioController, icon: Icons.info_outline),
                 ],
               ),
@@ -121,34 +129,117 @@ class EditProfileScreen extends GetView<EditProfileController> {
     );
   }
 
-  Widget _editTile({required String label, required TextEditingController controller, required IconData icon}) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 20.h),
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF9F9F9),
-        borderRadius: BorderRadius.circular(15.r),
-        border: Border.all(color: const Color(0xFFF1F4D3)),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: const Color(0xFF707E5F), size: 22.sp),
-          SizedBox(width: 15.w),
-          Expanded(
-            child: TextField(
-              controller: controller,
-              style: TextStyle(fontSize: 14.sp),
-              decoration: InputDecoration(
-                labelText: label,
-                labelStyle: TextStyle(fontSize: 12.sp, color: Colors.grey),
-                border: InputBorder.none,
+  Widget _editTile({
+    required String label,
+    required TextEditingController controller,
+    required IconData icon,
+    bool readOnly = false,
+    VoidCallback? onTap,
+    EditProfileController? mainController,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // --- MAIN INPUT TILE ---
+        Container(
+          margin: EdgeInsets.only(bottom: 8.h),
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF9F9F9),
+            borderRadius: BorderRadius.circular(15.r),
+            border: Border.all(color: const Color(0xFFF1F4D3)),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, color: const Color(0xFF707E5F), size: 22.sp),
+              SizedBox(width: 15.w),
+              Expanded(
+                child: TextField(
+                  controller: controller,
+                  readOnly: readOnly,
+                  onTap: onTap,
+                  style: TextStyle(fontSize: 14.sp),
+                  // TRIGGER SEARCH ON THE MAIN FIELD
+                  onChanged: (val) {
+                    if (label == "Address" && mainController != null) {
+                      mainController.onSearchChanged(val);
+                    }
+                  },
+                  decoration: InputDecoration(
+                    labelText: label,
+                    labelStyle: TextStyle(fontSize: 12.sp, color: Colors.grey),
+                    border: InputBorder.none,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // --- SUGGESTIONS LIST (Only for Address) ---
+        if (label == "Address" && mainController != null)
+          Obx(() {
+            if (mainController.placePredictions.isEmpty) return const SizedBox.shrink();
+            return Container(
+              margin: EdgeInsets.only(bottom: 12.h, left: 10.w, right: 10.w),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12.r),
+                boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4)],
+              ),
+              child: ListView.builder(
+                shrinkWrap: true,
+                padding: EdgeInsets.zero,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: mainController.placePredictions.length,
+                itemBuilder: (_, index) {
+                  final pred = mainController.placePredictions[index];
+                  return ListTile(
+                    dense: true,
+                    leading: const Icon(Icons.location_on, size: 18, color: Color(0xFF707E5F)),
+                    title: Text(pred['description'] ?? "", style: TextStyle(fontSize: 13.sp)),
+                    onTap: () => mainController.selectPrediction(pred),
+                  );
+                },
+              ),
+            );
+          }),
+
+        // --- MINI MAP (Only for Address) ---
+        if (label == "Address" && mainController != null)
+          Obx(() => Container(
+            height: 180.h,
+            margin: EdgeInsets.only(bottom: 20.h),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15.r),
+              border: Border.all(color: const Color(0xFFF1F4D3)),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(15.r),
+              child: GoogleMap(
+                initialCameraPosition: CameraPosition(
+                  target: mainController.selectedLatLng.value,
+                  zoom: 15,
+                ),
+                markers: {
+                  Marker(
+                    markerId: const MarkerId("selected-location"),
+                    position: mainController.selectedLatLng.value,
+                    draggable: true,
+                    onDragEnd: (pos) => mainController.updateLocation(pos),
+                  ),
+                },
+                onMapCreated: mainController.onMapCreated,
+                myLocationEnabled: true,
+                zoomControlsEnabled: false, // Cleaner look
+                myLocationButtonEnabled: false,
               ),
             ),
-          ),
-        ],
-      ),
+          )),
+      ],
     );
   }
+
 
   Widget _buildSubmitButton() {
     return Padding(
