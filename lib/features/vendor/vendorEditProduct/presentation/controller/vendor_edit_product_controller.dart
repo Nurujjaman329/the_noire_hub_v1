@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:the_noire_hub_v1/core/utils/app_snackbar.dart';
 
 import '../../../../../core/api/api_exception.dart';
 import '../../data/vendor_edit_product_form_body.dart';
@@ -29,29 +30,21 @@ class VendorEditProductController extends GetxController {
       if (success) {
         debugPrint('✅ Controller: Product updated successfully.');
 
-        // Reset state
-        selectedVariants.clear();
-        selectedImages.clear();
+        // Instead of just clearing, you could optionally refresh the product list here
+        // if you have a Home/List controller.
 
-        Get.back(); // Return to previous screen
-        Get.snackbar(
-          "Success",
-          "Product updated successfully!",
-          backgroundColor: const Color(0xFF1D3826),
-          colorText: Colors.white,
-        );
+        Get.back(result: true); // Pass 'true' back so the previous screen knows to refresh
+        AppSnackbar.success("Product updated successfully!");
+
+        // Cleanup happens automatically if this controller is deleted on Get.back()
+        // If it's a permanent controller, clearing here is fine.
+        selectedImages.clear();
       }
     } on AppException catch (e) {
       debugPrint('❌ Controller Caught Error: ${e.message}');
-      Get.snackbar(
-        "Update Error",
-        e.message,
-        backgroundColor: Colors.redAccent,
-        colorText: Colors.white,
-      );
+      AppSnackbar.error(e.message);
     } finally {
       isLoading.value = false;
-      debugPrint('⚙️ Controller: updateProduct flow finished.');
     }
   }
 

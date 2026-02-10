@@ -6,9 +6,18 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import '../../../core/widgets/custom_text.dart';
 import '../vendorAddProduct/data/vendor_add_product_post_body.dart';
 import '../vendorAddProduct/presentation/controller/vendor_add_product_controller.dart';
+import '../vendorEditProduct/data/vendor_edit_product_form_body.dart';
+import '../vendorEditProduct/presentation/controller/vendor_edit_product_controller.dart';
 
 class VendorAddVariantSheet extends StatefulWidget {
-  const VendorAddVariantSheet({super.key});
+  final List<EditProductVariantBody>? initialVariants; // Add this
+  final bool isEditing; // Add this
+
+  const VendorAddVariantSheet({
+    super.key,
+    this.initialVariants,
+    this.isEditing = false
+  });
 
   @override
   State<VendorAddVariantSheet> createState() => _VendorAddVariantSheetState();
@@ -16,14 +25,26 @@ class VendorAddVariantSheet extends StatefulWidget {
 
 class _VendorAddVariantSheetState extends State<VendorAddVariantSheet> {
   // Store all variant data in a list of maps
-  List<Map<String, dynamic>> variants = [
-    {
-      "weight": TextEditingController(),
-      "price": TextEditingController(),
-      "unit": "g",
-      "color": const Color(0xFF1D3826)
+  List<Map<String, dynamic>> variants = [];
+
+  @override
+  void initState() {
+    super.initState();
+    // If we have initial variants, load them into the controllers
+    if (widget.initialVariants != null && widget.initialVariants!.isNotEmpty) {
+      for (var v in widget.initialVariants!) {
+        variants.add({
+          "weight": TextEditingController(text: v.weightValue.toString()),
+          "price": TextEditingController(text: v.price.toString()),
+          "unit": v.weightUnit,
+          "color": Color(int.parse(v.color.replaceFirst('0X', '0xFF'))), // Convert hex string back to Color
+        });
+      }
+    } else {
+      // Default blank row if no existing variants
+      _addNewVariant();
     }
-  ];
+  }
 
   // Matches your Dio: 'variants[color]': '0XFF000000'
   String colorToHex(Color color) {
@@ -211,31 +232,26 @@ class _VendorAddVariantSheetState extends State<VendorAddVariantSheet> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
         ),
         onPressed: () {
-          final productController = Get.find<VendorAddProductController>();
+          // 1. Identify which list to update
+          final editController = Get.find<VendorEditProductController>();
 
-          // Clear old variants
-          productController.selectedVariants.clear();
+          editController.selectedVariants.clear();
 
           for (final v in variants) {
-            // Basic validation (optional but recommended)
-            if (v['weight'].text.trim().isEmpty ||
-                v['price'].text.trim().isEmpty) {
-              continue;
-            }
+            if (v['weight'].text.trim().isEmpty || v['price'].text.trim().isEmpty) continue;
 
-            productController.selectedVariants.add(
-              ProductVariantBody(
+            editController.selectedVariants.add(
+              EditProductVariantBody(
                 color: colorToHex(v['color']),
                 price: double.tryParse(v['price'].text) ?? 0.0,
-                weight: double.tryParse(v['weight'].text) ?? 0.0,
-                unit: v['unit'],
+                weightValue: double.tryParse(v['weight'].text) ?? 0.0,
+                weightUnit: v['unit'],
               ),
             );
           }
 
           Get.back();
         },
-
         child: const Text("Save Variants", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
     );

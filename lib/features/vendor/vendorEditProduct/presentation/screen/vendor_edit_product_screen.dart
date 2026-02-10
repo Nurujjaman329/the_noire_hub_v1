@@ -8,11 +8,12 @@ import '../../../../../core/widgets/custom_text.dart';
 import '../../../vendorAddVariant/vendor_add_variant_sheet.dart';
 import '../../data/vendor_edit_product_form_body.dart';
 import '../controller/vendor_edit_product_controller.dart';
+import '../../../vendorStoreScreen/data/vendor_products_response_model.dart';
 
 
 
 class VendorEditProductScreen extends StatefulWidget {
-  final dynamic product; // Replace dynamic with your Product Model
+  final Product product;
   const VendorEditProductScreen({super.key, required this.product});
 
   @override
@@ -22,6 +23,7 @@ class VendorEditProductScreen extends StatefulWidget {
 class _VendorEditProductScreenState extends State<VendorEditProductScreen> {
   // Use the new Edit controller
   final editController = Get.find<VendorEditProductController>();
+  List<EditProductVariantBody> _initialVariants = [];
 
   // Text Controllers pre-filled with existing product data
   late TextEditingController nameController;
@@ -35,30 +37,71 @@ class _VendorEditProductScreenState extends State<VendorEditProductScreen> {
   @override
   void initState() {
     super.initState();
-    // 1. Initialize TextFields with existing data
     nameController = TextEditingController(text: widget.product.name);
     priceController = TextEditingController(text: widget.product.price.toString());
-    descController = TextEditingController(text: widget.product.description);
-    weightValueController = TextEditingController(text: widget.product.weightValue.toString());
+    descController = TextEditingController(text: widget.product.description ?? "");
+    weightValueController = TextEditingController(text: widget.product.weight.value.toString());
     stockController = TextEditingController(text: widget.product.stock.toString());
-    selectedWeightUnit = widget.product.weightUnit ?? "g";
+    selectedWeightUnit = widget.product.weight.unit ?? "g";
 
-    // 2. Clear and Load existing variants into the controller's RxList
     editController.selectedVariants.clear();
-    if (widget.product.variants != null) {
-      editController.selectedVariants.addAll(widget.product.variants);
+    for (var variant in widget.product.variants) {
+      editController.selectedVariants.add(
+        EditProductVariantBody(
+          color: variant.color,
+          price: variant.price,
+          weightValue: variant.weight.value,
+          weightUnit: variant.weight.unit,
+        ),
+      );
     }
+
+    _initialVariants = widget.product.variants.map((variant) =>
+        EditProductVariantBody(
+          color: variant.color,
+          price: variant.price,
+          weightValue: variant.weight.value,
+          weightUnit: variant.weight.unit,
+        )
+    ).toList();
+
+    editController.selectedVariants.clear();
+    editController.selectedVariants.addAll(_initialVariants);
+    }
+
+  bool _haveVariantsChanged() {
+    // 1. If length is different, something definitely changed (added or removed)
+    if (editController.selectedVariants.length != _initialVariants.length) {
+      return true;
+    }
+
+    // 2. If length is same, check if any property inside has changed
+    for (int i = 0; i < editController.selectedVariants.length; i++) {
+      var current = editController.selectedVariants[i];
+      var original = _initialVariants[i];
+
+      if (current.color != original.color ||
+          current.price != original.price ||
+          current.weightValue != original.weightValue ||
+          current.weightUnit != original.weightUnit) {
+        return true;
+      }
+    }
+
+    // 3. If we got here, they are identical
+    return false;
   }
 
   void _handleUpdate() {
-    // Validation
     if (nameController.text.trim().isEmpty || priceController.text.trim().isEmpty) {
       Get.snackbar("Required", "Please enter product name and price",
           backgroundColor: Colors.redAccent, colorText: Colors.white);
       return;
     }
 
-    // 3. Create the FormBody model
+    // Check if variants actually changed
+    bool variantsChanged = _haveVariantsChanged();
+
     final updateBody = VendorUpdateProductFormBody(
       name: nameController.text.trim(),
       price: double.tryParse(priceController.text),
@@ -66,12 +109,14 @@ class _VendorEditProductScreenState extends State<VendorEditProductScreen> {
       weightValue: double.tryParse(weightValueController.text),
       weightUnit: selectedWeightUnit,
       stock: int.tryParse(stockController.text),
-      newImages: editController.selectedImages, // Newly picked images
-      variants: editController.selectedVariants, // Updated variants list
+      newImages: editController.selectedImages,
+
+      // Pass the list ONLY if variantsChanged is true, otherwise pass null
+      variants: variantsChanged ? editController.selectedVariants : null,
+
       isActive: true,
     );
 
-    // 4. Trigger the Controller
     editController.updateProduct(widget.product.id, updateBody);
   }
 

@@ -9,6 +9,7 @@ import 'package:the_noire_hub_v1/features/common/businessDocument/presentation/b
 import 'package:the_noire_hub_v1/features/common/changePassword/presentation/bindings/change_password_bindings.dart';
 import 'package:the_noire_hub_v1/features/vendor/vendorAddProduct/presentation/screen/vendor_add_product_screen.dart';
 import 'package:the_noire_hub_v1/features/vendor/vendorStoreScreen/presentation/binding/vendor_product_binding.dart';
+import 'package:the_noire_hub_v1/features/vendor/vendorStoreScreen/data/vendor_products_response_model.dart';
 import '../../features/authentication/gmailVerification/presentation/screen/gmail_verification_screen.dart';
 import '../../features/authentication/login/presentation/bindings/login_binding.dart';
 import '../../features/authentication/login/presentation/screen/login_screen.dart';
@@ -407,7 +408,7 @@ class AppPages {
     ),
     GetPage(
       name: RouteConstants.vendorEditProductScreen,
-      page: () => VendorEditProductScreen(product: Get.arguments),
+      page: () => VendorEditProductScreen(product: Get.arguments as Product),
       binding: VendorEditProductBindings(),
       transition: Transition.cupertino,
     ),
