@@ -5,7 +5,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../../../core/widgets/custom_app_bar.dart';
 import '../../../../../core/widgets/custom_text.dart';
-import '../../../vendorAddVariant/vendor_add_variant_sheet.dart';
+import '../widgets/vendor_manage_variants_sheet.dart';
 import '../../data/vendor_edit_product_form_body.dart';
 import '../controller/vendor_edit_product_controller.dart';
 import '../../../vendorStoreScreen/data/vendor_products_response_model.dart';
@@ -48,6 +48,7 @@ class _VendorEditProductScreenState extends State<VendorEditProductScreen> {
     for (var variant in widget.product.variants) {
       editController.selectedVariants.add(
         EditProductVariantBody(
+          id: variant.id, // Include the ID for existing variants
           color: variant.color,
           price: variant.price,
           weightValue: variant.weight.value,
@@ -58,6 +59,7 @@ class _VendorEditProductScreenState extends State<VendorEditProductScreen> {
 
     _initialVariants = widget.product.variants.map((variant) =>
         EditProductVariantBody(
+          id: variant.id, // Include the ID for existing variants
           color: variant.color,
           price: variant.price,
           weightValue: variant.weight.value,
@@ -213,7 +215,10 @@ class _VendorEditProductScreenState extends State<VendorEditProductScreen> {
         CustomText(text: "Edit Details", fontSize: 22.sp, fontWeight: FontWeight.bold, color: const Color(0xFF1D3826)),
         TextButton(
           onPressed: () => Get.bottomSheet(
-            const VendorAddVariantSheet(), // Reusing your existing variant sheet
+            VendorManageVariantsSheet(
+              initialVariants: widget.product.variants,
+              isEditMode: true,
+            ),
             isScrollControlled: true,
           ),
           child: CustomText(

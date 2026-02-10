@@ -9,7 +9,7 @@ import '../../../../../core/services/cache_service.dart';
 import '../../../../../core/widgets/custom_text.dart';
 import '../../../../common/category/presentation/controller/category_controller.dart';
 import '../../../../common/subCategories/presentation/controller/sub_categories_controller.dart';
-import '../../../vendorAddVariant/vendor_add_variant_sheet.dart';
+import '../../../vendorEditProduct/presentation/widgets/vendor_manage_variants_sheet.dart';
 import '../../data/vendor_add_product_post_body.dart';
 import '../controller/vendor_add_product_controller.dart';
 
@@ -291,7 +291,7 @@ class _VendorAddProductScreenState extends State<VendorAddProductScreen> {
         ),
         TextButton(
           onPressed: () => Get.bottomSheet(
-            const VendorAddVariantSheet(),
+            const VendorManageVariantsSheet(isEditMode: false),
             isScrollControlled: true,
             backgroundColor: Colors.transparent,
           ),

@@ -8,6 +8,7 @@ import '../../../../../core/api/api_exception.dart';
 import '../../data/vendor_edit_product_form_body.dart';
 import '../../data/vendor_edit_product_service.dart';
 import 'package:flutter/material.dart';
+import '../../../vendorStoreScreen/presentation/controller/vendor_product_controller.dart';
 
 class VendorEditProductController extends GetxController {
   final VendorEditProductService _service;
@@ -30,15 +31,16 @@ class VendorEditProductController extends GetxController {
       if (success) {
         debugPrint('✅ Controller: Product updated successfully.');
 
-        // Instead of just clearing, you could optionally refresh the product list here
-        // if you have a Home/List controller.
-
         Get.back(result: true); // Pass 'true' back so the previous screen knows to refresh
         AppSnackbar.success("Product updated successfully!");
 
         // Cleanup happens automatically if this controller is deleted on Get.back()
         // If it's a permanent controller, clearing here is fine.
         selectedImages.clear();
+        
+        // Refresh the vendor product list to reflect changes
+        final vendorProductController = Get.find<VendorProductController>();
+        vendorProductController.refreshProducts();
       }
     } on AppException catch (e) {
       debugPrint('❌ Controller Caught Error: ${e.message}');

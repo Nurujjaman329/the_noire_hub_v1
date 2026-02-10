@@ -68,12 +68,14 @@ class VendorUpdateProductFormBody {
   }
 }
 class EditProductVariantBody {
+  final String? id;
   final String color;
   final double price;
   final double weightValue;
   final String weightUnit;
 
   EditProductVariantBody({
+    this.id,
     required this.color,
     required this.price,
     required this.weightValue,
@@ -81,7 +83,7 @@ class EditProductVariantBody {
   });
 
   Map<String, dynamic> toJson() {
-    return {
+    final Map<String, dynamic> result = {
       "color": color,
       "price": price,
       "weight": {
@@ -89,5 +91,12 @@ class EditProductVariantBody {
         "unit": weightUnit,
       }
     };
+    
+    // Only include the ID if it exists (for existing variants)
+    if (id != null) {
+      result["_id"] = id;
+    }
+    
+    return result;
   }
 }
