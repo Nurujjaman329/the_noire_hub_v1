@@ -26,6 +26,15 @@ mixin MapSearchMixin on GetxController {
   var placePredictions = <Map<String, dynamic>>[].obs;
   Timer? _debounce;
 
+// ===================== DISTANCE & DURATION =====================
+
+
+  var distanceInMeters = 0.obs;
+  var durationInSeconds = 0.obs;
+  var distanceText = ''.obs;
+  var durationText = ''.obs;
+  LatLng? sourceLatLng;
+
   void onSearchChanged(String query) {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), () => getSuggestions(query));
@@ -94,6 +103,37 @@ mixin MapSearchMixin on GetxController {
   }
 
   void onMapCreated(GoogleMapController controller) => mapController = controller;
+
+
+  Future<void> calculateDistance({
+    required LatLng origin,
+    required LatLng destination,
+    String mode = 'driving', // driving | walking | bicycling
+  }) async {
+    try {
+      final url =
+          'https://maps.googleapis.com/maps/api/directions/json'
+          '?origin=${origin.latitude},${origin.longitude}'
+          '&destination=${destination.latitude},${destination.longitude}'
+          '&mode=$mode'
+          '&key=$googleApiKey';
+
+      final response = await dio_instance.Dio().get(url);
+
+      if (response.statusCode == 200 &&
+          response.data['routes'].isNotEmpty) {
+        final leg = response.data['routes'][0]['legs'][0];
+
+        distanceInMeters.value = leg['distance']['value'];
+        durationInSeconds.value = leg['duration']['value'];
+        distanceText.value = leg['distance']['text'];
+        durationText.value = leg['duration']['text'];
+      }
+    } catch (e) {
+      debugPrint("Distance calculation error: $e");
+    }
+  }
+
 
   void disposeMapMixin() {
     searchController.dispose();

@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:the_noire_hub_v1/core/constants/api_constants.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/route_constants.dart';
 import '../../../../core/services/cache_service.dart';
@@ -59,6 +60,7 @@ class EditProfileScreen extends GetView<EditProfileController> {
 
   Widget _buildEditableImage() {
     // ✅ NO MORE MODEL: Use the controller's path or the cached image URL
+    debugPrint("🙌Selected Image Path: ${ApiConstants.baseImageUrl}${CacheService.userImage}");
     // You can add 'static String get userImage => _prefs.getString('user_image') ?? "";' to CacheService
     return Center(
       child: GestureDetector(
@@ -74,7 +76,7 @@ class EditProfileScreen extends GetView<EditProfileController> {
               child: controller.selectedImagePath.isEmpty
                   ? CustomNetworkImage(
                 // Pull from CacheService directly
-                imageUrl: CacheService.userImage,
+                imageUrl: "${ApiConstants.baseImageUrl}${CacheService.userImage}",
                 height: 100.h, width: 100.w,
                 borderRadius: BorderRadius.circular(50.r),
               )

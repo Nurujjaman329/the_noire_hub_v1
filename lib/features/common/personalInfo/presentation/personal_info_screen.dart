@@ -67,16 +67,12 @@ class PersonalInfoScreen extends StatelessWidget {
                       icon: Icons.phone_android_outlined,
                     ),
                     _infoTile(label: "Default Address", value: defaultAddress, icon: Icons.location_on_outlined),
-                    _infoTile(
-                        label: "Date of Birth",
-                        value: "${user.createdAt.day} / ${user.createdAt.month} / ${user.createdAt.year}",
-                        icon: Icons.calendar_today_outlined
-                    ),
+
                   ],
                 ),
               ),
 
-              SizedBox(height: 40.h),
+              SizedBox(height: 20.h),
 
               _buildEditButton(),
             ],
