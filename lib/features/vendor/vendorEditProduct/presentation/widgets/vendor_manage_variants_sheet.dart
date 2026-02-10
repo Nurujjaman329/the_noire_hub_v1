@@ -41,7 +41,7 @@ class _VendorManageVariantsSheetState extends State<VendorManageVariantsSheet> {
       // Check which type of variants to use
       if (widget.initialVariants != null && widget.initialVariants!.isNotEmpty) {
         // Use ProductVariant from vendor store screen
-        variants = widget.initialVariants!.map((variant) => {
+        variants = widget.initialVariants!.map((variant) => <String, dynamic>{
           "id": variant.id, // Keep the ID for existing variants
           "weight": TextEditingController(text: variant.weight.value.toString()),
           "price": TextEditingController(text: variant.price.toString()),
@@ -50,7 +50,7 @@ class _VendorManageVariantsSheetState extends State<VendorManageVariantsSheet> {
         }).toList();
       } else if (widget.initialDetailVariants != null && widget.initialDetailVariants!.isNotEmpty) {
         // Use VariantModel from product detail screen
-        variants = widget.initialDetailVariants!.map((variant) => {
+        variants = widget.initialDetailVariants!.map((variant) => <String, dynamic>{
           "id": variant.id, // Keep the ID for existing variants
           "weight": TextEditingController(text: variant.weight?.value.toString() ?? ""),
           "price": TextEditingController(text: variant.price.toString()),
@@ -59,7 +59,7 @@ class _VendorManageVariantsSheetState extends State<VendorManageVariantsSheet> {
         }).toList();
       } else {
         // Start with empty variant for add mode
-        variants = [{
+        variants = [<String, dynamic>{
           "weight": TextEditingController(),
           "price": TextEditingController(),
           "unit": "g",
@@ -68,7 +68,7 @@ class _VendorManageVariantsSheetState extends State<VendorManageVariantsSheet> {
       }
     } else {
       // Start with empty variant for add mode
-      variants = [{
+      variants = [<String, dynamic>{
         "weight": TextEditingController(),
         "price": TextEditingController(),
         "unit": "g",
@@ -101,7 +101,7 @@ class _VendorManageVariantsSheetState extends State<VendorManageVariantsSheet> {
 
   void _addNewVariant() {
     setState(() {
-      variants.add({
+      variants.add(<String, dynamic>{
         "weight": TextEditingController(),
         "price": TextEditingController(),
         "unit": "g",
@@ -141,8 +141,8 @@ class _VendorManageVariantsSheetState extends State<VendorManageVariantsSheet> {
   @override
   void dispose() {
     for (var v in variants) {
-      v["weight"].dispose();
-      v["price"].dispose();
+      v["weight"]?.dispose();
+      v["price"]?.dispose();
     }
     super.dispose();
   }
