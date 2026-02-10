@@ -61,13 +61,15 @@ class PersonalInfoScreen extends StatelessWidget {
                   children: [
                     _infoTile(label: "Full Name", value: user.fullName, icon: Icons.person_outline),
                     _infoTile(label: "Email Address", value: user.email, icon: Icons.mail_outline),
-                    _infoTile(label: "Phone Number", value: user.phoneNumber ?? "Not provided", icon: Icons.phone_android_outlined),
+                    _infoTile(
+                      label: "Phone Number",
+                      value: user.phoneNumber.isEmpty ? "Not provided" : user.phoneNumber,
+                      icon: Icons.phone_android_outlined,
+                    ),
                     _infoTile(label: "Default Address", value: defaultAddress, icon: Icons.location_on_outlined),
                     _infoTile(
                         label: "Date of Birth",
-                        value: user.createdAt != null
-                            ? "${user.createdAt!.day} / ${user.createdAt!.month} / ${user.createdAt!.year}"
-                            : "Not set",
+                        value: "${user.createdAt.day} / ${user.createdAt.month} / ${user.createdAt.year}",
                         icon: Icons.calendar_today_outlined
                     ),
                   ],

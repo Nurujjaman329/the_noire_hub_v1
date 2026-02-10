@@ -9,6 +9,7 @@ import '../../data/order_full_fillment_post_body.dart';
 import '../../data/order_full_fillment_response_model.dart';
 import '../controller/order_full_fillment_controller.dart';
 
+
 class OrderFulfillmentScreen extends StatefulWidget {
   const OrderFulfillmentScreen({super.key});
 
@@ -167,26 +168,23 @@ class _OrderFulfillmentScreenState extends State<OrderFulfillmentScreen> {
                 Row(
                   children: [
                     CustomText(text: label, fontSize: 12.sp, color: AppColors.primaryDark, fontWeight: FontWeight.w500),
-                    if (timeMap != null)
-                      Expanded(
-                        child: Padding(
-                          padding: EdgeInsets.only(left: 4.w),
-                          child: TextField(
-                            controller: timeMap[key],
-                            enabled: isSelected,
-                            style: TextStyle(fontSize: 12.sp, color: AppColors.primaryDark, fontWeight: FontWeight.w500),
-                            decoration: const InputDecoration(
-                              isDense: true,
-                              contentPadding: EdgeInsets.zero,
-                              border: InputBorder.none,
-                              prefixText: " (", // FIXED BRACKET
-                              suffixText: ")",  // FIXED BRACKET
-                              prefixStyle: TextStyle(color: AppColors.primaryDark),
-                              suffixStyle: TextStyle(color: AppColors.primaryDark),
-                            ),
+                    if (timeMap != null) ...[
+                      CustomText(text: " (", fontSize: 12.sp, color: AppColors.primaryDark, fontWeight: FontWeight.w500),
+                      IntrinsicWidth(
+                        child: TextField(
+                          controller: timeMap[key],
+                          enabled: isSelected,
+                          onChanged: (value) => setState(() {}), // Refresh to update IntrinsicWidth
+                          style: TextStyle(fontSize: 12.sp, color: AppColors.primaryDark, fontWeight: FontWeight.w500),
+                          decoration: const InputDecoration(
+                            isDense: true,
+                            contentPadding: EdgeInsets.zero,
+                            border: InputBorder.none,
                           ),
                         ),
                       ),
+                      CustomText(text: ")", fontSize: 12.sp, color: AppColors.primaryDark, fontWeight: FontWeight.w500),
+                    ]
                   ],
                 ),
               ],

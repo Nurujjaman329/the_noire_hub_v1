@@ -44,6 +44,9 @@ class UserProfileAttributes {
   }
 }
 
+
+
+
 class UserProfileModel {
   final String id;
   final String fullName;
@@ -53,9 +56,10 @@ class UserProfileModel {
   final String bio;
   final String image;
   final String role;
-  final String? phoneNumber;
+  final String phoneNumber;
   final bool isProfileCompleted;
-  final DateTime? createdAt;
+  final bool isDocumentApprove;
+  final DateTime createdAt;
   final List<UserCategory> selectedCategories;
   final List<UserAddress> addresses;
 
@@ -68,9 +72,10 @@ class UserProfileModel {
     required this.bio,
     required this.image,
     required this.role,
-    this.phoneNumber,
+    required this.phoneNumber,
     required this.isProfileCompleted,
-    this.createdAt,
+    required this.isDocumentApprove,
+    required this.createdAt,
     required this.selectedCategories,
     required this.addresses,
   });
@@ -85,12 +90,17 @@ class UserProfileModel {
       bio: json['bio'] ?? '',
       image: json['image'] ?? '',
       role: json['role'] ?? '',
-      phoneNumber: json['phoneNumber']?.toString(),
+      phoneNumber: (json['phoneNumber'] == null ||
+          json['phoneNumber'] == 0)
+          ? ''
+          : json['phoneNumber'].toString(),
+
       isProfileCompleted: json['isProfileCompleted'] ?? false,
-      createdAt: json['createdAt'] != null
-          ? DateTime.tryParse(json['createdAt'])
-          : null,
-      selectedCategories: (json['selectedCategories'] as List<dynamic>? ?? [])
+      isDocumentApprove: json['isDocumentApprove'] ?? false,
+      createdAt: DateTime.tryParse(json['createdAt'] ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0),
+      selectedCategories:
+      (json['selectedCategories'] as List<dynamic>? ?? [])
           .map((e) => UserCategory.fromJson(e))
           .toList(),
       addresses: (json['addresses'] as List<dynamic>? ?? [])
@@ -98,30 +108,12 @@ class UserProfileModel {
           .toList(),
     );
   }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'fullName': fullName,
-      'email': email,
-      'businessName': businessName,
-      'shopImage': shopImage,
-      'bio': bio,
-      'image': image,
-      'role': role,
-      'phoneNumber': phoneNumber,
-      'isProfileCompleted': isProfileCompleted,
-      'createdAt': createdAt?.toIso8601String(),
-      'selectedCategories': selectedCategories.map((e) => e.toJson()).toList(),
-      'addresses': addresses.map((e) => e.toJson()).toList(),
-    };
-  }
 }
 
 class UserCategory {
   final String id;
-  final String category;
-  final List<String> subcategories;
+  final CategoryModel category;
+  final List<SubCategoryModel> subcategories;
 
   UserCategory({
     required this.id,
@@ -132,21 +124,59 @@ class UserCategory {
   factory UserCategory.fromJson(Map<String, dynamic> json) {
     return UserCategory(
       id: json['_id'] ?? '',
-      category: json['category'] ?? '',
+      category: CategoryModel.fromJson(json['category'] ?? {}),
       subcategories: (json['subcategories'] as List<dynamic>? ?? [])
-          .map((e) => e.toString())
+          .map((e) => SubCategoryModel.fromJson(e))
           .toList(),
     );
   }
+}
 
-  Map<String, dynamic> toJson() {
-    return {
-      '_id': id,
-      'category': category,
-      'subcategories': subcategories,
-    };
+class CategoryModel {
+  final String id;
+  final String name;
+  final String image;
+  final String categoryType;
+
+  CategoryModel({
+    required this.id,
+    required this.name,
+    required this.image,
+    required this.categoryType,
+  });
+
+  factory CategoryModel.fromJson(Map<String, dynamic> json) {
+    return CategoryModel(
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
+      image: json['image'] ?? '',
+      categoryType: json['categoryType'] ?? '',
+    );
   }
 }
+class SubCategoryModel {
+  final String id;
+  final String name;
+  final String image;
+  final String categoryType;
+
+  SubCategoryModel({
+    required this.id,
+    required this.name,
+    required this.image,
+    required this.categoryType,
+  });
+
+  factory SubCategoryModel.fromJson(Map<String, dynamic> json) {
+    return SubCategoryModel(
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
+      image: json['image'] ?? '',
+      categoryType: json['categoryType'] ?? '',
+    );
+  }
+}
+
 
 class UserAddress {
   final Location location;
@@ -172,16 +202,6 @@ class UserAddress {
       id: json['_id'] ?? '',
     );
   }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'location': location.toJson(),
-      'city': city,
-      'country': country,
-      'isDefault': isDefault,
-      '_id': id,
-    };
-  }
 }
 
 class Location {
@@ -196,15 +216,9 @@ class Location {
   factory Location.fromJson(Map<String, dynamic> json) {
     return Location(
       type: json['type'] ?? '',
-      coordinates: List<double>.from(
-          (json['coordinates'] as List<dynamic>? ?? []).map((e) => (e as num).toDouble())),
+      coordinates: (json['coordinates'] as List<dynamic>? ?? [])
+          .map((e) => (e as num).toDouble())
+          .toList(),
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'type': type,
-      'coordinates': coordinates,
-    };
   }
 }

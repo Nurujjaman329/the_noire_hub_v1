@@ -43,8 +43,12 @@ class PersonalInfoController extends GetxController {
         userId: fetchedUser.id,
         role: fetchedUser.role,
         businessName: fetchedUser.businessName,
-        // If you added image/name to CacheService, sync them here too
+        fullName: fetchedUser.fullName,
+        phone: fetchedUser.phoneNumber.isEmpty ? '' : fetchedUser.phoneNumber,
+        bio: fetchedUser.bio,
+        image: fetchedUser.image,
       );
+
 
       debugPrint("✅ Core info synced to CacheService");
     } on AppException catch (e) {

@@ -108,8 +108,8 @@ class EditUserModel {
 
 class UserCategory {
   final String id;
-  final String category;
-  final List<String> subcategories;
+  final Category category;
+  final List<SubCategory> subcategories;
 
   UserCategory({
     required this.id,
@@ -120,9 +120,9 @@ class UserCategory {
   factory UserCategory.fromJson(Map<String, dynamic> json) {
     return UserCategory(
       id: json['_id'] ?? '',
-      category: json['category'] ?? '',
+      category: Category.fromJson(json['category'] ?? {}),
       subcategories: (json['subcategories'] as List<dynamic>? ?? [])
-          .map((e) => e.toString())
+          .map((e) => SubCategory.fromJson(e))
           .toList(),
     );
   }
@@ -130,11 +130,77 @@ class UserCategory {
   Map<String, dynamic> toJson() {
     return {
       '_id': id,
-      'category': category,
-      'subcategories': subcategories,
+      'category': category.toJson(),
+      'subcategories': subcategories.map((e) => e.toJson()).toList(),
     };
   }
 }
+
+
+class Category {
+  final String id;
+  final String name;
+  final String image;
+  final String categoryType;
+
+  Category({
+    required this.id,
+    required this.name,
+    required this.image,
+    required this.categoryType,
+  });
+
+  factory Category.fromJson(Map<String, dynamic> json) {
+    return Category(
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
+      image: json['image'] ?? '',
+      categoryType: json['categoryType'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'image': image,
+      'categoryType': categoryType,
+    };
+  }
+}
+class SubCategory {
+  final String id;
+  final String name;
+  final String image;
+  final String categoryType;
+
+  SubCategory({
+    required this.id,
+    required this.name,
+    required this.image,
+    required this.categoryType,
+  });
+
+  factory SubCategory.fromJson(Map<String, dynamic> json) {
+    return SubCategory(
+      id: json['id'] ?? '',
+      name: json['name'] ?? '',
+      image: json['image'] ?? '',
+      categoryType: json['categoryType'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'image': image,
+      'categoryType': categoryType,
+    };
+  }
+}
+
+
 
 class UserAddress {
   final Location location;

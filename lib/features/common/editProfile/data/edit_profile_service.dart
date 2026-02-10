@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-
+import 'package:flutter/material.dart';
 import '../../../../core/api/api_client.dart';
 import '../../../../core/api/api_exception.dart';
 import '../../../../core/constants/api_constants.dart';
@@ -14,30 +14,58 @@ class EditProfileService {
     String? imagePath,
   }) async {
     try {
+      debugPrint("🟡 updateProfile called");
+      debugPrint("📦 Body data: $body");
+      debugPrint("🖼 Image path: $imagePath");
+
       // Create FormData
       final formData = FormData.fromMap(body);
 
       // Add image if path is provided
       if (imagePath != null && imagePath.isNotEmpty) {
-        formData.files.add(MapEntry(
-          'image', // Make sure 'image' matches your backend field name
-          await MultipartFile.fromFile(
+        debugPrint("✅ Adding image to FormData");
+
+        formData.files.add(
+          MapEntry(
+            'image', // must match backend field name
+            await MultipartFile.fromFile(
               imagePath,
-              filename: imagePath.split('/').last
+              filename: imagePath.split('/').last,
+            ),
           ),
-        ));
+        );
+      } else {
+        debugPrint("⚠️ No image provided");
       }
 
-      // Use the specific FormData helper
+      // Debug FormData content
+      debugPrint("📤 FormData fields:");
+      for (var field in formData.fields) {
+        debugPrint("  ${field.key}: ${field.value}");
+      }
+
+      debugPrint("📤 FormData files:");
+      for (var file in formData.files) {
+        debugPrint("  ${file.key}: ${file.value.filename}");
+      }
+
+      // API call
+      debugPrint("🚀 Sending PATCH request to ${ApiConstants.updateProfile}");
+
       final response = await _apiClient.patchFormData(
         ApiConstants.updateProfile,
         data: formData,
       );
 
+      debugPrint("✅ Response status: ${response.statusCode}");
+      debugPrint("📥 Response data: ${response.data}");
+
       return EditProfileResponseModel.fromJson(response.data);
-    } on AppException {
+    } on AppException catch (e) {
+      debugPrint("❌ AppException: ${e.message}");
       rethrow;
     } catch (e) {
+      debugPrint("🔥 Unknown error: $e");
       throw UnknownException(e.toString());
     }
   }
