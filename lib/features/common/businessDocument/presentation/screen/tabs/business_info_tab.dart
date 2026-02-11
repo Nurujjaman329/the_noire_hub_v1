@@ -19,7 +19,6 @@ class BusinessInfoTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final infoController = Get.find<BusinessInfoController>();
-    final String userType = CacheService.role;
 
     return Obx(() {
       if (infoController.isLoading.value) {
@@ -43,7 +42,7 @@ class BusinessInfoTab extends StatelessWidget {
               child: Row(
                 children: [
                   CustomNetworkImage(
-                    imageUrl: "${ApiConstants.baseImageUrl}${CacheService.userImage}",
+                    imageUrl: "${ApiConstants.baseImageUrl}${data.shopImage}",
                     height: 60.r, width: 60.r, boxShape: BoxShape.circle,
                   ),
                   SizedBox(width: 15.w),

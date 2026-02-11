@@ -23,6 +23,7 @@ class BusinessData {
   final String businessName;
   final String bio;
   final int phoneNumber;
+  final String shopImage;
   final BusinessAddress address;
   final List<BusinessCategory> categories;
   final double rating;
@@ -38,6 +39,7 @@ class BusinessData {
     required this.businessName,
     required this.bio,
     required this.phoneNumber,
+    required this.shopImage,
     required this.address,
     required this.categories,
     required this.rating,
@@ -55,6 +57,7 @@ class BusinessData {
       businessName: json['businessName'] ?? '',
       bio: json['bio'] ?? '',
       phoneNumber: json['phoneNumber'] ?? 0,
+        shopImage: json['shopImage'] ?? '',
       address: BusinessAddress.fromJson(json['address'] ?? {}),
       categories: (json['categories'] as List?)
           ?.map((e) => BusinessCategory.fromJson(e))
