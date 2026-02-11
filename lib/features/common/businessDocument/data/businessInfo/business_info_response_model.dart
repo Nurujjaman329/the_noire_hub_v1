@@ -103,8 +103,8 @@ class BusinessAddress {
 }
 
 class BusinessCategory {
-  final String category;
-  final List<String> subcategories;
+  final CategoryModel category;
+  final List<SubcategoryModel> subcategories;
 
   BusinessCategory({
     required this.category,
@@ -113,10 +113,57 @@ class BusinessCategory {
 
   factory BusinessCategory.fromJson(Map<String, dynamic> json) {
     return BusinessCategory(
-      category: json['category'] ?? '',
-      subcategories:
-      (json['subcategories'] as List?)?.map((e) => e.toString()).toList() ??
+      category: CategoryModel.fromJson(json['category'] ?? {}),
+      subcategories: (json['subcategories'] as List?)
+          ?.map((e) => SubcategoryModel.fromJson(e))
+          .toList() ??
           [],
     );
   }
 }
+
+class CategoryModel {
+  final String id;
+  final String name;
+  final String categoryType;
+  final String image;
+
+  CategoryModel({
+    required this.id,
+    required this.name,
+    required this.categoryType,
+    required this.image,
+  });
+
+  factory CategoryModel.fromJson(Map<String, dynamic> json) {
+    return CategoryModel(
+      id: json['_id'] ?? '',
+      name: json['name'] ?? '',
+      categoryType: json['categoryType'] ?? '',
+      image: json['image'] ?? '',
+    );
+  }
+}
+class SubcategoryModel {
+  final String id;
+  final String name;
+  final String categoryType;
+  final String image;
+
+  SubcategoryModel({
+    required this.id,
+    required this.name,
+    required this.categoryType,
+    required this.image,
+  });
+
+  factory SubcategoryModel.fromJson(Map<String, dynamic> json) {
+    return SubcategoryModel(
+      id: json['_id'] ?? '',
+      name: json['name'] ?? '',
+      categoryType: json['categoryType'] ?? '',
+      image: json['image'] ?? '',
+    );
+  }
+}
+
