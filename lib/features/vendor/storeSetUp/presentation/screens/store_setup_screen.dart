@@ -34,7 +34,7 @@ class StoreSetupScreen extends GetView<RegistrationController> {
       String apiType = (role == 'vendor') ? 'product' : 'service';
 
       // 3. Force the category load for THIS setup session only
-      catCtrl.loadCategories(categoryType: apiType);
+      catCtrl.loadCategories();
     });
 
     return Scaffold(

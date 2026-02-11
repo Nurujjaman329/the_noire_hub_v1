@@ -24,7 +24,7 @@ class CategoryController extends GetxController {
   Future<void> loadCategories({
     int page = 1,
     int limit = 10,
-    String? categoryType,
+    // String? categoryType,
     String? userId,
   }) async {
     if (page == 1) isLoading.value = true;
@@ -43,7 +43,7 @@ class CategoryController extends GetxController {
       final response = await _categoryService.getCategories(
         page: page,
         limit: limit,
-        categoryType: finalType, // Could be null if userId is present
+        // categoryType: finalType, // Could be null if userId is present
         id: userId,
       );
 

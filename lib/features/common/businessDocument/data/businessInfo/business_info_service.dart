@@ -1,5 +1,6 @@
+import 'dart:convert';
 
-
+import 'package:flutter/material.dart';
 import '../../../../../core/api/api_client.dart';
 import '../../../../../core/api/api_exception.dart';
 import '../../../../../core/constants/api_constants.dart';
@@ -23,13 +24,25 @@ class BusinessInfoService {
 
   Future<void> updateCategories(CategoryUpdatePostBody body) async {
     try {
-      await _apiClient.patch(
+      // Convert body to JSON for debugging
+      final Map<String, dynamic> jsonPayload = body.toJson();
+
+      debugPrint("🚀 Sending Category Update Request...");
+      debugPrint("📍 URL: ${ApiConstants.categoryUpdate}");
+      debugPrint("📦 Payload: ${jsonEncode(jsonPayload)}");
+
+      final response = await _apiClient.patch(
         ApiConstants.categoryUpdate,
-        data: body.toJson(),
+        data: jsonPayload,
       );
-    } on AppException {
+
+      debugPrint("✅ Update Success: ${response.data}");
+
+    } on AppException catch (e) {
+      debugPrint("❌ AppException: ${e.message}");
       rethrow;
     } catch (e) {
+      debugPrint("💥 Unknown Error in updateCategories: $e");
       throw UnknownException(e.toString());
     }
   }

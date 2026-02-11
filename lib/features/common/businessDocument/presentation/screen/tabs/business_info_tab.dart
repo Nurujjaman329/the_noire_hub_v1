@@ -19,6 +19,7 @@ class BusinessInfoTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final infoController = Get.find<BusinessInfoController>();
+    final String userType = CacheService.role;
 
     return Obx(() {
       if (infoController.isLoading.value) {
@@ -171,20 +172,22 @@ class BusinessInfoTab extends StatelessWidget {
     final catController = Get.find<CategoryController>();
     final subCatController = Get.find<SubCategoryController>();
 
-    // Logic: Key is Category ID, Value is list of SubCategory IDs
+    // 1. Determine the category type based on role once
+    final String userType = CacheService.role;
+    final String activeCategoryType = userType == "vendor" ? "product" : "service";
+
     final RxMap<String, List<String>> tempSelection = <String, List<String>>{}.obs;
 
-    // Pre-fill from existing data using IDs
     final existingData = infoController.businessData.value;
     if (existingData != null) {
       for (var catEntry in existingData.categories) {
-        // Use catEntry.category.id (the ObjectId string)
         tempSelection[catEntry.category.id] =
             catEntry.subcategories.map((s) => s.id).toList();
       }
     }
 
-    catController.loadCategories(page: 1);
+    // Use the dynamic category type for the main list
+    catController.loadCategories(page: 1,);
 
     Get.bottomSheet(
       isScrollControlled: true,
@@ -211,17 +214,20 @@ class BusinessInfoTab extends StatelessWidget {
                     final category = catController.categories[index];
 
                     return Obx(() {
-                      // Compare against category.id (the hex string)
                       final isSelected = tempSelection.containsKey(category.id);
 
                       return Theme(
                         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
                         child: ExpansionTile(
+                          key: PageStorageKey(category.id),
                           maintainState: true,
-                          initiallyExpanded: isSelected,
                           onExpansionChanged: (expanded) {
                             if (expanded) {
-                              subCatController.fetchSubCategories(categoryId: category.id);
+                              // 2. USE activeCategoryType HERE
+                              subCatController.fetchSubCategories(
+                                  categoryId: category.id,
+                                  categoryType: activeCategoryType
+                              );
                             }
                           },
                           leading: Checkbox(
@@ -230,7 +236,11 @@ class BusinessInfoTab extends StatelessWidget {
                             onChanged: (val) {
                               if (val == true) {
                                 tempSelection[category.id] = [];
-                                subCatController.fetchSubCategories(categoryId: category.id);
+                                // 3. AND USE activeCategoryType HERE
+                                subCatController.fetchSubCategories(
+                                    categoryId: category.id,
+                                    categoryType: activeCategoryType
+                                );
                               } else {
                                 tempSelection.remove(category.id);
                               }
@@ -241,7 +251,9 @@ class BusinessInfoTab extends StatelessWidget {
                             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                             color: isSelected ? const Color(0XFF627E4C) : Colors.black,
                           ),
-                          children: [_buildSubCategoryGrid(category.id, tempSelection, subCatController)],
+                          children: [
+                            _buildSubCategoryGrid(category.id, tempSelection, subCatController)
+                          ],
                         ),
                       );
                     });
@@ -250,6 +262,7 @@ class BusinessInfoTab extends StatelessWidget {
               }),
             ),
 
+            // Save Changes Button...
             Padding(
               padding: EdgeInsets.all(20.w),
               child: Obx(() => CustomButton(
