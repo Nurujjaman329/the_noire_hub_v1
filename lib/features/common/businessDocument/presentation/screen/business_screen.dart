@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:get/get_utils/src/extensions/widget_extensions.dart';
 import 'package:get/get.dart';
+import '../../../../../core/constants/api_constants.dart';
 import '../../../../../core/constants/app_colors.dart';
+import '../../../../../core/services/cache_service.dart';
 import '../../../../../core/widgets/custom_app_bar.dart';
 import '../../../../../core/widgets/custom_button.dart';
 import '../../../../../core/widgets/custom_network_image.dart';
 import '../../../../../core/widgets/custom_text.dart';
+import '../controller/businessInfo/business_info_controller.dart';
 import '../controller/business_document_controller.dart';
 
 class BusinessScreen extends StatefulWidget {
@@ -19,7 +21,8 @@ class BusinessScreen extends StatefulWidget {
 
 class _BusinessScreenState extends State<BusinessScreen> {
 
-  final controller = Get.find<BusinessDocumentController>();
+  final docController = Get.find<BusinessDocumentController>();
+  final infoController = Get.find<BusinessInfoController>();
 
   // Local state for the category dropdown
   String selectedDocType = "Government Issued ID";
@@ -189,11 +192,11 @@ class _BusinessScreenState extends State<BusinessScreen> {
 
           // 3. Submit Button
           Obx(() => CustomButton(
-            onTap: controller.isLoading.value ? null : () => controller.submitVerification(),
-            text: controller.isLoading.value ? "Uploading..." : "Submit All Documents",
+            onTap: docController.isLoading.value ? null : () => docController.submitVerification(),
+            text: docController.isLoading.value ? "Uploading..." : "Submit All Documents",
             color: const Color(0XFF627E4C),
             height: 48.h,
-            loading: controller.isLoading.value,
+            loading: docController.isLoading.value,
           )),
 
           SizedBox(height: 30.h),
@@ -208,28 +211,28 @@ class _BusinessScreenState extends State<BusinessScreen> {
 
           // 4. Grouped List Sections
           Obx(() {
-            final stored = controller.storedDocuments.value;
+            final stored = docController.storedDocuments.value;
 
             return Column(
               children: [
                 _buildDocumentCategorySection(
                   "Government Issued ID",
-                  controller.governmentIdPaths,
+                  docController.governmentIdPaths,
                   stored?.governmentId ?? [],
                 ),
                 _buildDocumentCategorySection(
                   "Business Registration Proof",
-                  controller.registrationPaths,
+                  docController.registrationPaths,
                   stored?.businessRegistration ?? [],
                 ),
                 _buildDocumentCategorySection(
                   "Proof of Business Address",
-                  controller.addressPaths,
+                  docController.addressPaths,
                   stored?.proofOfBusinessAddress ?? [],
                 ),
                 _buildDocumentCategorySection(
                   "Supporting Documents",
-                  controller.supportingPaths,
+                  docController.supportingPaths,
                   stored?.supportingDocuments ?? [], // Assumes supportingDocuments exists in your model
                 ),
               ],
@@ -276,10 +279,10 @@ class _BusinessScreenState extends State<BusinessScreen> {
   }
 
   RxList<String> _getTargetList() {
-    if (selectedDocType == "Government Issued ID") return controller.governmentIdPaths;
-    if (selectedDocType == "Business Registration Proof") return controller.registrationPaths;
-    if (selectedDocType == "Proof of Business Address") return controller.addressPaths;
-    return controller.supportingPaths;
+    if (selectedDocType == "Government Issued ID") return docController.governmentIdPaths;
+    if (selectedDocType == "Business Registration Proof") return docController.registrationPaths;
+    if (selectedDocType == "Proof of Business Address") return docController.addressPaths;
+    return docController.supportingPaths;
   }
 
   // Helper: Build tiles for local paths
@@ -307,12 +310,12 @@ class _BusinessScreenState extends State<BusinessScreen> {
             ListTile(
               leading: const Icon(Icons.camera_alt, color: Color(0XFF627E4C)),
               title: const Text("Camera"),
-              onTap: () { Get.back(); controller.pickDocument(_getTargetList(), fromCamera: true); },
+              onTap: () { Get.back(); docController.pickDocument(_getTargetList(), fromCamera: true); },
             ),
             ListTile(
               leading: const Icon(Icons.file_present, color: Color(0XFF627E4C)),
               title: const Text("Gallery / Files"),
-              onTap: () { Get.back(); controller.pickDocument(_getTargetList(), fromCamera: false); },
+              onTap: () { Get.back(); docController.pickDocument(_getTargetList(), fromCamera: false); },
             ),
           ],
         ),
@@ -449,136 +452,141 @@ class _BusinessScreenState extends State<BusinessScreen> {
 
   // Mark: - Info Tab (Simple Placeholder)
   Widget _buildInfoTab() {
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(20.w),
-      child: Column(
-        children: [
-          // 1. Profile Header Card
-          Container(
-            padding: EdgeInsets.all(15.w),
-            decoration: BoxDecoration(
-              color: Color(0XFF627E4C),
-                // color: AppColors.primaryLight,
+    return Obx(() {
+      if (infoController.isLoading.value) {
+        return const Center(child: CircularProgressIndicator(color: Color(0XFF627E4C)));
+      }
+
+      final data = infoController.businessData.value;
+      if (data == null) return const Center(child: Text("No Data Found"));
+
+      return SingleChildScrollView(
+        padding: EdgeInsets.all(20.w),
+        child: Column(
+          children: [
+            // 1. Profile Header
+            Container(
+              padding: EdgeInsets.all(15.w),
+              decoration: BoxDecoration(
+                color: const Color(0XFF627E4C),
                 borderRadius: BorderRadius.circular(15.r),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha:0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  )
-                ]
-            ),
-            child: Row(
-              children: [
-                CustomNetworkImage(
-                    imageUrl: "https://images.pexels.com/photos/3762882/pexels-photo-3762882.jpeg",
-                    height: 60.r,
-                    width: 60.r,
-                    boxShape: BoxShape.circle
-                ),
-                SizedBox(width: 15.w),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CustomText(text: "Ada's Body Shop", color : Color(0XFFF1F0B2), fontWeight: FontWeight.bold, fontSize: 16.sp),
-                      CustomText(text: "4.8 ★ Rating", color : Color(0XFFF1F0B2), fontSize: 12.sp, top: 4.h),
-
-                      SizedBox(height: 10.h,),
-
-                      Container(
-                        width: 75.w,
-                        height: 20.h,
-                        decoration: BoxDecoration(
-                          color: const Color(0XFF1D3826),
-                          borderRadius: BorderRadius.circular(5.r), // Smaller radius for small height
-                        ),
-                        child: Center(
-                          child: CustomText(
-                            text: "Verify Account",
-                            fontSize: 8.sp, // Reduced font size to fit H 20
-                            fontWeight: FontWeight.bold,
-                            color: Color(0XFFF1F0B2),
-                          ),
-                        ),
-                      )
-                    ],
+              ),
+              child: Row(
+                children: [
+                  CustomNetworkImage(
+                    imageUrl: "${ApiConstants.baseImageUrl}${CacheService.userImage}",
+                    height: 60.r, width: 60.r, boxShape: BoxShape.circle,
                   ),
-                ),
-                Icon(Icons.edit_outlined,color : Color(0XFF000000), size: 20.sp),
-              ],
+                  SizedBox(width: 15.w),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            CustomText(text: data.businessName, color: const Color(0XFFF1F0B2), fontWeight: FontWeight.bold, fontSize: 16.sp),
+                            if (data.documentApproved) ...[
+                              SizedBox(width: 5.w),
+                              Icon(Icons.verified, color: const Color(0XFFF1F0B2), size: 16.sp),
+                            ]
+                          ],
+                        ),
+                        CustomText(text: "${data.rating} ★ Rating", color: const Color(0XFFF1F0B2), fontSize: 12.sp, top: 4.h),
+                        SizedBox(height: 10.h),
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                          decoration: BoxDecoration(
+                            color: data.documentApproved ? const Color(0XFF1D3826) : Colors.red.withOpacity(0.8),
+                            borderRadius: BorderRadius.circular(5.r),
+                          ),
+                          child: CustomText(
+                            text: data.documentApproved ? "Verified Account" : "Not Verified",
+                            fontSize: 8.sp,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0XFFF1F0B2),
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.edit_outlined, color: Colors.black, size: 20.sp),
+                ],
+              ),
             ),
-          ),
-          SizedBox(height: 20.h),
 
-          // 2. Address & Phone Cards
-          _buildContactTile(Icons.location_on, "Address", "17 Binder Lane, NW, Block 52.\nEdmonton, AB. T21 0Z5"),
-          _buildContactTile(Icons.phone, "Phone", "+1-500-587-8789"),
+            SizedBox(height: 20.h),
 
-          // 3. Categories & Subcategories
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(15.w),
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.divider),
-              borderRadius: BorderRadius.circular(15.r),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildSectionHeader("Categories"),
-                SizedBox(height: 10.h),
-                Wrap(spacing: 8.w, children: [_buildTag("Hair Care"), _buildTag("Skin Care")]),
+            // 2. Contact & Bio Details
+            _buildContactTile(Icons.location_on, "Address", "${data.address.city}, ${data.address.country}"),
+            _buildContactTile(Icons.phone, "Phone", "+${data.phoneNumber}"),
 
-                SizedBox(height: 20.h),
+            // UPDATED: Bio Section using the card tile format
+            _buildContactTile(Icons.article_outlined, "Your Bio", data.bio),
 
-                _buildSectionHeader("Subcategories"),
-                SizedBox(height: 10.h),
-                Wrap(
+            SizedBox(height: 5.h), // Small gap before categories
+
+            // 3. Categories & Subcategories
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(15.w),
+              decoration: BoxDecoration(
+                border: Border.all(color: AppColors.divider),
+                borderRadius: BorderRadius.circular(15.r),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildSectionHeader("Categories"),
+                  SizedBox(height: 10.h),
+                  Wrap(
                     spacing: 8.w,
                     runSpacing: 8.h,
-                    children: [
-                      _buildTag("Shampoo"), _buildTag("Hair Gels"), _buildTag("Edge Control"),
-                      _buildTag("Leave-in Conditioner"), _buildTag("Hair Growth Oils"),
-                      _buildTag("Face Cleansers"), _buildTag("Face Moisturizers"), _buildTag("Serums"),
-                    ]
-                ),
-              ],
+                    children: data.categories.map((cat) => _buildTag(cat.category)).toList(),
+                  ),
+                  SizedBox(height: 20.h),
+                  _buildSectionHeader("SubCategories"),
+                  SizedBox(height: 10.h),
+                  Wrap(
+                    spacing: 8.w,
+                    runSpacing: 8.h,
+                    children: data.categories
+                        .expand((cat) => cat.subcategories)
+                        .map((sub) => _buildTag(sub))
+                        .toList(),
+                  ),
+                ],
+              ),
             ),
-          ),
-          SizedBox(height: 20.h),
 
-          // 4. Bio Section
-          _buildContactTile(Icons.article, "Your Bio", "We make homemade all-natural products that are specifically made for black hair and skin."),
+            SizedBox(height: 20.h),
 
-          // 5. Quick Facts Section
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(15.w),
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.divider),
-              borderRadius: BorderRadius.circular(15.r),
+            // 4. Quick Facts Section
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(15.w),
+              decoration: BoxDecoration(
+                border: Border.all(color: AppColors.divider),
+                borderRadius: BorderRadius.circular(15.r),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(text: "Quick Facts", fontWeight: FontWeight.bold, fontSize: 16.sp, bottom: 15.h),
+                  _buildFactRow("Date Joined", data.joinDate),
+                  _buildFactRow("Annual Verification Due", data.annualDocumentApproveDate, valueColor: const Color(0XFF627E4C)),
+                  _buildFactRow("No of Products Listed", data.totalProducts.toString()),
+                  _buildFactRow("Most Popular Item", data.mostPopularItem, isSmall: true),
+                  _buildFactRow("Least Popular Item", data.leastPopularItem, isSmall: true),
+                  _buildFactRow("Completed Orders", data.completedOrders.toString(), hideDivider: true),
+                ],
+              ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(text: "Quick Facts", fontWeight: FontWeight.bold, fontSize: 16.sp, bottom: 15.h,color : Color(0XFF000000),),
-                _buildFactRow("Date Joined", "01/15/2019"),
-                _buildFactRow("Annual Verification Due", "01/27/2026", valueColor: AppColors.primaryLight),
-                _buildFactRow("No of Products Listed", "34"),
-                _buildFactRow("Most Popular Item", "Product ID 000381", isSmall: true),
-                _buildFactRow("Least Popular Item", "Product ID 000561", isSmall: true),
-                _buildFactRow("Completed Orders", "296", hideDivider: true),
-              ],
-            ),
-          ),
-          SizedBox(height: 30.h),
-        ],
-      ),
-    );
+            SizedBox(height: 30.h),
+          ],
+        ),
+      );
+    });
   }
-
-// --- Helper UI Components ---
 
   Widget _buildContactTile(IconData icon, String title, String value) {
     return Container(

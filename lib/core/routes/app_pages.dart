@@ -1,4 +1,3 @@
-
 import 'package:get/get.dart';
 import 'package:the_noire_hub_v1/core/constants/route_constants.dart';
 import 'package:the_noire_hub_v1/features/authentication/gmailVerification/presentation/bindings/gmail_verification_bindings.dart';
@@ -30,6 +29,7 @@ import '../../features/common/addDealsPromos/presentation/screen/add_deals_pomos
 import '../../features/common/averageReviewScreen/presentation/screens/average_review_screens.dart';
 import '../../features/common/bottomNavBar/customer/customer_main_container.dart';
 import '../../features/common/bottomNavBar/vendor/vendor_main_container.dart';
+import '../../features/common/businessDocument/presentation/bindings/business_info_bindings.dart';
 import '../../features/common/businessDocument/presentation/screen/business_screen.dart';
 import '../../features/common/changePassword/presentation/screen/change_password_screen.dart';
 import '../../features/common/editProfile/presentation/binding/edit_profile_binding.dart';
@@ -197,7 +197,6 @@ class AppPages {
       transition: Transition.cupertino,
     ),
 
-
     GetPage(
       name: RouteConstants.welcomeScreen,
       page: () => const WelcomeScreen(),
@@ -222,7 +221,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.businessScreen,
       page: () => const BusinessScreen(),
-      binding: BusinessDocumentsBindings(),
+      bindings: [BusinessInfoBindings(), BusinessDocumentsBindings()],
       transition: Transition.cupertino,
     ),
 

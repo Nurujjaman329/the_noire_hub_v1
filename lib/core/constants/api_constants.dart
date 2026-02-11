@@ -38,5 +38,6 @@ class ApiConstants {
   static const String vendorCreateProduct = "products/";
   static const String vendorEditProduct = "products/";
   static const String orderFullFillMent = "order-fulfillment";
+  static const String getBusinessInfo = "business/me";
 
 }
