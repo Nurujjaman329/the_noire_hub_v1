@@ -23,6 +23,8 @@ class ApiConstants {
   static const String updateProfile = "users/self/update";
   static const String addBusinessDocuments = "business-documents";
   static const String getBusinessDocuments = "business-documents/my-document";
+  static const String getBusinessInfo = "business/me";
+  static const String categoryUpdate = "users/self/selected-categories";
 
   //customer
 
@@ -38,6 +40,5 @@ class ApiConstants {
   static const String vendorCreateProduct = "products/";
   static const String vendorEditProduct = "products/";
   static const String orderFullFillMent = "order-fulfillment";
-  static const String getBusinessInfo = "business/me";
 
 }
