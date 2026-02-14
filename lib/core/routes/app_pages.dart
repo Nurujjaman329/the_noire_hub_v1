@@ -25,6 +25,7 @@ import '../../features/beautician/editServiceScreen/presentation/edit_service_sc
 import '../../features/beautician/serviceDetailsScreen/presentation/service_details_screen.dart';
 import '../../features/common/aboutUS/presentation/about_us_screen.dart';
 import '../../features/common/addBank/presentation/add_bank_screen.dart';
+import '../../features/common/addDealsPromos/presentation/bindings/deals_promos_bindings.dart';
 import '../../features/common/addDealsPromos/presentation/screen/add_deals_pomos_screen.dart';
 import '../../features/common/averageReviewScreen/presentation/screens/average_review_screens.dart';
 import '../../features/common/bottomNavBar/customer/customer_main_container.dart';
@@ -379,6 +380,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.addDealsPromos,
       page: () => const AddDealsPomosScreen(),
+      binding: DealsPromosBindings(),
       transition: Transition.cupertino,
     ),
     GetPage(
