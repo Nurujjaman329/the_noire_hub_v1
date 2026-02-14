@@ -12,6 +12,8 @@ class VendorAddProductPostBody {
   final double weightValue;
   final String weightUnit;
   final int? stock;
+  final double? discountValue;
+  final String? discountType;
 
   // ✅ Support multiple variants
   final List<ProductVariantBody>? variants;
@@ -25,6 +27,8 @@ class VendorAddProductPostBody {
     required this.subCategoryId,
     required this.weightValue,
     required this.weightUnit,
+     this.discountValue,
+     this.discountType,
     this.stock,
     this.variants,
   });
@@ -43,6 +47,11 @@ class VendorAddProductPostBody {
       'weight': {
         'value': weightValue,
         'unit': weightUnit,
+      },
+
+      'discount': {
+        'value': discountValue,
+        'type': discountType,
       },
     };
 
