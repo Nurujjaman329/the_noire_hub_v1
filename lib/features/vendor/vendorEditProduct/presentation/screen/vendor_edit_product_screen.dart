@@ -42,10 +42,10 @@ class _VendorEditProductScreenState extends State<VendorEditProductScreen> {
     super.initState();
     nameController = TextEditingController(text: widget.product.name);
     priceController = TextEditingController(text: widget.product.price.toString());
-    descController = TextEditingController(text: widget.product.description ?? "");
+    descController = TextEditingController(text: widget.product.description);
     weightValueController = TextEditingController(text: widget.product.weight.value.toString());
     stockController = TextEditingController(text: widget.product.stock.toString());
-    selectedWeightUnit = widget.product.weight.unit ?? "g";
+    selectedWeightUnit = widget.product.weight.unit;
 
     final initialDiscountValue = widget.product.discount.value;
     final initialMaxAmount = widget.product.discount.maxAmount;

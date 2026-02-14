@@ -1,4 +1,3 @@
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import '../../../../../core/api/api_client.dart';
@@ -23,7 +22,7 @@ class BusinessInfoService {
 
       final model = BusinessInfoResponseModel.fromJson(response.data);
 
-      debugPrint("✅ [SUCCESS] Model parsed for: ${model.data?.businessName}");
+      debugPrint("✅ [SUCCESS] Model parsed for: ${model.data.businessName}");
       return model;
     } on AppException catch (e) {
       debugPrint("❌ [AppException]: ${e.message}");

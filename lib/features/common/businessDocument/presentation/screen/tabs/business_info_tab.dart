@@ -653,33 +653,6 @@ class BusinessInfoTab extends StatelessWidget {
     );
   }
 
-  Widget _buildContactTile(IconData icon, String title, String value) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 15.h),
-      padding: EdgeInsets.all(15.w),
-      decoration: BoxDecoration(
-        border: Border.all(color: AppColors.divider),
-        borderRadius: BorderRadius.circular(15.r),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: Colors.black, size: 22.sp),
-          SizedBox(width: 15.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(text: title, fontWeight: FontWeight.bold, fontSize: 14.sp),
-                CustomText(text: value, color: Colors.black54, fontSize: 12.sp, top: 4.h),
-              ],
-            ),
-          ),
-          Icon(Icons.edit_outlined, color: Colors.black, size: 16.sp),
-        ],
-      ),
-    );
-  }
 
   Widget _buildSectionHeader(String title, {VoidCallback? onAddTap}) {
     return Row(

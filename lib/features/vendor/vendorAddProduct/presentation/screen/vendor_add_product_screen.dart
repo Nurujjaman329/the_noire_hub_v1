@@ -1,4 +1,3 @@
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -466,23 +465,6 @@ class _VendorAddProductScreenState extends State<VendorAddProductScreen> {
     );
   }
 
-  Widget _buildDropdownField(List<String> items) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w),
-      decoration: BoxDecoration(
-        border: Border.all(color: const Color(0xFF1D3826)),
-        borderRadius: BorderRadius.circular(8.r),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF1D3826)),
-          items: items.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
-          onChanged: (v) {},
-        ),
-      ),
-    );
-  }
 
   Widget _buildWeightRow() {
     return Column(
@@ -533,15 +515,6 @@ class _VendorAddProductScreenState extends State<VendorAddProductScreen> {
     );
   }
 
-  Widget _buildPriceField() {
-    return _buildInputWrapper(
-      child: TextField(
-        controller: priceController,
-        keyboardType: TextInputType.number,
-        decoration: const InputDecoration(border: InputBorder.none, icon: Icon(Icons.attach_money)),
-      ),
-    );
-  }
 
   Widget _buildInputWrapper({required Widget child}) {
     return Container(

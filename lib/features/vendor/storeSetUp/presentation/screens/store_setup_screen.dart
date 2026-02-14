@@ -28,10 +28,10 @@ class StoreSetupScreen extends GetView<RegistrationController> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 1. Get the chosen role from SelectionScreen via RegistrationController
-      String role = controller.userRole.value;
-
-      // 2. Map role to the API 'categoryType'
-      String apiType = (role == 'vendor') ? 'product' : 'service';
+      // String role = controller.userRole.value;
+      //
+      // // 2. Map role to the API 'categoryType'
+      // String apiType = (role == 'vendor') ? 'product' : 'service';
 
       // 3. Force the category load for THIS setup session only
       catCtrl.loadCategories();

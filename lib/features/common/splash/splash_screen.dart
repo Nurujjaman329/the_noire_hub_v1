@@ -6,8 +6,6 @@ import 'package:get/get.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/route_constants.dart';
-import '../../../core/storage/local_storage.dart';
-import '../../../features/authentication/login/data/login_response_model.dart';
 import '../../../core/widgets/custom_text.dart';
 
 import '../../../../core/services/cache_service.dart';

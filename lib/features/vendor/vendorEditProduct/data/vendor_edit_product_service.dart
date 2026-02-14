@@ -1,4 +1,3 @@
-import 'package:get/get.dart';
 import 'package:the_noire_hub_v1/features/vendor/vendorEditProduct/data/vendor_edit_product_form_body.dart';
 
 import '../../../../core/api/api_client.dart';
