@@ -46,6 +46,8 @@ class _VendorAddProductScreenState extends State<VendorAddProductScreen> {
     categoryController.loadCategories(userId: CacheService.userId);
   }
 
+
+
   void _handleSave() {
     if (selectedCategoryId == null || selectedSubCategoryId == null) {
       Get.snackbar("Error", "Please select category and subcategory");
@@ -64,19 +66,24 @@ class _VendorAddProductScreenState extends State<VendorAddProductScreen> {
       return;
     }
 
+
+
     final String discountValRaw = discountValueController.text.trim();
     final double discountAmount = double.tryParse(discountValRaw) ?? 0.0;
     final double maxAmount = double.tryParse(maxDiscountController.text.trim()) ?? 0.0;
 
     if (discountAmount > 0 && selectedDiscountType == null) {
-      Get.snackbar(
-        "Discount Type Required",
-        "Please select a discount type (Flat or %)",
-        backgroundColor: Colors.orangeAccent,
-        colorText: Colors.white,
-      );
+      Get.snackbar("Error", "Please select a discount type (Flat or %)");
       return;
     }
+
+    // If user sets a max amount, they MUST have a type and a discount value
+    if (maxAmount > 0 && (selectedDiscountType == null || discountAmount <= 0)) {
+      Get.snackbar("Error", "Max Amount requires a Discount Value and Type");
+      return;
+    }
+
+    final bool hasDiscount = discountAmount > 0;
 
     final productData = VendorAddProductPostBody(
       images: productController.selectedImages,
@@ -89,10 +96,11 @@ class _VendorAddProductScreenState extends State<VendorAddProductScreen> {
       weightUnit: selectedWeightUnit,
       stock: int.tryParse(stockController.text),
       variants: productController.selectedVariants,
-      discountType: selectedDiscountType ?? "",
-      discountMaxAmount: maxAmount > 0 ? maxAmount : null,
-      discountValue: discountAmount,
 
+      // Pass null if no discount, so the toJson() can skip them
+      discountType: hasDiscount ? selectedDiscountType : null,
+      discountValue: hasDiscount ? discountAmount : null,
+      discountMaxAmount: (hasDiscount && maxAmount > 0) ? maxAmount : null,
     );
 
     productController.addProduct(productData);

@@ -116,40 +116,59 @@ class _VendorEditProductScreenState extends State<VendorEditProductScreen> {
   }
 
   void _handleUpdate() {
-    if (nameController.text.trim().isEmpty || priceController.text.trim().isEmpty) {
+    final String name = nameController.text.trim();
+    final String priceRaw = priceController.text.trim();
+    final String discountValRaw = discountValueController.text.trim();
+    final String maxAmountRaw = maxDiscountController.text.trim();
+
+    // Basic Validation
+    if (name.isEmpty || priceRaw.isEmpty) {
       Get.snackbar("Required", "Please enter product name and price",
           backgroundColor: Colors.redAccent, colorText: Colors.white);
       return;
     }
 
-    if (discountValueController.text.isNotEmpty && selectedDiscountType == null) {
-      Get.snackbar("Required", "Please select a discount type");
+    final double discountAmount = double.tryParse(discountValRaw) ?? 0.0;
+    final double maxAmount = double.tryParse(maxAmountRaw) ?? 0.0;
+
+    // Rule: If discount value > 0, Type is MUST
+    if (discountAmount > 0 && selectedDiscountType == null) {
+      Get.snackbar("Required", "Please select a discount type",
+          backgroundColor: Colors.orangeAccent, colorText: Colors.white);
       return;
     }
 
-    // Check if variants actually changed
+    // Rule: If Max Amount is set, Value and Type are MUST
+    if (maxAmount > 0 && (discountAmount <= 0 || selectedDiscountType == null)) {
+      Get.snackbar("Error", "Max Amount requires a Discount Value and Type",
+          backgroundColor: Colors.orangeAccent, colorText: Colors.white);
+      return;
+    }
+
     bool variantsChanged = _haveVariantsChanged();
+    final bool hasValidDiscount = discountAmount > 0;
 
     final updateBody = VendorUpdateProductFormBody(
-      name: nameController.text.trim(),
-      price: double.tryParse(priceController.text),
+      name: name,
+      price: double.tryParse(priceRaw),
       description: descController.text.trim(),
       weightValue: double.tryParse(weightValueController.text),
       weightUnit: selectedWeightUnit,
-      discountValue: double.tryParse(discountValueController.text),
-      discountType: selectedDiscountType,
-      discountMaxAmount: double.tryParse(maxDiscountController.text),
+
+      // Pass values ONLY if they satisfy the discount requirements
+      discountValue: hasValidDiscount ? discountAmount : null,
+      discountType: hasValidDiscount ? selectedDiscountType : null,
+      discountMaxAmount: (hasValidDiscount && maxAmount > 0) ? maxAmount : null,
+
       stock: int.tryParse(stockController.text),
       newImages: editController.selectedImages,
-
-      // Pass the list ONLY if variantsChanged is true, otherwise pass null
       variants: variantsChanged ? editController.selectedVariants : null,
-
       isActive: true,
     );
 
     editController.updateProduct(widget.product.id, updateBody);
   }
+
 
   @override
   Widget build(BuildContext context) {
