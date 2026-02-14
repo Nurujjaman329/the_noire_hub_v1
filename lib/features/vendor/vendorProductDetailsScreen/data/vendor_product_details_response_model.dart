@@ -24,7 +24,9 @@ class ProductDetailData {
   final String description;
   final List<String> images;
   final double price;
-  final double discount;
+  final double originalPrice;    // Added
+  final double discountedPrice;  // Added
+  final VendorProductsDetailsDiscountModel discount; // Updated type from double
   final int stock;
   final bool isApproved;
   final bool isActive;
@@ -43,6 +45,8 @@ class ProductDetailData {
     required this.description,
     required this.images,
     required this.price,
+    required this.originalPrice,
+    required this.discountedPrice,
     required this.discount,
     required this.stock,
     required this.isApproved,
@@ -59,12 +63,15 @@ class ProductDetailData {
 
   factory ProductDetailData.fromJson(Map<String, dynamic> json) {
     return ProductDetailData(
-      id: json['id'] ?? '',
+      id: json['_id'] ?? '', // Updated to match API _id
       name: json['name'] ?? '',
       description: json['description'] ?? '',
       images: (json['images'] as List<dynamic>? ?? []).map((e) => e.toString()).toList(),
       price: (json['price'] ?? 0).toDouble(),
-      discount: (json['discount'] ?? 0).toDouble(),
+      originalPrice: (json['originalPrice'] ?? 0).toDouble(), // Mapped
+      discountedPrice: (json['discountedPrice'] ?? 0).toDouble(), // Mapped
+      // Using the specialized DiscountModel to handle both object and number cases
+      discount: VendorProductsDetailsDiscountModel.fromJson(json['discount']),
       stock: json['stock'] ?? 0,
       isApproved: json['isApproved'] ?? false,
       isActive: json['isActive'] ?? false,
@@ -81,6 +88,30 @@ class ProductDetailData {
     );
   }
 }
+class VendorProductsDetailsDiscountModel {
+  final double value;
+  final String type;
+
+  VendorProductsDetailsDiscountModel({required this.value, required this.type});
+
+  factory VendorProductsDetailsDiscountModel.fromJson(dynamic json) {
+    // If it's a number (0 or 10)
+    if (json is num) {
+      return VendorProductsDetailsDiscountModel(value: json.toDouble(), type: 'flat');
+    }
+    // If it's the object {"value": 20, "type": "%"}
+    else if (json is Map<String, dynamic>) {
+      return VendorProductsDetailsDiscountModel(
+        value: (json['value'] ?? 0).toDouble(),
+        type: json['type'] ?? 'flat',
+      );
+    }
+    // Fallback
+    return VendorProductsDetailsDiscountModel(value: 0.0, type: 'flat');
+  }
+}
+
+
 
 class Location {
   final String type;
@@ -115,29 +146,22 @@ class Weight {
 class Category {
   final String id;
   final String name;
-
   Category({required this.id, required this.name});
-
-  factory Category.fromJson(Map<String, dynamic> json) {
-    return Category(
-      id: json['id'] ?? '',
-      name: json['name'] ?? '',
-    );
-  }
+  factory Category.fromJson(Map<String, dynamic> json) => Category(
+    id: json['_id'] ?? '',
+    name: json['name'] ?? '',
+  );
 }
+
 
 class Subcategory {
   final String id;
   final String name;
-
   Subcategory({required this.id, required this.name});
-
-  factory Subcategory.fromJson(Map<String, dynamic> json) {
-    return Subcategory(
-      id: json['id'] ?? '',
-      name: json['name'] ?? '',
-    );
-  }
+  factory Subcategory.fromJson(Map<String, dynamic> json) => Subcategory(
+    id: json['_id'] ?? '',
+    name: json['name'] ?? '',
+  );
 }
 
 class Vendor {
@@ -157,7 +181,7 @@ class Vendor {
 
   factory Vendor.fromJson(Map<String, dynamic> json) {
     return Vendor(
-      id: json['id'] ?? '',
+      id: json['_id'] ?? '', // Updated to _id
       fullName: json['fullName'] ?? '',
       businessName: json['businessName'] ?? '',
       image: json['image'] ?? '',
@@ -165,6 +189,7 @@ class Vendor {
     );
   }
 }
+
 
 class Ratings {
   final double average;

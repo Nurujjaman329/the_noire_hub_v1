@@ -63,12 +63,14 @@ class Product {
   final String name;
   final String description;
   final double price;
+  final double originalPrice;    // Added
+  final double discountedPrice;  // Added
   final String category;
   final String subcategory;
   final String vendor;
   final Weight weight;
   final List<String> images;
-  final int discount;
+  final VendorProductsDiscountModel discount;
   final double rating;
   final int totalReviews;
   final int stock;
@@ -83,6 +85,8 @@ class Product {
     required this.name,
     required this.description,
     required this.price,
+    required this.originalPrice,    // Added
+    required this.discountedPrice,  // Added
     required this.category,
     required this.subcategory,
     required this.vendor,
@@ -101,16 +105,19 @@ class Product {
 
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
-      id: json['id'] ?? '',
+      id: json['_id'] ?? '',
       name: json['name'] ?? '',
       description: json['description'] ?? '',
       price: (json['price'] ?? 0).toDouble(),
+      // Mapping the new fields from JSON
+      originalPrice: (json['originalPrice'] ?? 0).toDouble(),
+      discountedPrice: (json['discountedPrice'] ?? 0).toDouble(),
       category: json['category'] ?? '',
       subcategory: json['subcategory'] ?? '',
       vendor: json['vendor'] ?? '',
       weight: Weight.fromJson(json['weight'] ?? {}),
       images: (json['images'] as List<dynamic>? ?? []).map((e) => e.toString()).toList(),
-      discount: json['discount'] ?? 0,
+      discount: VendorProductsDiscountModel.fromJson(json['discount']),
       rating: (json['rating'] ?? 0).toDouble(),
       totalReviews: json['totalReviews'] ?? 0,
       stock: json['stock'] ?? 0,
@@ -124,6 +131,30 @@ class Product {
     );
   }
 }
+
+class VendorProductsDiscountModel {
+  final double value;
+  final String type;
+
+  VendorProductsDiscountModel({required this.value, required this.type});
+
+  factory VendorProductsDiscountModel.fromJson(dynamic json) {
+    // If it's a number (0 or 10)
+    if (json is num) {
+      return VendorProductsDiscountModel(value: json.toDouble(), type: 'flat');
+    }
+    // If it's the object {"value": 20, "type": "%"}
+    else if (json is Map<String, dynamic>) {
+      return VendorProductsDiscountModel(
+        value: (json['value'] ?? 0).toDouble(),
+        type: json['type'] ?? 'flat',
+      );
+    }
+    // Fallback
+    return VendorProductsDiscountModel(value: 0.0, type: 'flat');
+  }
+}
+
 
 class Weight {
   final double value;

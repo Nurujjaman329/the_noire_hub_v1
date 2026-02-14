@@ -228,6 +228,14 @@ class VendorStoreScreen extends GetView<VendorProductController> {
 
 
   Widget _buildProductCard(Product product) {
+    // Logic to check if there is an active discount
+    final bool hasDiscount = product.discountedPrice < product.originalPrice;
+
+    // Calculate percentage if needed, or just use the value from your model
+    final String discountLabel = product.discount.type == "%"
+        ? "${product.discount.value.toInt()}% OFF"
+        : "SAVE \$${(product.originalPrice - product.discountedPrice).toStringAsFixed(0)}";
+
     return GestureDetector(
       onTap: () => Get.toNamed(RouteConstants.vendorProductDetailScreen, arguments: product.id),
       child: Container(
@@ -241,16 +249,39 @@ class VendorStoreScreen extends GetView<VendorProductController> {
             Expanded(
               child: Padding(
                 padding: EdgeInsets.all(8.r),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(15.r),
-                  child: CustomNetworkImage(
-                    imageUrl: product.images.isNotEmpty
-                        ? "${ApiConstants.baseImageUrl}${product.images[0]}"
-                        : "",
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    height: 70,
-                  ),
+                child: Stack( // Wrap in Stack to show the badge over the image
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(15.r),
+                      child: CustomNetworkImage(
+                        imageUrl: product.images.isNotEmpty
+                            ? "${ApiConstants.baseImageUrl}${product.images[0]}"
+                            : "",
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        height: double.infinity,
+                      ),
+                    ),
+                    // --- DISCOUNT BADGE ---
+                    if (hasDiscount)
+                      Positioned(
+                        top: 8,
+                        left: 8,
+                        child: Container(
+                          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                          decoration: BoxDecoration(
+                            color: const Color(0XFFB5B475), // Your accent color
+                            borderRadius: BorderRadius.circular(10.r),
+                          ),
+                          child: CustomText(
+                            text: discountLabel,
+                            fontSize: 8.sp,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),
@@ -259,7 +290,6 @@ class VendorStoreScreen extends GetView<VendorProductController> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Product Name
                   CustomText(
                     text: product.name,
                     fontSize: 11.sp,
@@ -267,8 +297,6 @@ class VendorStoreScreen extends GetView<VendorProductController> {
                     maxLines: 1,
                   ),
                   SizedBox(height: 4.h),
-
-                  // Row for Stock and Weight
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -281,35 +309,35 @@ class VendorStoreScreen extends GetView<VendorProductController> {
                         text: "${product.weight.value}${product.weight.unit}",
                         fontSize: 9.sp,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0XFFB5B475), // Using your accent color
+                        color: const Color(0XFFB5B475),
                       ),
                     ],
                   ),
-                  SizedBox(height: 2.h),
-
-                  // Rating Row
-                  Row(
-                    children: [
-                      Icon(Icons.star, size: 10.sp, color: Colors.orange),
-                      CustomText(
-                        text: " ${product.rating.toStringAsFixed(1)} (${product.totalReviews})",
-                        fontSize: 8.sp,
-                        color: Colors.grey,
-                      ),
-                    ],
-                  ),
-
                   SizedBox(height: 5.h),
 
-                  // Price and Menu Row
+                  // --- PRICE ROW WITH STRIKE-THROUGH ---
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      CustomText(
-                        text: "\$${product.price.toStringAsFixed(2)}",
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0XFF1D3826),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (hasDiscount)
+                            Text(
+                              "\$${product.originalPrice.toStringAsFixed(2)}",
+                              style: TextStyle(
+                                fontSize: 9.sp,
+                                color: Colors.grey,
+                                decoration: TextDecoration.lineThrough, // Strike-through
+                              ),
+                            ),
+                          CustomText(
+                            text: "\$${product.discountedPrice.toStringAsFixed(2)}",
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.bold,
+                            color: const Color(0XFF1D3826),
+                          ),
+                        ],
                       ),
                       _buildProductMenu(product),
                     ],
@@ -322,6 +350,7 @@ class VendorStoreScreen extends GetView<VendorProductController> {
       ),
     );
   }
+
 
   Widget _buildProductMenu(Product product) {
     return PopupMenuButton<String>(
