@@ -135,26 +135,40 @@ class Product {
 class VendorProductsDiscountModel {
   final double value;
   final String type;
+  final double? maxAmount; // ✅ Added nullable maxAmount
 
-  VendorProductsDiscountModel({required this.value, required this.type});
+  VendorProductsDiscountModel({
+    required this.value,
+    required this.type,
+    this.maxAmount, // ✅ Now optional
+  });
 
   factory VendorProductsDiscountModel.fromJson(dynamic json) {
-    // If it's a number (0 or 10)
+    // If it's just a number (e.g., legacy data 0 or 10)
     if (json is num) {
-      return VendorProductsDiscountModel(value: json.toDouble(), type: 'flat');
+      return VendorProductsDiscountModel(
+        value: json.toDouble(),
+        type: 'flat',
+        maxAmount: null,
+      );
     }
-    // If it's the object {"value": 20, "type": "%"}
-    else if (json is Map<String, dynamic>) {
+
+    // If it's the object {"value": 20, "type": "%", "maxAmount": null}
+    if (json is Map<String, dynamic>) {
       return VendorProductsDiscountModel(
         value: (json['value'] ?? 0).toDouble(),
         type: json['type'] ?? 'flat',
+        // Convert to double only if it's not null
+        maxAmount: json['maxAmount'] != null
+            ? (json['maxAmount'] as num).toDouble()
+            : null,
       );
     }
-    // Fallback
-    return VendorProductsDiscountModel(value: 0.0, type: 'flat');
+
+    // Fallback default
+    return VendorProductsDiscountModel(value: 0.0, type: 'flat', maxAmount: null);
   }
 }
-
 
 class Weight {
   final double value;

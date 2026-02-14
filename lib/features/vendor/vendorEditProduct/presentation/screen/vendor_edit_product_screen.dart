@@ -32,6 +32,7 @@ class _VendorEditProductScreenState extends State<VendorEditProductScreen> {
   late TextEditingController weightValueController;
   late TextEditingController stockController;
   late TextEditingController discountValueController;
+  late TextEditingController maxDiscountController;
 
   String selectedWeightUnit = "g";
   String? selectedDiscountType;
@@ -47,9 +48,14 @@ class _VendorEditProductScreenState extends State<VendorEditProductScreen> {
     selectedWeightUnit = widget.product.weight.unit ?? "g";
 
     final initialDiscountValue = widget.product.discount.value;
+    final initialMaxAmount = widget.product.discount.maxAmount;
 
     discountValueController = TextEditingController(
         text: initialDiscountValue > 0 ? initialDiscountValue.toString() : ""
+    );
+
+    maxDiscountController = TextEditingController(
+        text: (initialMaxAmount != null && initialMaxAmount > 0) ? initialMaxAmount.toString() : ""
     );
 
     if (initialDiscountValue > 0 &&
@@ -132,6 +138,7 @@ class _VendorEditProductScreenState extends State<VendorEditProductScreen> {
       weightUnit: selectedWeightUnit,
       discountValue: double.tryParse(discountValueController.text),
       discountType: selectedDiscountType,
+      discountMaxAmount: double.tryParse(maxDiscountController.text),
       stock: int.tryParse(stockController.text),
       newImages: editController.selectedImages,
 
@@ -150,6 +157,7 @@ class _VendorEditProductScreenState extends State<VendorEditProductScreen> {
       backgroundColor: const Color(0xFF1D3826),
       appBar: CustomAppBar(
           title: "Edit Product",
+          tittleColor: Colors.white,
           showBackButton: true,
           bgColor: Colors.transparent,
           arrowColor: Colors.white
@@ -274,9 +282,24 @@ class _VendorEditProductScreenState extends State<VendorEditProductScreen> {
             ),
           ],
         ),
+        // ✅ Added Max Amount Field
+        SizedBox(height: 15.h),
+        _buildLabel("Max Discount Amount (Optional Cap)"),
+        _buildInputWrapper(
+          child: TextField(
+            controller: maxDiscountController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+                hintText: "Enter max cap amount",
+                border: InputBorder.none,
+                icon: Icon(Icons.gavel, size: 18, color: Color(0xFF1D3826))
+            ),
+          ),
+        ),
       ],
     );
   }
+
 
   Widget _buildHeaderSection() {
     return Row(

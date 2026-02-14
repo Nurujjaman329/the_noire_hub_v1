@@ -33,6 +33,7 @@ class _VendorAddProductScreenState extends State<VendorAddProductScreen> {
   final weightValueController = TextEditingController();
   final stockController = TextEditingController();
   final discountValueController = TextEditingController();
+  final maxDiscountController = TextEditingController();
   String? selectedDiscountType;
 
   String selectedWeightUnit = "g";
@@ -65,6 +66,7 @@ class _VendorAddProductScreenState extends State<VendorAddProductScreen> {
 
     final String discountValRaw = discountValueController.text.trim();
     final double discountAmount = double.tryParse(discountValRaw) ?? 0.0;
+    final double maxAmount = double.tryParse(maxDiscountController.text.trim()) ?? 0.0;
 
     if (discountAmount > 0 && selectedDiscountType == null) {
       Get.snackbar(
@@ -88,6 +90,7 @@ class _VendorAddProductScreenState extends State<VendorAddProductScreen> {
       stock: int.tryParse(stockController.text),
       variants: productController.selectedVariants,
       discountType: selectedDiscountType ?? "",
+      discountMaxAmount: maxAmount > 0 ? maxAmount : null,
       discountValue: discountAmount,
 
     );
@@ -160,6 +163,20 @@ class _VendorAddProductScreenState extends State<VendorAddProductScreen> {
 
                     SizedBox(height: 15.h),
                     _buildPriceAndDiscountRow(),
+
+                    SizedBox(height: 15.h),
+                    _buildLabel("Max Discount Amount (Optional)"),
+                    _buildInputWrapper(
+                      child: TextField(
+                        controller: maxDiscountController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                            hintText: "e.g. 50.0 (Cap the discount)",
+                            border: InputBorder.none,
+                            icon: Icon(Icons.gavel, size: 20, color: Color(0xFF1D3826))
+                        ),
+                      ),
+                    ),
 
                     SizedBox(height: 15.h),
                     _buildLabel("Stock Quantity"),

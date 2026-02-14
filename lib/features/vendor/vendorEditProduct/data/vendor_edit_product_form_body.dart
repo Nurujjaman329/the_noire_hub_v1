@@ -13,6 +13,7 @@ class VendorUpdateProductFormBody {
   final String? weightUnit;
   final double? discountValue;
   final String? discountType;
+  final double? discountMaxAmount;
   final int? stock;
   final bool? isActive;
   final List<EditProductVariantBody>? variants;
@@ -28,6 +29,7 @@ class VendorUpdateProductFormBody {
     this.weightUnit,
     this.discountValue,
     this.discountType,
+    this.discountMaxAmount,
     this.stock,
     this.isActive,
     this.variants,
@@ -62,6 +64,9 @@ class VendorUpdateProductFormBody {
     }
     if (discountType != null) {
       dataMap['discount[type]'] = discountType;
+    }
+    if (discountMaxAmount != null) {
+      dataMap['discount[maxAmount]'] = discountMaxAmount;
     }
 
     if (newImages != null && newImages!.isNotEmpty) {

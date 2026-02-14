@@ -14,6 +14,7 @@ class VendorAddProductPostBody {
   final int? stock;
   final double? discountValue;
   final String? discountType;
+  final double? discountMaxAmount;
 
   // ✅ Support multiple variants
   final List<ProductVariantBody>? variants;
@@ -29,6 +30,7 @@ class VendorAddProductPostBody {
     required this.weightUnit,
      this.discountValue,
      this.discountType,
+    this.discountMaxAmount,
     this.stock,
     this.variants,
   });
@@ -52,6 +54,7 @@ class VendorAddProductPostBody {
       'discount': {
         'value': discountValue,
         'type': discountType,
+        'maxAmount': discountMaxAmount,
       },
     };
 

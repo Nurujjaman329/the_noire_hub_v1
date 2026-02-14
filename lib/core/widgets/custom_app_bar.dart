@@ -10,7 +10,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Color? bgColor;
   final Color? arrowColor;
   final bool showBackButton;
-  final List<Widget>? actions; // ADDED: To support cart icon or other buttons
+  final List<Widget>? actions;
+  final Color? tittleColor;
 
   const CustomAppBar({
     super.key,
@@ -18,6 +19,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.bottom,
     this.bgColor,
     this.arrowColor,
+    this.tittleColor,
     this.showBackButton = false,
     this.actions, // ADDED
   });
@@ -45,8 +47,9 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         text: title,
         fontSize: 18.sp,
         fontWeight: FontWeight.w600,
+        color: tittleColor,
       ),
-      actions: actions, // ADDED: This enables the icons on the right side
+      actions: actions,
       bottom: bottom,
     );
   }
