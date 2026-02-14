@@ -11,6 +11,8 @@ class VendorUpdateProductFormBody {
   final String? subcategory;
   final double? weightValue;
   final String? weightUnit;
+  final double? discountValue;
+  final String? discountType;
   final int? stock;
   final bool? isActive;
   final List<EditProductVariantBody>? variants;
@@ -24,6 +26,8 @@ class VendorUpdateProductFormBody {
     this.subcategory,
     this.weightValue,
     this.weightUnit,
+    this.discountValue,
+    this.discountType,
     this.stock,
     this.isActive,
     this.variants,
@@ -53,6 +57,13 @@ class VendorUpdateProductFormBody {
           jsonEncode(variants!.map((v) => v.toJson()).toList());
     }
 
+    if (discountValue != null) {
+      dataMap['discount[value]'] = discountValue.toString();
+    }
+    if (discountType != null) {
+      dataMap['discount[type]'] = discountType;
+    }
+
     if (newImages != null && newImages!.isNotEmpty) {
       dataMap['images'] = await Future.wait(
         newImages!.map(
@@ -67,6 +78,7 @@ class VendorUpdateProductFormBody {
     return FormData.fromMap(dataMap);
   }
 }
+
 class EditProductVariantBody {
   final String? id;
   final String color;

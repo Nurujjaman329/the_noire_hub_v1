@@ -31,8 +31,10 @@ class _VendorEditProductScreenState extends State<VendorEditProductScreen> {
   late TextEditingController descController;
   late TextEditingController weightValueController;
   late TextEditingController stockController;
+  late TextEditingController discountValueController;
 
   String selectedWeightUnit = "g";
+  String? selectedDiscountType;
 
   @override
   void initState() {
@@ -43,6 +45,19 @@ class _VendorEditProductScreenState extends State<VendorEditProductScreen> {
     weightValueController = TextEditingController(text: widget.product.weight.value.toString());
     stockController = TextEditingController(text: widget.product.stock.toString());
     selectedWeightUnit = widget.product.weight.unit ?? "g";
+
+    final initialDiscountValue = widget.product.discount.value;
+
+    discountValueController = TextEditingController(
+        text: initialDiscountValue > 0 ? initialDiscountValue.toString() : ""
+    );
+
+    if (initialDiscountValue > 0 &&
+        (widget.product.discount.type == "%" || widget.product.discount.type == "flat")) {
+      selectedDiscountType = widget.product.discount.type;
+    } else {
+      selectedDiscountType = null; // Forces "Select Type" hint to show
+    }
 
     editController.selectedVariants.clear();
     for (var variant in widget.product.variants) {
@@ -101,6 +116,11 @@ class _VendorEditProductScreenState extends State<VendorEditProductScreen> {
       return;
     }
 
+    if (discountValueController.text.isNotEmpty && selectedDiscountType == null) {
+      Get.snackbar("Required", "Please select a discount type");
+      return;
+    }
+
     // Check if variants actually changed
     bool variantsChanged = _haveVariantsChanged();
 
@@ -110,6 +130,8 @@ class _VendorEditProductScreenState extends State<VendorEditProductScreen> {
       description: descController.text.trim(),
       weightValue: double.tryParse(weightValueController.text),
       weightUnit: selectedWeightUnit,
+      discountValue: double.tryParse(discountValueController.text),
+      discountType: selectedDiscountType,
       stock: int.tryParse(stockController.text),
       newImages: editController.selectedImages,
 
@@ -180,6 +202,9 @@ class _VendorEditProductScreenState extends State<VendorEditProductScreen> {
                     ),
 
                     SizedBox(height: 20.h),
+                    _buildDiscountRow(),
+
+                    SizedBox(height: 20.h),
                     _buildLabel("Stock Quantity"),
                     _buildInputWrapper(
                       child: TextField(
@@ -207,6 +232,51 @@ class _VendorEditProductScreenState extends State<VendorEditProductScreen> {
   }
 
   // --- UI Helper Components ---
+
+  Widget _buildDiscountRow() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildLabel("Discount"),
+        Row(
+          children: [
+            Expanded(
+              flex: 3,
+              child: _buildInputWrapper(
+                child: TextField(
+                  controller: discountValueController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                      hintText: "Value",
+                      border: InputBorder.none,
+                      icon: Icon(Icons.money_off, size: 18, color: Color(0xFF1D3826))
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(width: 10.w),
+            Expanded(
+              flex: 3,
+              child: _buildInputWrapper(
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    isExpanded: true,
+                    value: selectedDiscountType,
+                    hint: CustomText(text: "Select Type", fontSize: 12.sp, color: Colors.grey),
+                    items: ["%", "flat"].map((u) => DropdownMenuItem(
+                        value: u,
+                        child: Text(u == "%" ? "Percentage (%)" : "Flat Amount")
+                    )).toList(),
+                    onChanged: (v) => setState(() => selectedDiscountType = v),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
 
   Widget _buildHeaderSection() {
     return Row(
