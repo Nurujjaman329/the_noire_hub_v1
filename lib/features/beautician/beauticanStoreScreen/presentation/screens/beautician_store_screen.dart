@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import '../../../../../core/constants/api_constants.dart';
 import '../../../../../core/constants/app_assets.dart';
 import '../../../../../core/constants/app_colors.dart';
-import '../../../../../core/constants/app_constants.dart';
 import '../../../../../core/constants/route_constants.dart';
 import '../../../../../core/services/cache_service.dart';
 import '../../../../../core/widgets/custom_network_image.dart';
@@ -152,85 +151,91 @@ class BeauticianStoreScreen extends GetView<BeauticianStoreServiceController> {
     final String storeName = CacheService.businessName.isNotEmpty ? CacheService.businessName : "My Salon";
     final String fullImageUrl = service.images.isNotEmpty ? "${ApiConstants.imageUrl}${service.images[0]}" : "";
 
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0XFFF9F9D3),
-        borderRadius: BorderRadius.circular(20.r),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          )
-        ],
+    return GestureDetector(
+      onTap: () => Get.toNamed(
+        RouteConstants.serviceDetailsScreen,
+        arguments: service.id,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
-                  child: CustomNetworkImage(
-                    imageUrl: fullImageUrl,
-                    width: double.infinity,
-                    height: double.infinity,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                Positioned(
-                  top: 8.h,
-                  right: 8.w,
-                  child: Container(
-                    padding: EdgeInsets.all(2.r),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.9),
-                      borderRadius: BorderRadius.circular(8.r),
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0XFFF9F9D3),
+          borderRadius: BorderRadius.circular(20.r),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
+            )
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+                    child: CustomNetworkImage(
+                      imageUrl: fullImageUrl,
+                      width: double.infinity,
+                      height: double.infinity,
+                      fit: BoxFit.cover,
                     ),
-                    child: _buildActionMenu(service),
                   ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.all(12.r),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Flexible(child: CustomText(text: storeName, fontSize: 12.sp, fontWeight: FontWeight.w500, maxLines: 1)),
-                    Flexible(child: CustomText(text: service.name, fontSize: 12.sp, fontWeight: FontWeight.bold, maxLines: 1)),
-                  ],
-                ),
-                SizedBox(height: 8.h),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CustomText(text: "7 km away", fontSize: 10.sp, color: Colors.black54),
-                        Row(
-                          children: [
-                            CustomText(text: "${service.rating} ", fontSize: 10.sp, color: const Color(0XFF707E5F), fontWeight: FontWeight.bold),
-                            Icon(Icons.star, color: const Color(0XFF707E5F), size: 10.sp),
-                            CustomText(text: " (${service.totalReviews})", fontSize: 10.sp, color: const Color(0XFF707E5F)),
-                          ],
-                        ),
-                      ],
+                  Positioned(
+                    top: 8.h,
+                    right: 8.w,
+                    child: Container(
+                      padding: EdgeInsets.all(.01.r),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                      child: _buildActionMenu(service),
                     ),
-                    CustomText(text: "\$${service.price}", fontSize: 22.sp, fontWeight: FontWeight.bold),
-                  ],
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+            Padding(
+              padding: EdgeInsets.all(12.r),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Flexible(child: CustomText(text: storeName, fontSize: 12.sp, fontWeight: FontWeight.w500, maxLines: 1)),
+                      Flexible(child: CustomText(text: service.name, fontSize: 12.sp, fontWeight: FontWeight.bold, maxLines: 1)),
+                    ],
+                  ),
+                  SizedBox(height: 8.h),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CustomText(text: "7 km away", fontSize: 10.sp, color: Colors.black54),
+                          Row(
+                            children: [
+                              CustomText(text: "${service.rating} ", fontSize: 10.sp, color: const Color(0XFF707E5F), fontWeight: FontWeight.bold),
+                              Icon(Icons.star, color: const Color(0XFF707E5F), size: 10.sp),
+                              CustomText(text: " (${service.totalReviews})", fontSize: 10.sp, color: const Color(0XFF707E5F)),
+                            ],
+                          ),
+                        ],
+                      ),
+                      CustomText(text: "\$${service.price}", fontSize: 15.sp, fontWeight: FontWeight.bold),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -33,6 +33,7 @@ class ApiConstants {
   //beauticians
 
   static const String beauticianServiceList = "services/my-services";
+  static const String serviceRoute = "services";
 
 
   //vendor

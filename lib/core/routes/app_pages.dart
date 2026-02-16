@@ -4,6 +4,7 @@ import 'package:the_noire_hub_v1/features/authentication/gmailVerification/prese
 import 'package:the_noire_hub_v1/features/authentication/registration/presentation/bindings/registration_bindings.dart';
 import 'package:the_noire_hub_v1/features/authentication/resetPassword/presentation/bindings/reset_password_bindings.dart';
 import 'package:the_noire_hub_v1/features/beautician/beauticianAddService/presentation/screen/beautician_add_service_screen.dart';
+import 'package:the_noire_hub_v1/features/beautician/serviceDetailsScreen/presentation/bindings/service_details_bindings.dart';
 import 'package:the_noire_hub_v1/features/common/businessDocument/presentation/bindings/business_documents_bindings.dart';
 import 'package:the_noire_hub_v1/features/common/changePassword/presentation/bindings/change_password_bindings.dart';
 import 'package:the_noire_hub_v1/features/vendor/orderFullFillment/presentation/bindings/order_full_fillment_bindings.dart';
@@ -398,6 +399,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.serviceDetailsScreen,
       page: () => const ServiceDetailsScreen(),
+      binding: ServiceDetailsBindings(),
       transition: Transition.cupertino,
     ),
     GetPage(
