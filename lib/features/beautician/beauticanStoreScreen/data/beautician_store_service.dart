@@ -42,7 +42,7 @@ class BeauticianStoreService {
       final String deleteUrl = "${ApiConstants.baseUrl}${ApiConstants.beauticianServiceList}/$serviceId";
       debugPrint('🗑️ [DELETE] Full URL: $deleteUrl');
 
-      await _apiClient.delete("${ApiConstants.beauticianServiceList}/$serviceId");
+      await _apiClient.delete("${ApiConstants.serviceRoute}/$serviceId");
     } on AppException {
       rethrow;
     } catch (e) {

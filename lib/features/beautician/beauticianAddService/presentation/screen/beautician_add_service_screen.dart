@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../../core/constants/app_assets.dart';
 import '../../../../../core/constants/app_colors.dart';
-import '../../../../../core/constants/route_constants.dart';
 import '../../../../../core/services/cache_service.dart';
 import '../../../../../core/widgets/custom_button.dart';
 import '../../../../../core/widgets/custom_network_image.dart';
@@ -12,14 +11,8 @@ import '../../../../../core/widgets/custom_text.dart';
 import '../../../../common/category/presentation/controller/category_controller.dart';
 import '../../../../common/subCategories/presentation/controller/sub_categories_controller.dart';
 import '../../../beauticiansVariantAdd/presentation/beauticians_add_variant_sheet.dart';
-
-
-import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
-
 import '../../data/beauticians_create_service_post_body.dart';
 import '../controller/beauticians_create_service_controller.dart';
 

@@ -75,11 +75,12 @@ class BeauticianStoreServiceController extends GetxController {
       services.removeWhere((element) => element.id == id);
 
       await _service.deleteService(id);
-      Get.snackbar("Success", "Service deleted successfully");
+      AppSnackbar.success("Service deleted successfully");
     } catch (e) {
       // Rollback if API fails
       fetchServices(isRefresh: true);
-      Get.snackbar("Error", "Failed to delete service");
+      AppSnackbar.error("Failed to delete service");
+
     }
   }
 }
