@@ -19,6 +19,8 @@ import '../../features/authentication/registration/presentation/screens/customer
 import '../../features/authentication/registration/presentation/screens/registration_screen.dart';
 import '../../features/authentication/registration/presentation/screens/vendor_registration_screen.dart';
 import '../../features/authentication/resetPassword/presentation/screen/reset_password_screen.dart';
+import '../../features/beautician/beauticanStoreScreen/presentation/bindings/beautician_store_service_bindings.dart';
+import '../../features/beautician/beauticanStoreScreen/presentation/screens/beautician_store_screen.dart';
 import '../../features/beautician/beauticianAvailabiltySection/presentation/screens/beautician_availability_section.dart';
 import '../../features/beautician/beauticiansBookingHistory/presentation/screens/beauticians_bookings_history_screen.dart';
 import '../../features/beautician/editServiceScreen/presentation/edit_service_screen.dart';
@@ -413,6 +415,13 @@ class AppPages {
       name: RouteConstants.vendorEditProductScreen,
       page: () => VendorEditProductScreen(product: Get.arguments as Product),
       binding: VendorEditProductBindings(),
+      transition: Transition.cupertino,
+    ),
+
+    GetPage(
+      name: RouteConstants.beauticiansStoreScreen,
+      page: () => const BeauticianStoreScreen(),
+      binding: BeauticianStoreServiceBindings(),
       transition: Transition.cupertino,
     ),
   ];

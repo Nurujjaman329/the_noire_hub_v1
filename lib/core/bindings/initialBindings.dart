@@ -1,4 +1,6 @@
 import 'package:get/get.dart';
+import '../../features/beautician/beauticanStoreScreen/data/beautician_store_service.dart';
+import '../../features/beautician/beauticanStoreScreen/presentation/controller/beautician_store_service_controller.dart';
 import '../api/api_client.dart';
 import '../../features/authentication/login/data/login_service.dart';
 import '../../features/authentication/login/presentation/controller/login_controller.dart';
@@ -30,5 +32,11 @@ class InitialBinding extends Bindings {
     // Vendor Products
     Get.lazyPut<VendorProductList>(() => VendorProductList(Get.find<ApiClient>()), fenix: true);
     Get.lazyPut<VendorProductController>(() => VendorProductController(Get.find<VendorProductList>()), fenix: true);
+
+    // Beauticians Services
+    Get.lazyPut<BeauticianStoreService>(() => BeauticianStoreService(Get.find<ApiClient>()), fenix: true);
+    Get.lazyPut<BeauticianStoreServiceController>(() => BeauticianStoreServiceController(Get.find<BeauticianStoreService>()), fenix: true);
+
+
   }
 }

@@ -1,114 +1,233 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import '../../../../../core/constants/api_constants.dart';
 import '../../../../../core/constants/app_assets.dart';
 import '../../../../../core/constants/app_colors.dart';
+import '../../../../../core/constants/app_constants.dart';
 import '../../../../../core/constants/route_constants.dart';
+import '../../../../../core/services/cache_service.dart';
 import '../../../../../core/widgets/custom_network_image.dart';
 import '../../../../../core/widgets/custom_text.dart';
-import '../../../../../core/widgets/dialog_helper.dart';
+import '../../data/beautician_store_response_model.dart';
+import '../controller/beautician_store_service_controller.dart';
 
-class BeauticianStoreScreen extends StatefulWidget {
+
+class BeauticianStoreScreen extends GetView<BeauticianStoreServiceController> {
   const BeauticianStoreScreen({super.key});
 
   @override
-  State<BeauticianStoreScreen> createState() => _BeauticianStoreScreenState();
-}
-
-class _BeauticianStoreScreenState extends State<BeauticianStoreScreen> {
-  // Track toggle state
-  bool isLiveMode = true;
-
-  @override
   Widget build(BuildContext context) {
+    // 1. Dynamic Business Info from CacheService
+    final String businessName = CacheService.businessName.isNotEmpty
+        ? CacheService.businessName
+        : "My Shop";
+    final String profileImg = CacheService.userImage;
+    final String businessBio = CacheService.bio.isNotEmpty
+        ? CacheService.bio
+        : "Welcome to our professional beautician services.";
 
     return Scaffold(
       backgroundColor: AppColors.white,
-      body: SingleChildScrollView(
-        child: Stack(
-          children: [
-            // 1. Header Background (Static in background)
-            _buildHeaderBackground(),
+      body: Obx(() {
+        if (controller.isLoading.value && controller.services.isEmpty) {
+          return const Center(child: CircularProgressIndicator(color: Color(0xFF707E5F)));
+        }
 
-            // 2. Content Layer
-            Column(
+        return RefreshIndicator(
+          onRefresh: () => controller.fetchServices(isRefresh: true),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Stack(
               children: [
-                // Transparent space to let header show through
-                SizedBox(height: 160.h),
-
-                // 3. The Main Content Card
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(50.r),
-                      topRight: Radius.circular(50.r),
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      // THIS IS THE KEY: Pull the image up so it sits on the line
-                      Transform.translate(
-                        offset: Offset(0, -60.h),
-                        child: _buildFloatingProfileImage(),
-                      ),
-
-                      // Reduce height since Transform moved the image up
-                      Transform.translate(
-                        offset: Offset(0, -40.h),
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 20.w),
-                          child: Column(
-                            children: [
-                              _buildStoreInfo(),
-
-                              Padding(
-                                padding: EdgeInsets.symmetric(vertical: 15.h),
-                                child: Divider(color: AppColors.geryColor.withValues(alpha:0.2), thickness: 1),
-                              ),
-
-                              _buildTextButtonsToggle(),
-
-                              SizedBox(height: 10.h),
-                              _buildServiceCategory("Hair Services", showEdit: isLiveMode),
-                              _buildServiceCategory("Skin Services", showEdit: isLiveMode),
-
-                              SizedBox(height: 100.h),
-                            ],
-                          ),
+                _buildHeaderBackground(),
+                Column(
+                  children: [
+                    SizedBox(height: 160.h),
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: AppColors.white,
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(50.r),
+                          topRight: Radius.circular(50.r),
                         ),
                       ),
-                    ],
+                      child: Column(
+                        children: [
+                          Transform.translate(
+                            offset: Offset(0, -60.h),
+                            child: _buildFloatingProfileImage(profileImg),
+                          ),
+                          Transform.translate(
+                            offset: Offset(0, -40.h),
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 20.w),
+                              child: Column(
+                                children: [
+                                  _buildStoreInfo(businessName, businessBio),
+                                  Padding(
+                                    padding: EdgeInsets.symmetric(vertical: 15.h),
+                                    child: Divider(color: AppColors.geryColor.withValues(alpha: 0.2), thickness: 1),
+                                  ),
+                                  _buildTextButtonsToggle(),
+                                  SizedBox(height: 10.h),
+
+                                  // 4. Simplified Service List (No automatic grouping)
+                                  if (controller.services.isEmpty && !controller.isLoading.value)
+                                    _buildEmptyState()
+                                  else
+                                    _buildProductSection("All Services", controller.services),
+
+                                  if (controller.isLoading.value && controller.services.isNotEmpty)
+                                    Padding(
+                                      padding: EdgeInsets.symmetric(vertical: 20.h),
+                                      child: const CircularProgressIndicator(color: Color(0xFF707E5F)),
+                                    ),
+
+                                  SizedBox(height: 100.h),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
+  // --- Simplified Section Builder (Matches Vendor Style) ---
+  Widget _buildProductSection(String title, List<ServiceModel> services) {
+    return Column(
+      children: [
+        Padding(
+          padding: EdgeInsets.only(top: 25.h, bottom: 15.h),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              CustomText(text: title, fontSize: 18.sp, fontWeight: FontWeight.bold),
+              GestureDetector(
+                onTap: () => Get.toNamed(RouteConstants.addProductsScreen),
+                child: Row(
+                  children: [
+                    Icon(Icons.add_circle_outline, size: 18.sp, color: const Color(0xFF707E5F)),
+                    CustomText(
+                      text: "Add Service",
+                      fontSize: 11.sp,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF707E5F),
+                      left: 5.w,
+                    ),
+                  ],
+                ),
+              )
+            ],
+          ),
+        ),
+        GridView.builder(
+          shrinkWrap: true,
+          padding: EdgeInsets.zero,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: services.length,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 0.72,
+            crossAxisSpacing: 15.w,
+            mainAxisSpacing: 15.h,
+          ),
+          itemBuilder: (context, index) => _buildServiceCard(services[index]),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildServiceCard(ServiceModel service) {
+    final String storeName = CacheService.businessName.isNotEmpty ? CacheService.businessName : "My Salon";
+    final String fullImageUrl = service.images.isNotEmpty ? "${ApiConstants.imageUrl}${service.images[0]}" : "";
+
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0XFFF9F9D3),
+        borderRadius: BorderRadius.circular(20.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          )
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+                  child: CustomNetworkImage(
+                    imageUrl: fullImageUrl,
+                    width: double.infinity,
+                    height: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                Positioned(
+                  top: 8.h,
+                  right: 8.w,
+                  child: Container(
+                    padding: EdgeInsets.all(2.r),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.9),
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                    child: _buildActionMenu(service),
                   ),
                 ),
               ],
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeaderBackground() {
-    return SizedBox(
-      height: 240.h, // Set the fixed height of your background
-      child: Stack(
-        children: [
-          CustomNetworkImage(
-            imageUrl: AppAssets.vendorStoreTop,
-            height: 240.h,
-            width: double.infinity,
-            borderRadius: BorderRadius.zero,
-            fit: BoxFit.cover,
           ),
-          Positioned(
-            top: 0,
-            right: 0,
-            child: CustomNetworkImage(
-              imageUrl: AppAssets.vendorStoreShadow,
-              height: 140.h,
-              width: 220.w,
+          Padding(
+            padding: EdgeInsets.all(12.r),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Flexible(child: CustomText(text: storeName, fontSize: 12.sp, fontWeight: FontWeight.w500, maxLines: 1)),
+                    Flexible(child: CustomText(text: service.name, fontSize: 12.sp, fontWeight: FontWeight.bold, maxLines: 1)),
+                  ],
+                ),
+                SizedBox(height: 8.h),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomText(text: "7 km away", fontSize: 10.sp, color: Colors.black54),
+                        Row(
+                          children: [
+                            CustomText(text: "${service.rating} ", fontSize: 10.sp, color: const Color(0XFF707E5F), fontWeight: FontWeight.bold),
+                            Icon(Icons.star, color: const Color(0XFF707E5F), size: 10.sp),
+                            CustomText(text: " (${service.totalReviews})", fontSize: 10.sp, color: const Color(0XFF707E5F)),
+                          ],
+                        ),
+                      ],
+                    ),
+                    CustomText(text: "\$${service.price}", fontSize: 22.sp, fontWeight: FontWeight.bold),
+                  ],
+                ),
+              ],
             ),
           ),
         ],
@@ -116,77 +235,32 @@ class _BeauticianStoreScreenState extends State<BeauticianStoreScreen> {
     );
   }
 
-  Widget _buildFloatingProfileImage() {
+  // --- Helper Components ---
+  Widget _buildFloatingProfileImage(String imageUrl) {
     return Container(
       padding: EdgeInsets.all(5.r),
       decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-      child: Stack(
-        children: [
-          CustomNetworkImage(
-            imageUrl: "https://images.pexels.com/photos/3762882/pexels-photo-3762882.jpeg",
-            height: 110.r,
-            width: 110.r,
-            boxShape: BoxShape.circle,
-          ),
-          if (isLiveMode)
-            Positioned(
-              bottom: 0,
-              right: 0,
-              child: CircleAvatar(
-                radius: 18.r,
-                backgroundColor: AppColors.primaryDark,
-                child: Icon(Icons.camera_alt, color: Colors.white, size: 16.sp),
-              ),
-            ),
-        ],
-      ),
+      child: CustomNetworkImage(imageUrl: imageUrl, height: 110.r, width: 110.r, boxShape: BoxShape.circle),
     );
   }
 
-  Widget _buildStoreInfo() {
+  Widget _buildStoreInfo(String name, String bio) {
     return Column(
       children: [
-        CustomText(
-          text: "Ada’s Body Shop",
-          fontSize: 22.sp,
-          fontWeight: FontWeight.bold,
-          color: Color(0XFF1D3826),
-          // color: AppColors.primaryDark,
-        ),
+        CustomText(text: name, fontSize: 22.sp, fontWeight: FontWeight.bold, color: const Color(0XFF1D3826)),
         SizedBox(height: 10.h),
-        CustomText(
-          text: "Shop home-made Service that are tailored to tropical climates, black skin and black hair.",
-          textAlign: TextAlign.center,
-          fontSize: 11.sp,
-          color: Color(0x80000000),
-          // color: AppColors.geryColor,
-        ),
+        CustomText(text: bio, textAlign: TextAlign.center, fontSize: 11.sp, color: const Color(0x80000000)),
         SizedBox(height: 12.h),
-
-        // --- NEW SEPARATED INFO ROW ---
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _infoTile("2-Day Delivery"),
+              _infoTile("Home Service: ${controller.services.any((s) => s.homeService) ? "Yes" : "No"}"),
               _infoDivider(),
-              _infoTile("10-Day Shipping"),
+              _infoTile("Verified"),
               _infoDivider(),
-              _infoTile("Open 9 am - 9 pm"),
-              _infoDivider(),
-              GestureDetector(
-                onTap: () {
-                  // More Details Logic
-                },
-                child: CustomText(
-                  text: "More Details",
-                  fontSize: 9.sp,
-                  color: AppColors.primaryDark,
-                  fontWeight: FontWeight.bold,
-                  textDecoration: TextDecoration.underline,
-                ),
-              ),
+              _infoTile("Beautician"),
             ],
           ),
         ),
@@ -194,235 +268,96 @@ class _BeauticianStoreScreenState extends State<BeauticianStoreScreen> {
     );
   }
 
-  // Helper widget for the info text
-  Widget _infoTile(String text) {
-    return CustomText(
-      text: text,
-      fontSize: 9.sp,
-      color: Color(0XFFB5B475),
-      // color: AppColors.geryColor,
-      fontWeight: FontWeight.w500,
-    );
-  }
-
-  // Helper widget for the vertical separator |
-  Widget _infoDivider() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 8.w),
-      child: CustomText(
-        text: "|",
-        fontSize: 10.sp,
-        color: AppColors.geryColor.withValues(alpha:0.5),
-      ),
-    );
-  }
-
-  // --- REPLACED TAB WITH TEXT BUTTONS ---
-  Widget _buildTextButtonsToggle() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        GestureDetector(
-          onTap: () {
-            GlobalDialogs.showActionRequiredDialog(
-              onVerifyTap: () {
-                Get.toNamed(RouteConstants.businessScreen);
-              },
-              onFulfillmentTap: () {
-                Get.toNamed(RouteConstants.orderFullFillMent);
-              },
-                onClose: () {
-                  // Get.find<AccountController>().dismissDialog();
-                }
-            );
-          },
-          child: CustomText(
-            text: "Go Live",
-            color: Color(0XFFB5B475),
-            // color: AppColors.secondaryVariant,
-            fontSize: 14.sp,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        GestureDetector(
-          onTap: () => setState(() => isLiveMode = false),
-          child: CustomText(
-            text: "Preview",
-            color: Color(0XFFB5B475),
-            // color: AppColors.secondaryVariant,
-            fontSize: 14.sp,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+  Widget _buildActionMenu(ServiceModel service) {
+    return PopupMenuButton<String>(
+      color: const Color(0XFF627E4C),
+      // Ensure 18.sp is working, or use a fixed double like 18.0
+      icon: Icon(Icons.more_vert, size: 18.r, color: AppColors.geryColor),
+      onSelected: (value) {
+        if (value == 'edit') {
+          Get.toNamed(RouteConstants.editServiceScreen, arguments: service);
+        } else if (value == 'delete') {
+          _showDeleteConfirmation(service);
+        }
+      },
+      itemBuilder: (context) => [
+        _buildMenuItem('edit', Icons.edit, "Edit", const Color(0XFFF1F0B2)),
+        _buildMenuItem('delete', Icons.delete, "Delete", Colors.red),
       ],
     );
   }
 
-  Widget _buildServiceCategory(String category, {required bool showEdit}) {
-    return GestureDetector(
-      onTap: () {
-        Get.toNamed(RouteConstants.serviceDetailsScreen);
-      },
-      child: Column(
+  Widget _buildHeaderBackground() {
+    return SizedBox(
+      height: 240.h,
+      child: Stack(
         children: [
-          Padding(
-            padding: EdgeInsets.only(top: 25.h, bottom: 15.h),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    CustomText(text: category, fontSize: 18.sp, fontWeight: FontWeight.bold),
-                    if (showEdit) SizedBox(width: 5.w),
-                    if (showEdit) Icon(Icons.edit_note, size: 20.sp, color: AppColors.geryColor),
-                  ],
-                ),
-                if (showEdit)
-                  GestureDetector(
-                    onTap: () {
-                      Get.toNamed(RouteConstants.addProductsScreen);
-                    },
-                    child: Row(
-                      children: [
-                        Icon(Icons.add_circle_outline, size: 18.sp, color: AppColors.background),
-                        CustomText(
-                          text: "Add Service",
-                          fontSize: 11.sp,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.background,
-                          left: 5.w,
-                        ),
-                      ],
-                    ),
-                  )
-              ],
-            ),
-          ),
-          GridView.builder(
-            shrinkWrap: true,
-            padding: EdgeInsets.zero,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: 2,
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 0.78,
-              crossAxisSpacing: 15.w,
-              mainAxisSpacing: 15.h,
-            ),
-            itemBuilder: (context, index) => _buildServiceCard(showEdit: showEdit),
+          CustomNetworkImage(imageUrl: AppAssets.vendorStoreTop, height: 240.h, width: double.infinity, borderRadius: BorderRadius.zero, fit: BoxFit.cover),
+          Positioned(top: 0, right: 0, child: CustomNetworkImage(imageUrl: AppAssets.vendorStoreShadow, height: 140.h, width: 220.w)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.only(top: 50.h),
+        child: Column(
+          children: [
+            Icon(Icons.spa_outlined, size: 50.sp, color: AppColors.geryColor),
+            SizedBox(height: 10.h),
+            CustomText(text: "No services listed yet.", color: AppColors.geryColor),
+          ],
+        ),
+      ),
+    );
+  }
+
+  PopupMenuItem<String> _buildMenuItem(String val, IconData icon, String text, Color color) {
+    return PopupMenuItem(
+      value: val,
+      height: 35.h,
+      child: Row(
+        mainAxisSize: MainAxisSize.min, // Added safety
+        children: [
+          Icon(icon, size: 14.r, color: color), // Changed .sp to .r for icons often helps
+          SizedBox(width: 8.w),
+          CustomText(text: text, fontSize: 12.sp, color: color),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(ServiceModel service) {
+    Get.dialog(
+      AlertDialog(
+        title: const Text("Delete Service"),
+        content: Text("Are you sure you want to delete '${service.name}'?"),
+        actions: [
+          TextButton(onPressed: () => Get.back(), child: const Text("Cancel")),
+          TextButton(
+            onPressed: () {
+              Get.back();
+              controller.removeService(service.id);
+            },
+            child: const Text("Delete", style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildServiceCard({required bool showEdit}) {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0XFFF0F0EC),
-        borderRadius: BorderRadius.circular(20.r),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Padding(
-              padding: EdgeInsets.all(8.r),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(15.r),
-                child: const CustomNetworkImage(
-                  imageUrl: "https://images.pexels.com/photos/4041391/pexels-photo-4041391.jpeg",
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  height: 70,
-                ),
-              ),
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.fromLTRB(12.w, 0, 12.w, 12.h),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(
-                  text: "Hair Styling Service",
-                  fontSize: 11.sp,
-                  fontWeight: FontWeight.bold,
-                  maxLines: 1,
-                  color: const Color(0XFF000000),
-                ),
-                SizedBox(height: 4.h),
-                CustomText(
-                  text: "21 Blends",
-                  fontSize: 9.sp,
-                  color: const Color(0x99000000),
-                ),
-                SizedBox(height: 5.h),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    CustomText(
-                      text: "\$17.99",
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0XFF000000),
-                    ),
-
-                    // --- REPLACED EDIT ICON WITH POPUP MENU ---
-                    if (showEdit)
-                      PopupMenuButton<String>(
-                        color: const Color(0XFF627E4C),
-                        padding: EdgeInsets.zero,
-                        constraints: BoxConstraints(minWidth: 100.w),
-                        icon: Icon(Icons.more_vert, size: 18.sp, color: AppColors.geryColor),
-
-                        // 1. Move navigation logic here
-                        onSelected: (value) {
-                          if (value == 'edit') {
-                            debugPrint("Navigating to Edit Screen");
-                            Get.toNamed(RouteConstants.editServiceScreen);
-                          } else if (value == 'delete') {
-                            debugPrint("Handle Delete Logic");
-                          }
-                        },
-
-                        // 2. Keep items clean without internal Detectors
-                        itemBuilder: (BuildContext context) => [
-                          PopupMenuItem(
-                            value: 'edit',
-                            height: 35.h,
-                            child: Row(
-                              children: [
-                                Icon(Icons.edit, size: 14.sp, color: const Color(0XFFF1F0B2)),
-                                SizedBox(width: 8.w),
-                                CustomText(text: "Edit", fontSize: 12.sp, color: const Color(0XFFF1F0B2)),
-                              ],
-                            ),
-                          ),
-                          PopupMenuItem(
-                            value: 'delete',
-                            height: 35.h,
-                            child: Row(
-                              children: [
-                                Icon(Icons.delete, size: 14.sp, color: Colors.red),
-                                SizedBox(width: 8.w),
-                                CustomText(text: "Delete", fontSize: 12.sp, color: Colors.red),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+  Widget _buildTextButtonsToggle() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        CustomText(text: "Service Inventory", color: const Color(0XFFB5B475), fontSize: 14.sp, fontWeight: FontWeight.bold),
+        CustomText(text: "Preview", color: const Color(0XFFB5B475), fontSize: 14.sp, fontWeight: FontWeight.bold),
+      ],
     );
   }
 
-
-
-
+  Widget _infoTile(String text) => CustomText(text: text, fontSize: 9.sp, color: const Color(0XFFB5B475), fontWeight: FontWeight.w500);
+  Widget _infoDivider() => Padding(padding: EdgeInsets.symmetric(horizontal: 8.w), child: CustomText(text: "|", fontSize: 10.sp, color: AppColors.geryColor.withValues(alpha:0.5)));
 }

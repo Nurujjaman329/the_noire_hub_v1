@@ -32,6 +32,8 @@ class ApiConstants {
 
   //beauticians
 
+  static const String beauticianServiceList = "services/my-services";
+
 
   //vendor
 
