@@ -40,47 +40,44 @@ class BeauticiansCreateServicePostBody {
   });
 
   Future<FormData> toFormData() async {
-    // Use a Map<String, dynamic> to collect everything
-    final Map<String, dynamic> map = {
+    // 1. Prepare your files list (Multiple Images)
+    List<MultipartFile> multipartFiles = [];
+    for (var file in images) {
+      if (await file.exists()) {
+        multipartFiles.add(
+          await MultipartFile.fromFile(
+            file.path,
+            filename: file.path.split('/').last,
+            contentType: DioMediaType('image', 'jpeg'),
+          ),
+        );
+      }
+    }
+
+    // 2. Create the base Map with standard fields
+    final Map<String, dynamic> dataMap = {
+      'images': multipartFiles, // Use 'images' or 'files' based on your Postman success
       'category': categoryId,
       'subcategory': subCategoryId,
       'name': name,
       'price': price.toString(),
       'description': description,
-      'homeService': homeService.toString(),
       'workingHours[startTime]': startTime,
       'workingHours[endTime]': endTime,
+      'homeService': homeService.toString(),
+      'variants': jsonEncode(variants?.map((v) => v.toJson()).toList() ?? []),
+      'discount[type]': discountType ?? 'flat',
+      'discount[value]': discountValue?.toString() ?? '0',
+      'discount[maxAmount]': discountMaxAmount?.toString() ?? '0',
     };
 
-    // Add dates
+    // 3. ✅ DYNAMIC DATES: Loop through availableDates and add to Map
     for (int i = 0; i < availableDates.length; i++) {
-      map['availableDates[$i]'] = availableDates[i];
+      dataMap['availableDates[$i]'] = availableDates[i];
     }
 
-    // ✅ FIX: Attach Images correctly
-    if (images.isNotEmpty) {
-      List<MultipartFile> files = [];
-      for (var file in images) {
-        if (await file.exists()) {
-          files.add(await MultipartFile.fromFile(
-            file.path,
-            filename: file.path
-                .split('/')
-                .last,
-          ));
-        }
-      }
-      // Most backends expect the key to be "images" for multiple files
-      map['images'] = files;
-    }
-
-    // Add variants
-    if (variants != null && variants!.isNotEmpty) {
-      map['variants'] = jsonEncode(variants!.map((v) => v.toJson()).toList());
-    }
-
-    // Convert the whole map to FormData
-    return FormData.fromMap(map);
+    // 4. Return the FormData from the constructed Map
+    return FormData.fromMap(dataMap);
   }
 }
 

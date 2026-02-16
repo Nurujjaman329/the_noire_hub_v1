@@ -16,11 +16,11 @@ class BeauticianStoreServiceController extends GetxController {
   // Pagination State
   int currentPage = 1;
   bool hasMore = true;
+  final int limit = 10;
 
   @override
   void onInit() {
     super.onInit();
-    // ONLY fetch if the role is correct to avoid 403 logs
     if (CacheService.role.toLowerCase().contains('beautician')) {
       fetchServices();
     }
@@ -31,35 +31,41 @@ class BeauticianStoreServiceController extends GetxController {
     if (isRefresh) {
       currentPage = 1;
       hasMore = true;
+      // Clearing here ensures that when the user pulls-to-refresh,
+      // the old list is gone and the new one starts fresh.
       services.clear();
     }
 
-    if (!hasMore || isLoading.value) return;
+    if (isLoading.value || !hasMore) return;
 
     try {
       isLoading.value = true;
-
       final response = await _service.getBeauticianServices(
         page: currentPage,
+        limit: limit,
       );
 
       final newItems = response.data.attributes.results;
 
-      if (newItems.isEmpty) {
-        hasMore = false;
+      if (newItems.isEmpty && currentPage == 1) {
+        services.clear(); // Ensure it's empty if no results on page 1
       } else {
         services.addAll(newItems);
+      }
+
+      // Logic: If we received less than the limit, no more data exists.
+      if (newItems.length < limit) {
+        hasMore = false;
+      } else {
         currentPage++;
       }
     } catch (e) {
-
       AppSnackbar.error(e.toString());
-
-
     } finally {
       isLoading.value = false;
     }
   }
+
 
   /// Delete Logic
   Future<void> removeService(String id) async {

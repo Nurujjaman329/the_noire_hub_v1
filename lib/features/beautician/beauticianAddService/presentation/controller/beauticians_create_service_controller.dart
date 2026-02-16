@@ -23,10 +23,29 @@ class BeauticiansCreateServiceController extends GetxController {
 
   Future<void> addService(BeauticiansCreateServicePostBody serviceBody) async {
     debugPrint('⚙️ Controller: Initializing addService flow...');
+
+
+    final finalBody = BeauticiansCreateServicePostBody(
+      images: selectedImages.toList(), // Use the controller's picked images
+      categoryId: serviceBody.categoryId,
+      subCategoryId: serviceBody.subCategoryId,
+      name: serviceBody.name,
+      price: serviceBody.price,
+      description: serviceBody.description,
+      availableDates: serviceBody.availableDates,
+      startTime: serviceBody.startTime,
+      endTime: serviceBody.endTime,
+      homeService: serviceBody.homeService,
+      discountType: serviceBody.discountType,
+      discountValue: serviceBody.discountValue,
+      discountMaxAmount: serviceBody.discountMaxAmount,
+      variants: selectedVariants.toList(), // Also sync variants if they are managed in controller
+    );
+
     isLoading.value = true;
 
     try {
-      final success = await _service.createService(serviceBody);
+      final success = await _service.createService(finalBody);
 
       if (success) {
         debugPrint('✅ Controller: Service created successfully. Resetting state.');

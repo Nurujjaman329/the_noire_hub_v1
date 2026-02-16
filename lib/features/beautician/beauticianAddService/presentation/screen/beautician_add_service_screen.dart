@@ -72,26 +72,22 @@ class _BeauticianAddServiceScreenState extends State<BeauticianAddServiceScreen>
   }
 
   void _handleSave() {
+    // 1. Validation
     if (selectedCategoryId == null || selectedSubCategoryId == null) {
       Get.snackbar("Error", "Please select category and subcategory",
           backgroundColor: Colors.redAccent, colorText: Colors.white);
       return;
     }
 
-    if (_selectedDates.isEmpty) {
-      Get.snackbar("Error", "Please select at least one date from the calendar",
-          backgroundColor: Colors.redAccent, colorText: Colors.white);
-      return;
-    }
+    // 2. Data Preparation
+    final double? discountAmount = double.tryParse(discountValueController.text.trim());
+    // Only send discount if value > 0 and type is selected
+    final bool isValidDiscount = (discountAmount ?? 0) > 0 && selectedDiscountType != null;
 
-    final double discountAmount = double.tryParse(discountValueController.text.trim()) ?? 0.0;
-    final bool hasDiscount = discountAmount > 0;
-
-    // Convert Set<DateTime> to List of Strings for API
     final List<String> formattedDates = _selectedDates.map((d) => DateFormat('yyyy-MM-dd').format(d)).toList();
 
     final serviceData = BeauticiansCreateServicePostBody(
-      images: serviceController.selectedImages,
+      images: serviceController.selectedImages.toList(), // .toList() for safety
       categoryId: selectedCategoryId!,
       subCategoryId: selectedSubCategoryId!,
       name: nameController.text.trim(),
@@ -101,10 +97,10 @@ class _BeauticianAddServiceScreenState extends State<BeauticianAddServiceScreen>
       availableDates: formattedDates,
       startTime: _formatTime(startTime),
       endTime: _formatTime(endTime),
-      discountType: hasDiscount ? selectedDiscountType : null,
-      discountValue: hasDiscount ? discountAmount : null,
+      discountType: isValidDiscount ? selectedDiscountType : null,
+      discountValue: isValidDiscount ? discountAmount : null,
       discountMaxAmount: double.tryParse(maxDiscountController.text.trim()),
-      variants: serviceController.selectedVariants,
+      variants: serviceController.selectedVariants.toList(),
     );
 
     serviceController.addService(serviceData);

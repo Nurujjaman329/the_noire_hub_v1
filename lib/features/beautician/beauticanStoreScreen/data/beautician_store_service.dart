@@ -15,7 +15,9 @@ class BeauticianStoreService {
     int limit = 10,
   }) async {
     try {
-      debugPrint('🚀 [GET] Fetching Beautician Services...');
+      // ✅ Construct and Debug the full URL
+      final String fullUrl = "${ApiConstants.baseUrl}${ApiConstants.beauticianServiceList}?page=$page&limit=$limit";
+      debugPrint('🚀 [GET] Full Request URL: $fullUrl');
 
       final response = await _apiClient.get(
         ApiConstants.beauticianServiceList,
@@ -25,17 +27,21 @@ class BeauticianStoreService {
         },
       );
 
+      debugPrint('📥 Response Status: ${response.statusCode}');
       return BeauticianStoreResponseModel.fromJson(response.data);
     } on AppException {
       rethrow;
     } catch (e) {
+      debugPrint('❌ Error in getBeauticianServices: $e');
       throw UnknownException(e.toString());
     }
   }
 
   Future<void> deleteService(String serviceId) async {
     try {
-      debugPrint('🗑️ [DELETE] Removing Service: $serviceId');
+      final String deleteUrl = "${ApiConstants.baseUrl}${ApiConstants.beauticianServiceList}/$serviceId";
+      debugPrint('🗑️ [DELETE] Full URL: $deleteUrl');
+
       await _apiClient.delete("${ApiConstants.beauticianServiceList}/$serviceId");
     } on AppException {
       rethrow;

@@ -12,8 +12,39 @@ import '../../data/beautician_store_response_model.dart';
 import '../controller/beautician_store_service_controller.dart';
 
 
-class BeauticianStoreScreen extends GetView<BeauticianStoreServiceController> {
+class BeauticianStoreScreen extends StatefulWidget {
   const BeauticianStoreScreen({super.key});
+
+  @override
+  State<BeauticianStoreScreen> createState() => _BeauticianStoreScreenState();
+}
+
+class _BeauticianStoreScreenState extends State<BeauticianStoreScreen> {
+  // Access the controller using Get.find
+  final controller = Get.find<BeauticianStoreServiceController>();
+
+  // 1. Create the ScrollController
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    // 2. Add Listener to detect bottom of the page
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 200) {
+        // Trigger next page when 200 pixels from bottom
+        controller.fetchServices();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    // 3. Always dispose controllers
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,10 +63,10 @@ class BeauticianStoreScreen extends GetView<BeauticianStoreServiceController> {
         if (controller.isLoading.value && controller.services.isEmpty) {
           return const Center(child: CircularProgressIndicator(color: Color(0xFF707E5F)));
         }
-
         return RefreshIndicator(
           onRefresh: () => controller.fetchServices(isRefresh: true),
           child: SingleChildScrollView(
+            controller: _scrollController,
             physics: const AlwaysScrollableScrollPhysics(),
             child: Stack(
               children: [
