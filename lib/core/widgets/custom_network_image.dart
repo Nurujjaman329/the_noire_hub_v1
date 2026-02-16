@@ -117,39 +117,47 @@ class CustomNetworkImage extends StatelessWidget {
   }
 
   Widget _buildPlaceholder() {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
-      child: Container(
-        height: height,
-        width: width,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          border: border,
-          borderRadius: borderRadius,
-          shape: boxShape,
+    return SizedBox( // Add SizedBox to enforce dimensions immediately
+      height: height,
+      width: width,
+      child: Shimmer.fromColors(
+        baseColor: Colors.grey[300]!,
+        highlightColor: Colors.grey[100]!,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: border,
+            borderRadius: borderRadius,
+            shape: boxShape,
+          ),
         ),
       ),
     );
   }
 
   Widget _buildErrorWidget() {
+    // 1. Determine a safe icon size.
+    // If height is infinite, default to a standard size (e.g., 40).
+    final double safeHeight = height.isFinite ? height : 100.0;
+    final double iconSize = safeHeight * 0.4;
+
     return Container(
       height: height,
       width: width,
       decoration: BoxDecoration(
         border: border,
-        // Light grey background for empty state
         color: const Color(0xFFF2F2F2),
         borderRadius: borderRadius,
         shape: boxShape,
       ),
-      child: Icon(
-        // Shows a person icon if it's likely a profile, otherwise a generic image icon
-        boxShape == BoxShape.circle ? Icons.person : Icons.image_not_supported_outlined,
-        color: Colors.grey[400],
-        size: (height * 0.4), // Responsive icon size
+      child: Center( // Center the icon so it doesn't stretch
+        child: Icon(
+          boxShape == BoxShape.circle ? Icons.person : Icons.image_not_supported_outlined,
+          color: Colors.grey[400],
+          size: iconSize, // Now guaranteed to be finite
+        ),
       ),
     );
   }
+
 }

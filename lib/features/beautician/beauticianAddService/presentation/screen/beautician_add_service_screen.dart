@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../../../core/constants/app_assets.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/route_constants.dart';
@@ -8,18 +9,19 @@ import '../../../../../core/services/cache_service.dart';
 import '../../../../../core/widgets/custom_button.dart';
 import '../../../../../core/widgets/custom_network_image.dart';
 import '../../../../../core/widgets/custom_text.dart';
-import '../../../../authentication/login/data/login_response_model.dart';
+import '../../../../common/category/presentation/controller/category_controller.dart';
+import '../../../../common/subCategories/presentation/controller/sub_categories_controller.dart';
 import '../../../beauticiansVariantAdd/presentation/beauticians_add_variant_sheet.dart';
 
 
-class ServiceEntry {
-  String? subCategory;
-  TextEditingController nameController = TextEditingController();
-  TextEditingController descController = TextEditingController();
-  TextEditingController priceController = TextEditingController();
+import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+import 'package:table_calendar/table_calendar.dart';
 
-  ServiceEntry({this.subCategory});
-}
+import '../../data/beauticians_create_service_post_body.dart';
+import '../controller/beauticians_create_service_controller.dart';
 
 class BeauticianAddServiceScreen extends StatefulWidget {
   const BeauticianAddServiceScreen({super.key});
@@ -29,23 +31,84 @@ class BeauticianAddServiceScreen extends StatefulWidget {
 }
 
 class _BeauticianAddServiceScreenState extends State<BeauticianAddServiceScreen> {
-  String selectedCategory = "Hair";
-  List<ServiceEntry> serviceList = [ServiceEntry()];
-  UserModel? user;
+  // GetX Controllers
+  final categoryController = Get.find<CategoryController>();
+  final subCategoryController = Get.find<SubCategoryController>();
+  final serviceController = Get.find<BeauticiansCreateServiceController>();
 
-  // Professional Service Categories
-  final Map<String, List<String>> categoryData = {
-    "Hair": ["Haircut", "Coloring", "Braiding", "Styling", "Treatment"],
-    "Make Up": ["Bridal", "Events", "Editorial", "Consultation"],
-    "Nails": ["Manicure", "Pedicure", "Gel Extensions", "Nail Art"],
-    "Spa": ["Facial", "Massage", "Waxing", "Skin Treatment"],
-  };
+  // Text Controllers
+  final nameController = TextEditingController();
+  final priceController = TextEditingController();
+  final descController = TextEditingController();
+  final discountValueController = TextEditingController();
+  final maxDiscountController = TextEditingController();
 
-  String get businessName => CacheService.businessName.isNotEmpty
-      ? CacheService.businessName
-      : "My Studio";
+  // Selection States
+  String? selectedCategoryId;
+  String? selectedSubCategoryId;
+  String? selectedDiscountType;
+  bool isHomeServiceAvailable = false;
 
+  // Calendar & Time States
+  DateTime _focusedDay = DateTime.now();
+  final Set<DateTime> _selectedDates = {};
+  bool isRecurring = false;
+  bool applyToAllDates = false;
 
+  TimeOfDay startTime = const TimeOfDay(hour: 9, minute: 0);
+  TimeOfDay endTime = const TimeOfDay(hour: 18, minute: 0);
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize data using CacheService as per your instructions
+    categoryController.loadCategories(userId: CacheService.userId);
+  }
+
+  String _formatTime(TimeOfDay time) {
+    final now = DateTime.now();
+    final dt = DateTime(now.year, now.month, now.day, time.hour, time.minute);
+    return DateFormat('HH:mm').format(dt);
+  }
+
+  void _handleSave() {
+    if (selectedCategoryId == null || selectedSubCategoryId == null) {
+      Get.snackbar("Error", "Please select category and subcategory",
+          backgroundColor: Colors.redAccent, colorText: Colors.white);
+      return;
+    }
+
+    if (_selectedDates.isEmpty) {
+      Get.snackbar("Error", "Please select at least one date from the calendar",
+          backgroundColor: Colors.redAccent, colorText: Colors.white);
+      return;
+    }
+
+    final double discountAmount = double.tryParse(discountValueController.text.trim()) ?? 0.0;
+    final bool hasDiscount = discountAmount > 0;
+
+    // Convert Set<DateTime> to List of Strings for API
+    final List<String> formattedDates = _selectedDates.map((d) => DateFormat('yyyy-MM-dd').format(d)).toList();
+
+    final serviceData = BeauticiansCreateServicePostBody(
+      images: serviceController.selectedImages,
+      categoryId: selectedCategoryId!,
+      subCategoryId: selectedSubCategoryId!,
+      name: nameController.text.trim(),
+      description: descController.text.trim(),
+      price: double.tryParse(priceController.text) ?? 0.0,
+      homeService: isHomeServiceAvailable,
+      availableDates: formattedDates,
+      startTime: _formatTime(startTime),
+      endTime: _formatTime(endTime),
+      discountType: hasDiscount ? selectedDiscountType : null,
+      discountValue: hasDiscount ? discountAmount : null,
+      discountMaxAmount: double.tryParse(maxDiscountController.text.trim()),
+      variants: serviceController.selectedVariants,
+    );
+
+    serviceController.addService(serviceData);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,45 +120,58 @@ class _BeauticianAddServiceScreenState extends State<BeauticianAddServiceScreen>
           _buildSliverAppBar(),
           SliverToBoxAdapter(
             child: Container(
-              width: double.infinity,
               decoration: BoxDecoration(
                 color: AppColors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(50.r),
-                  topRight: Radius.circular(50.r),
-                ),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(50.r)),
               ),
               child: Padding(
                 padding: EdgeInsets.all(25.w),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Center(
-                      child: CustomText(
-                        text: businessName,
-                        fontSize: 24.sp,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.background,
-                      ),
-                    ),
-                    SizedBox(height: 30.h),
-                    _buildSectionTitle(
-                        "Service Category",
-                        "Select all types of services you provide"
-                    ),
-                    _buildSpecialtiesList(),
+                    Center(child: CustomText(text: businessName, fontSize: 24.sp, fontWeight: FontWeight.bold, color: AppColors.background)),
                     SizedBox(height: 30.h),
 
-                    ListView.separated(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: serviceList.length,
-                      separatorBuilder: (context, index) => SizedBox(height: 30.h),
-                      itemBuilder: (context, index) => _buildAddServiceSection(index),
+                    // --- CATEGORY SECTION ---
+                    _buildSectionTitle("Service Category", "Select the primary category for this service"),
+                    Obx(() => categoryController.isLoading.value
+                        ? const Center(child: CircularProgressIndicator())
+                        : _buildSpecialtiesList()),
+
+                    SizedBox(height: 30.h),
+
+                    // --- CALENDAR SECTION ---
+                    _buildSectionTitle("Select Dates", "What days are you available for bookings"),
+                    _buildCalendarCard(),
+                    SizedBox(height: 15.h),
+                    _buildDarkCheckbox(
+                      value: isRecurring,
+                      label: "Set selected days as recurring within the year",
+                      onChanged: (v) => setState(() => isRecurring = v!),
                     ),
+
+                    SizedBox(height: 30.h),
+
+                    // --- WORKING HOURS SECTION ---
+                    _buildSectionTitle("Working Hours", "Set your availability for the selected dates"),
+                    _buildDarkCheckbox(
+                      value: applyToAllDates,
+                      label: "Apply to all selected dates",
+                      onChanged: (v) => setState(() => applyToAllDates = v!),
+                    ),
+                    SizedBox(height: 20.h),
+                    _buildTimePickerRow(),
+
+                    SizedBox(height: 30.h),
+
+                    // --- SERVICE DETAILS FORM ---
+                    _buildServiceForm(),
 
                     SizedBox(height: 40.h),
-                    _buildDynamicFooter(),
+                    Obx(() => CustomButton(
+                      onTap: serviceController.isLoading.value ? null : _handleSave,
+                      text: serviceController.isLoading.value ? "Saving..." : "Save & Continue",
+                    )),
                     SizedBox(height: 20.h),
                   ],
                 ),
@@ -107,50 +183,100 @@ class _BeauticianAddServiceScreenState extends State<BeauticianAddServiceScreen>
     );
   }
 
-  Widget _buildDynamicFooter() {
-    return CustomButton(
-      onTap: () {
-        debugPrint("Beautician Continuing to Availability...");
-        Get.toNamed(RouteConstants.beauticiansAvailabilityScreen);
-      },
-      text: "Continue",
+  Widget _buildServiceForm() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            CustomText(text: "Service Details", fontSize: 18.sp, fontWeight: FontWeight.bold),
+            // --- SUB CATEGORY DROPDOWN ---
+            SizedBox(width: 140.w, child: _buildSubCategoryDropdown()),
+          ],
+        ),
+        SizedBox(height: 20.h),
+        _buildPhotoUploader(),
+        SizedBox(height: 20.h),
+        _buildLabel("Service Name"),
+        _buildInputWrapper(child: TextField(controller: nameController, decoration: const InputDecoration(hintText: "e.g. Silk Press", border: InputBorder.none))),
+        SizedBox(height: 20.h),
+        _buildPriceAndDiscountRow(),
+        SizedBox(height: 15.h),
+        _buildLabel("Max Discount Amount (Optional)"),
+        _buildInputWrapper(child: TextField(controller: maxDiscountController, keyboardType: TextInputType.number, decoration: const InputDecoration(hintText: "Cap the discount", border: InputBorder.none))),
+        SizedBox(height: 20.h),
+        _buildHomeServiceToggle(),
+        SizedBox(height: 15.h),
+        _buildLabel("Description"),
+        _buildDescriptionField(),
+        SizedBox(height: 25.h),
+
+        Obx(() => serviceController.selectedVariants.isNotEmpty
+            ? Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildLabel("Added Add-ons"),
+            ...serviceController.selectedVariants.map((variant) => Container(
+              margin: EdgeInsets.only(bottom: 10.h),
+              padding: EdgeInsets.all(12.w),
+              decoration: BoxDecoration(
+                  color: const Color(0xFF1D3826).withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(10.r),
+                  border: Border.all(color: const Color(0xFF1D3826).withOpacity(0.2))
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(text: variant.variantName, fontWeight: FontWeight.bold),
+                      CustomText(text: "${variant.subVariants.length} sub-options", fontSize: 11.sp),
+                    ],
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.remove_circle, color: Colors.red),
+                    onPressed: () => serviceController.selectedVariants.remove(variant),
+                  )
+                ],
+              ),
+            )).toList(),
+            SizedBox(height: 10.h),
+          ],
+        )
+            : const SizedBox.shrink()),
+        _buildVariantLink(),
+      ],
     );
   }
 
+  // --- UI HELPER METHODS ---
+
   Widget _buildSpecialtiesList() {
+    final cats = categoryController.categories;
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       physics: const BouncingScrollPhysics(),
       child: Row(
-        children: categoryData.keys.map((cat) {
-          bool isSelected = selectedCategory == cat;
+        children: cats.map((cat) {
+          bool isSelected = selectedCategoryId == cat.id;
           return GestureDetector(
-            onTap: () => setState(() {
-              selectedCategory = cat;
-              for (var service in serviceList) {
-                service.subCategory = null;
-              }
-            }),
+            onTap: () {
+              setState(() { selectedCategoryId = cat.id; selectedSubCategoryId = null; });
+              subCategoryController.fetchSubCategories(categoryId: cat.id, id: CacheService.userId);
+            },
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 300),
-              width: 100.w,
-              height: 110.h,
-              margin: EdgeInsets.only(right: 15.w),
+              width: 100.w, height: 110.h, margin: EdgeInsets.only(right: 15.w),
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.secondaryVariant : AppColors.primary,
+                color: isSelected ? AppColors.secondaryVariant : AppColors.primary.withOpacity(0.2),
                 borderRadius: BorderRadius.circular(25.r),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    isSelected ? Icons.check_circle : Icons.spa_outlined,
-                    color: isSelected ? Colors.white : AppColors.background,
-                    size: 30.sp,
-                  ),
-                  CustomText(text: cat, fontSize: 11.sp, fontWeight: FontWeight.bold, color: isSelected ? Colors.white : AppColors.textPrimary, top: 8.h),
-                ],
-              ),
+              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                Icon(isSelected ? Icons.check_circle : Icons.spa_outlined, color: isSelected ? Colors.white : AppColors.background, size: 30.sp),
+                CustomText(text: cat.name, fontSize: 11.sp, fontWeight: FontWeight.bold, color: isSelected ? Colors.white : AppColors.textPrimary, top: 8.h),
+              ]),
             ),
           );
         }).toList(),
@@ -158,186 +284,142 @@ class _BeauticianAddServiceScreenState extends State<BeauticianAddServiceScreen>
     );
   }
 
-  Widget _buildAddServiceSection(int index) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            CustomText(
-                text: index == 0 ? "Add Service" : "Service #${index + 1}",
-                fontSize: 18.sp,
-                fontWeight: FontWeight.bold,
-                color: AppColors.background
-            ),
-            SizedBox(width: 140.w, child: _buildDynamicDropdown(index)),
-          ],
-        ),
-        SizedBox(height: 20.h),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              flex: 3,
-              child: Column(
-                children: [
-                  Container(
-                    padding: EdgeInsets.all(15.r),
-                    decoration: BoxDecoration(
-                      color: const Color(0XFFCADA9F),
-                      borderRadius: BorderRadius.circular(20.r),
-                    ),
-                    child: Column(
-                      children: [
-                        _buildSmallInputRow("Service Name", "\$ 0.00"),
-                        SizedBox(height: 25.h),
-                        const Icon(Icons.add_a_photo_outlined, size: 35, color: Color(0x4D000000)),
-                        CustomText(text: "Tap to add service photos", fontSize: 11.sp, color: const Color(0x4D000000), top: 8.h),
-                        SizedBox(height: 25.h),
-                        _buildVariantLink(),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: 10.h),
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.all(12.r),
-                    decoration: BoxDecoration(
-                      color: const Color(0XFFCADA9F),
-                      borderRadius: BorderRadius.circular(15.r),
-                    ),
-                    child: CustomText(text: "Service Description & Duration", color: const Color(0x4D000000), fontSize: 12.sp),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              flex: 1,
-              child: Column(
-                children: [
-                  SizedBox(height: 50.h),
-                  GestureDetector(
-                    onTap: () => setState(() => serviceList.add(ServiceEntry())),
-                    child: Column(
-                      children: [
-                        Icon(Icons.add_circle_outline, color: AppColors.secondaryVariant, size: 35.sp),
-                        CustomText(
-                          text: "Add Another\nService",
-                          textAlign: TextAlign.center,
-                          fontSize: 9.sp,
-                          color: AppColors.geryColor,
-                          top: 5.h,
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (index > 0) ...[
-                    SizedBox(height: 20.h),
-                    IconButton(
-                      icon: Icon(Icons.delete_outline, color: Colors.red.withValues(alpha: 0.5)),
-                      onPressed: () => setState(() => serviceList.removeAt(index)),
-                    )
-                  ]
-                ],
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
+  Widget _buildSubCategoryDropdown() {
+    return Obx(() {
+      final subCats = subCategoryController.subCategories;
+      return Container(
+        padding: EdgeInsets.symmetric(horizontal: 10.w),
+        decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(10.r), border: Border.all(color: AppColors.primary)),
+        child: DropdownButtonHideUnderline(child: DropdownButton<String>(
+          value: selectedSubCategoryId, isExpanded: true,
+          hint: CustomText(text: subCategoryController.isLoading.value ? "..." : "Type", fontSize: 11.sp),
+          items: subCats.map((e) => DropdownMenuItem(value: e.id, child: CustomText(text: e.name, fontSize: 11.sp))).toList(),
+          onChanged: (v) => setState(() => selectedSubCategoryId = v),
+        )),
+      );
+    });
   }
 
-  Widget _buildDynamicDropdown(int index) {
-    List<String> subCategories = categoryData[selectedCategory] ?? [];
+  Widget _buildCalendarCard() {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.w),
+      padding: EdgeInsets.all(10.w),
       decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(10.r),
-        border: Border.all(color: AppColors.primary),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20.r),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
       ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: serviceList[index].subCategory,
-          hint: CustomText(text: "Type", fontSize: 11.sp, color: AppColors.background),
-          isExpanded: true,
-          icon: Icon(Icons.keyboard_arrow_down, color: AppColors.background, size: 16.sp),
-          items: subCategories.map((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: CustomText(text: value, fontSize: 11.sp, color: AppColors.background),
-            );
-          }).toList(),
-          onChanged: (newValue) {
-            setState(() => serviceList[index].subCategory = newValue);
-          },
+      child: TableCalendar(
+        firstDay: DateTime.now(),
+        lastDay: DateTime.now().add(const Duration(days: 365)),
+        focusedDay: _focusedDay,
+        headerStyle: HeaderStyle(
+          formatButtonVisible: false,
+          titleCentered: true,
+          leftChevronIcon: Icon(Icons.chevron_left, color: const Color(0xFF1D3826), size: 24.sp),
+          rightChevronIcon: Icon(Icons.chevron_right, color: const Color(0xFF1D3826), size: 24.sp),
+          titleTextStyle: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: const Color(0xFF1D3826)),
+        ),
+        selectedDayPredicate: (day) => _selectedDates.contains(day),
+        onDaySelected: (selectedDay, focusedDay) {
+          setState(() {
+            _focusedDay = focusedDay;
+            if (_selectedDates.contains(selectedDay)) {
+              _selectedDates.remove(selectedDay);
+            } else {
+              _selectedDates.add(selectedDay);
+            }
+          });
+        },
+        calendarStyle: CalendarStyle(
+          selectedDecoration: const BoxDecoration(color: Color(0xFFCADA9F), shape: BoxShape.circle),
+          selectedTextStyle: const TextStyle(color: Color(0xFF1D3826), fontWeight: FontWeight.bold),
+          todayDecoration: BoxDecoration(color: Colors.grey.shade100, shape: BoxShape.circle),
+          todayTextStyle: const TextStyle(color: Colors.black),
+          outsideDaysVisible: false,
         ),
       ),
     );
   }
 
-  Widget _buildSliverAppBar() {
-    return SliverAppBar(
-      expandedHeight: 180.h,
-      backgroundColor: AppColors.primaryDark,
-      pinned: true,
-      flexibleSpace: FlexibleSpaceBar(
-        background: Center(
-          child: CustomNetworkImage(imageUrl: AppAssets.appLogo, height: 60.h, width: 150.w, fit: BoxFit.contain),
-        ),
-      ),
-      leading: IconButton(
-        icon: Icon(Icons.arrow_back_ios_new, color: AppColors.white, size: 20.sp),
-        onPressed: () => Get.back(),
-      ),
-    );
-  }
-
-  Widget _buildSectionTitle(String title, String sub) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CustomText(text: title, fontSize: 16.sp, fontWeight: FontWeight.bold, color: const Color(0XFF1D3826),),
-        CustomText(text: sub, fontSize: 11.sp, color: const Color(0XFFB5B475),),
-        SizedBox(height: 15.h),
-      ],
-    );
-  }
-
-  Widget _buildSmallInputRow(String hint, String price) {
-    return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-      CustomText(text: hint, color: const Color(0x4D000000), fontSize: 13.sp),
-      Container(
-        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
-        decoration: BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.circular(10.r)),
-        child: CustomText(text: price, fontSize: 12.sp, fontWeight: FontWeight.bold),
-      )
-    ]);
-  }
-
-  Widget _buildVariantLink() {
+  Widget _buildTimePickerRow() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        CustomText(text: "0 photos", fontSize: 10.sp, color: const Color(0x4D000000)),
-        GestureDetector(
-          onTap: () => Get.dialog(const BeauticiansAddVariantSheet(), barrierDismissible: true),
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-            decoration: BoxDecoration(
-              color: const Color(0x4D000000),
-              borderRadius: BorderRadius.circular(5.r),
-            ),
-            child: CustomText(
-              text: "+ Add Add-ons",
-              fontSize: 10.sp,
-              color: AppColors.secondaryVariant,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
+        _buildTimeDigitBox(startTime, (t) => setState(() => startTime = t)),
+        CustomText(text: "to", fontSize: 16.sp, fontWeight: FontWeight.bold, color: const Color(0xFF1D3826)),
+        _buildTimeDigitBox(endTime, (t) => setState(() => endTime = t)),
       ],
     );
   }
+
+  Widget _buildTimeDigitBox(TimeOfDay time, Function(TimeOfDay) onPick) {
+    final hour = time.hourOfPeriod == 0 ? "12" : time.hourOfPeriod.toString().padLeft(2, '0');
+    final minute = time.minute.toString().padLeft(2, '0');
+    final isAM = time.period == DayPeriod.am;
+
+    return GestureDetector(
+      onTap: () async {
+        final picked = await showTimePicker(
+          context: context,
+          initialTime: time,
+          builder: (context, child) => Theme(
+            data: Theme.of(context).copyWith(
+              colorScheme: const ColorScheme.light(primary: Color(0xFFCADA9F), onPrimary: Color(0xFF1D3826), onSurface: Color(0xFF1D3826)),
+            ),
+            child: child!,
+          ),
+        );
+        if (picked != null) onPick(picked);
+      },
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _digitContainer(hour),
+          Padding(padding: EdgeInsets.symmetric(horizontal: 5.w), child: CustomText(text: ":", fontSize: 18.sp, fontWeight: FontWeight.bold)),
+          _digitContainer(minute),
+          SizedBox(width: 8.w),
+          Column(children: [
+            _buildPeriodLabel("AM", isAM),
+            SizedBox(height: 4.h),
+            _buildPeriodLabel("PM", !isAM),
+          ])
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPeriodLabel(String text, bool isActive) => CustomText(text: text, fontSize: 10.sp, fontWeight: FontWeight.bold, color: isActive ? const Color(0xFF00E5CC) : Colors.grey.shade400);
+
+  Widget _digitContainer(String value) => Container(
+    width: 55.w, height: 45.h, alignment: Alignment.center,
+    decoration: BoxDecoration(color: Colors.white, border: Border.all(color: Colors.grey.shade300), borderRadius: BorderRadius.circular(10.r)),
+    child: CustomText(text: value, fontSize: 20.sp, fontWeight: FontWeight.bold, color: const Color(0xFF1D3826)),
+  );
+
+  Widget _buildDarkCheckbox({required bool value, required String label, required ValueChanged<bool?> onChanged}) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 15.h),
+      decoration: BoxDecoration(color: const Color(0xFF1D3826), borderRadius: BorderRadius.circular(12.r)),
+      child: Row(children: [
+        Transform.scale(scale: 1.2, child: Checkbox(value: value, onChanged: onChanged, activeColor: const Color(0xFF1D3826), checkColor: Colors.white, side: const BorderSide(color: Colors.white, width: 2))),
+        SizedBox(width: 10.w),
+        Expanded(child: CustomText(text: label, fontSize: 13.sp, color: Colors.white)),
+      ]),
+    );
+  }
+
+  // --- Re-used existing methods ---
+  String get businessName => CacheService.businessName.isNotEmpty ? CacheService.businessName : "My Studio";
+  Widget _buildSectionTitle(String title, String sub) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [CustomText(text: title, fontSize: 16.sp, fontWeight: FontWeight.bold, color: const Color(0XFF1D3826)), CustomText(text: sub, fontSize: 11.sp, color: const Color(0XFFB5B475)), SizedBox(height: 15.h)]);
+  Widget _buildLabel(String text) => Padding(padding: EdgeInsets.only(bottom: 8.h), child: CustomText(text: text, fontSize: 12.sp, fontWeight: FontWeight.w600, color: const Color(0xFF1D3826)));
+  Widget _buildInputWrapper({required Widget child}) => Container(padding: EdgeInsets.symmetric(horizontal: 12.w), decoration: BoxDecoration(border: Border.all(color: const Color(0xFF1D3826)), borderRadius: BorderRadius.circular(8.r)), child: child);
+  Widget _buildPriceAndDiscountRow() => Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Expanded(flex: 2, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [_buildLabel("Price"), _buildInputWrapper(child: TextField(controller: priceController, keyboardType: TextInputType.number, decoration: const InputDecoration(hintText: "0.00", border: InputBorder.none, prefixText: "\$ ")))])), SizedBox(width: 10.w), Expanded(flex: 3, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [_buildLabel("Discount"), Row(children: [Expanded(child: _buildInputWrapper(child: TextField(controller: discountValueController, keyboardType: TextInputType.number, decoration: const InputDecoration(hintText: "Val", border: InputBorder.none)))), SizedBox(width: 5.w), _buildDiscountTypeDropdown()])]))]);
+  Widget _buildDiscountTypeDropdown() => Container(padding: EdgeInsets.symmetric(horizontal: 8.w), decoration: BoxDecoration(border: Border.all(color: const Color(0xFF1D3826)), borderRadius: BorderRadius.circular(8.r)), child: DropdownButtonHideUnderline(child: DropdownButton<String>(value: selectedDiscountType, hint: Text("Type", style: TextStyle(fontSize: 11.sp)), items: ["flat", "%"].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(), onChanged: (v) => setState(() => selectedDiscountType = v))));
+  Widget _buildHomeServiceToggle() => Container(padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h), decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(12.r), border: Border.all(color: const Color(0xFF1D3826).withOpacity(0.3))), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Row(children: [Icon(Icons.home_work_outlined, color: const Color(0xFF1D3826), size: 22.sp), SizedBox(width: 10.w), CustomText(text: "Home Service Available", fontSize: 14.sp, fontWeight: FontWeight.w600)]), Switch(value: isHomeServiceAvailable, activeColor: const Color(0xFF1D3826), onChanged: (v) => setState(() => isHomeServiceAvailable = v))]));
+  Widget _buildDescriptionField() => Container(padding: EdgeInsets.symmetric(horizontal: 10.w), decoration: BoxDecoration(border: Border.all(color: const Color(0xFF1D3826)), borderRadius: BorderRadius.circular(8.r)), child: TextField(controller: descController, maxLines: 3, decoration: const InputDecoration(hintText: "Describe your service...", border: InputBorder.none)));
+  Widget _buildVariantLink() => GestureDetector(onTap: () => Get.dialog(const BeauticiansAddVariantSheet(), barrierDismissible: true), child: Container(padding: EdgeInsets.symmetric(vertical: 12.h), decoration: BoxDecoration(color: const Color(0xFF1D3826), borderRadius: BorderRadius.circular(15.r)), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.add_circle_outline, color: Colors.white, size: 20.sp), SizedBox(width: 10.w), CustomText(text: "Add Service Add-ons (Variants)", color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14.sp)])));
+  Widget _buildSliverAppBar() => SliverAppBar(expandedHeight: 180.h, backgroundColor: AppColors.primaryDark, pinned: true, flexibleSpace: FlexibleSpaceBar(background: Center(child: CustomNetworkImage(imageUrl: AppAssets.appLogo, height: 60.h, width: 150.w, fit: BoxFit.contain))), leading: IconButton(icon: Icon(Icons.arrow_back_ios_new, color: AppColors.white, size: 20.sp), onPressed: () => Get.back()));
+  Widget _buildPhotoUploader() => Obx(() => GestureDetector(onTap: () => _showImagePickerOptions(), child: Container(width: double.infinity, height: 120.h, decoration: BoxDecoration(color: const Color(0XFFCADA9F).withOpacity(0.3), border: Border.all(color: const Color(0xFF1D3826)), borderRadius: BorderRadius.circular(15.r)), child: serviceController.selectedImages.isEmpty ? Column(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.add_a_photo_outlined, size: 30, color: Color(0xFF1D3826)), CustomText(text: "Tap to add service photos", fontSize: 11.sp, top: 8.h)]) : ListView.builder(scrollDirection: Axis.horizontal, padding: EdgeInsets.all(10.w), itemCount: serviceController.selectedImages.length, itemBuilder: (context, index) => _imagePreviewTile(index)))));
+  Widget _imagePreviewTile(int index) => Stack(children: [Container(margin: EdgeInsets.only(right: 10.w), width: 100.w, decoration: BoxDecoration(borderRadius: BorderRadius.circular(10.r), image: DecorationImage(image: FileImage(serviceController.selectedImages[index]), fit: BoxFit.cover))), Positioned(top: 0, right: 5.w, child: GestureDetector(onTap: () => serviceController.removeImage(index), child: const CircleAvatar(radius: 12, backgroundColor: Colors.red, child: Icon(Icons.close, size: 14, color: Colors.white))))]);
+  void _showImagePickerOptions() => Get.bottomSheet(Container(padding: EdgeInsets.all(20.w), decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(20))), child: Column(mainAxisSize: MainAxisSize.min, children: [ListTile(leading: const Icon(Icons.camera_alt), title: const Text("Camera"), onTap: () { Get.back(); serviceController.pickImage(ImageSource.camera); }), ListTile(leading: const Icon(Icons.photo_library), title: const Text("Gallery"), onTap: () { Get.back(); serviceController.pickImage(ImageSource.gallery); })])));
 }

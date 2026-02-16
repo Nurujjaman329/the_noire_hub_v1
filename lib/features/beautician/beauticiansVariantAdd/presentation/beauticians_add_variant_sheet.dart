@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../../core/widgets/custom_text.dart';
+import '../../beauticianAddService/data/beauticians_create_service_post_body.dart';
+import '../../beauticianAddService/presentation/controller/beauticians_create_service_controller.dart';
+
 
 // 1. Data model to hold a complete variant group
 class VariantSet {
@@ -26,13 +29,49 @@ class BeauticiansAddVariantSheet extends StatefulWidget {
 }
 
 class _BeauticiansAddVariantSheetState extends State<BeauticiansAddVariantSheet> {
-  // 2. Maintain a list of VariantSets
+  final controller = Get.find<BeauticiansCreateServiceController>();
+
+  // Maintain a list of VariantSets
   List<VariantSet> variantSets = [VariantSet()];
 
   void _addNewVariantSet() {
     setState(() {
       variantSets.add(VariantSet());
     });
+  }
+
+  // New Logic: Map UI Controllers to the API Models
+  void _saveToController() {
+    List<ServiceVariantBody> finalVariants = [];
+
+    for (var set in variantSets) {
+      if (set.nameController.text.trim().isEmpty) continue;
+
+      List<ServiceSubVariantBody> subVariants = [];
+      for (var sub in set.subVariants) {
+        String subName = sub['name']!.text.trim();
+        if (subName.isNotEmpty) {
+          subVariants.add(
+            ServiceSubVariantBody(
+              name: subName,
+              price: double.tryParse(sub['price']!.text.trim()) ?? 0.0,
+            ),
+          );
+        }
+      }
+
+      finalVariants.add(
+        ServiceVariantBody(
+          variantName: set.nameController.text.trim(),
+          description: set.descController.text.trim(),
+          subVariants: subVariants,
+        ),
+      );
+    }
+
+    // Update the controller and close
+    controller.selectedVariants.assignAll(finalVariants);
+    Get.back();
   }
 
   @override
@@ -56,7 +95,6 @@ class _BeauticiansAddVariantSheetState extends State<BeauticiansAddVariantSheet>
                 ),
               ),
 
-              // 3. Loop through each Variant Set
               ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -72,7 +110,6 @@ class _BeauticiansAddVariantSheetState extends State<BeauticiansAddVariantSheet>
 
               SizedBox(height: 20.h),
 
-              // 4. Add New Variant Button (Black Plus)
               GestureDetector(
                 onTap: _addNewVariantSet,
                 child: Row(
@@ -90,7 +127,7 @@ class _BeauticiansAddVariantSheetState extends State<BeauticiansAddVariantSheet>
                 width: double.infinity,
                 height: 55.h,
                 child: ElevatedButton(
-                  onPressed: () => Get.back(),
+                  onPressed: _saveToController, // Updated to save logic
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF1B3022),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.r)),
@@ -107,36 +144,29 @@ class _BeauticiansAddVariantSheetState extends State<BeauticiansAddVariantSheet>
     );
   }
 
-  // Helper to build one complete block (Name, Desc, and its Sub-variants)
   Widget _buildVariantBlock(int setIndex) {
     final set = variantSets[setIndex];
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildLargeInput("Variant Name e.g. length", set.nameController),
         SizedBox(height: 12.h),
         _buildLargeInput("Variant Description", set.descController, isLong: true),
-
         SizedBox(height: 25.h),
-
-        CustomText(text: "Sub-variants", fontSize: 18.sp, fontWeight: FontWeight.bold,color: Color(0XFF000000),  ),
+        CustomText(text: "Sub-variants", fontSize: 18.sp, fontWeight: FontWeight.bold, color: const Color(0XFF000000)),
         CustomText(
           text: "Services under the main variant name listed above",
           fontSize: 11.sp,
-          color: Color(0x66000000),
+          color: const Color(0x66000000),
           bottom: 15.h,
         ),
-
         Row(
           children: [
-            Expanded(flex: 3, child: CustomText(text: "Name", fontWeight: FontWeight.w600,color: Color(0XFF000000), )),
-            Expanded(flex: 2, child: CustomText(text: "Price", fontWeight: FontWeight.w600,color: Color(0XFF000000), )),
+            Expanded(flex: 3, child: CustomText(text: "Name", fontWeight: FontWeight.w600, color: const Color(0XFF000000))),
+            Expanded(flex: 2, child: CustomText(text: "Price", fontWeight: FontWeight.w600, color: const Color(0XFF000000))),
           ],
         ),
         SizedBox(height: 10.h),
-
-        // Sub-variant rows for THIS specific set
         ListView.separated(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -154,14 +184,17 @@ class _BeauticiansAddVariantSheetState extends State<BeauticiansAddVariantSheet>
                   flex: 2,
                   child: _buildSubInput("\$0.00", set.subVariants[subIndex]['price']!),
                 ),
+                // Added a small remove button for sub-variants for better UX
+                if (set.subVariants.length > 1)
+                  IconButton(
+                    icon: const Icon(Icons.remove_circle_outline, color: Colors.red, size: 20),
+                    onPressed: () => setState(() => set.subVariants.removeAt(subIndex)),
+                  )
               ],
             );
           },
         ),
-
         SizedBox(height: 15.h),
-
-        // Add sub-variant button for THIS specific set
         GestureDetector(
           onTap: () => setState(() => set.addSubVariant()),
           child: Row(
@@ -189,7 +222,7 @@ class _BeauticiansAddVariantSheetState extends State<BeauticiansAddVariantSheet>
         decoration: InputDecoration(
           border: InputBorder.none,
           hintText: hint,
-          hintStyle: TextStyle(color: Color(0x4D000000), fontSize: 14.sp, fontWeight:  FontWeight.bold),
+          hintStyle: TextStyle(color: const Color(0x4D000000), fontSize: 14.sp, fontWeight: FontWeight.bold),
         ),
       ),
     );
@@ -205,10 +238,11 @@ class _BeauticiansAddVariantSheetState extends State<BeauticiansAddVariantSheet>
       ),
       child: TextField(
         controller: controller,
+        keyboardType: hint.contains('\$') ? TextInputType.number : TextInputType.text,
         decoration: InputDecoration(
           border: InputBorder.none,
           hintText: hint,
-          hintStyle: TextStyle(color: Color(0x4D000000), fontSize: 12.sp,fontWeight: FontWeight.bold),
+          hintStyle: TextStyle(color: const Color(0x4D000000), fontSize: 12.sp, fontWeight: FontWeight.bold),
         ),
       ),
     );
