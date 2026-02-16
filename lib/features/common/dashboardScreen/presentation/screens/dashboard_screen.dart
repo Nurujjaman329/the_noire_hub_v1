@@ -7,7 +7,9 @@ import '../../../../../core/constants/api_constants.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/route_constants.dart';
 import '../../../../../core/services/cache_service.dart';
+import '../../../../../core/widgets/custom_network_image.dart';
 import '../../../../../core/widgets/custom_text.dart';
+import '../../../../beautician/beauticanStoreScreen/presentation/controller/beautician_store_service_controller.dart';
 import '../../../../vendor/vendorStoreScreen/presentation/controller/vendor_product_controller.dart';
 import '../widget/dashboard_drawer.dart';
 
@@ -15,23 +17,23 @@ class DashboardScreen extends StatelessWidget {
   DashboardScreen({super.key});
 
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  final controller = Get.find<VendorProductController>();
+
+  // Find both controllers
+  final vendorController = Get.find<VendorProductController>();
+  final beauticianController = Get.find<BeauticianStoreServiceController>();
 
   @override
   Widget build(BuildContext context) {
-    // 1. Get the Strongly-Typed Model (The "Pro" Way)
     final String role = CacheService.role.toLowerCase();
+    final bool isVendor = role.contains('vendor');
+    final bool isBeautician = role.contains('beautician');
+
     final String businessName = CacheService.businessName.isNotEmpty
         ? CacheService.businessName
         : "Ada’s Body Shop";
-    final image = CacheService.userImage;
-    final fullImageUrl = image.isNotEmpty
-        ? ApiConstants.baseImageUrl + image
-        : null;
 
-    // 2. Extract logic directly from the object
-    final bool isVendor = role.contains('vendor');
-    final bool isBeautician = role.contains('beautician');
+    final image = CacheService.userImage;
+    final fullImageUrl = image.isNotEmpty ? ApiConstants.baseImageUrl + image : null;
 
     return Scaffold(
       key: _scaffoldKey,
@@ -39,7 +41,16 @@ class DashboardScreen extends StatelessWidget {
       backgroundColor: AppColors.white,
       body: SafeArea(
         child: RefreshIndicator(
-          onRefresh: () => controller.refreshProducts(),
+          // Inside build method -> RefreshIndicator
+          onRefresh: () async {
+            if (isVendor) {
+              await vendorController.refreshProducts();
+            } else if (isBeautician) {
+              await beauticianController.fetchServices(isRefresh: true);
+            } else {
+              debugPrint("⚠️ Unknown role: $role. No data to refresh.");
+            }
+          },
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
             child: Padding(
@@ -50,19 +61,14 @@ class DashboardScreen extends StatelessWidget {
                   _buildHeader(context, fullImageUrl: fullImageUrl),
                   SizedBox(height: 20.h),
                   Center(
-                    child: CustomText(
-                      text: "Dashboard",
-                      fontSize: 28.sp,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0XFF000000),
-                    ),
+                    child: CustomText(text: "Dashboard", fontSize: 28.sp, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 25.h),
                   _buildStoreBanner(businessName),
                   SizedBox(height: 25.h),
 
-                  // 2. Wrap the section in Obx to listen for real data
-                  Obx(() => _buildProductsSection(isVendor, isBeautician, context)),
+                  // Dynamic Section
+                  Obx(() => _buildItemsSection(isVendor, isBeautician, context)),
 
                   SizedBox(height: 25.h),
                   _buildRevenueSection(),
@@ -77,6 +83,127 @@ class DashboardScreen extends StatelessWidget {
   }
 
   // --- Helper Widgets ---
+
+
+  Widget _buildItemsSection(bool isVendor, bool isBeautician, BuildContext context) {
+    // 1. Guard against unexpected roles
+    if (!isVendor && !isBeautician) {
+      return _buildErrorState("Unauthorized Role", "Please contact support.");
+    }
+
+    // 2. Select the active controller based on role
+    final bool isLoading = isVendor
+        ? vendorController.isLoading.value
+        : beauticianController.isLoading.value;
+
+    final List items = isVendor
+        ? vendorController.productList
+        : beauticianController.services;
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(vertical: 20.h, horizontal: 15.w),
+      decoration: BoxDecoration(
+        color: const Color(0XFF9BB575),
+        borderRadius: BorderRadius.circular(25.r),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.only(left: 10.w),
+            child: CustomText(
+              text: isVendor ? "Your Products" : "Your Services",
+              fontSize: 18.sp,
+              fontWeight: FontWeight.bold,
+              color: const Color(0XFF1D3826),
+            ),
+          ),
+          SizedBox(height: 15.h),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: Row(
+              children: [
+                _buildAddButton(isBeautician, isVendor, context),
+
+                if (isLoading)
+                  const Padding(
+                    padding: EdgeInsets.all(20.0),
+                    child: CircularProgressIndicator(color: Colors.white),
+                  )
+                else if (items.isEmpty)
+                  Padding(
+                    padding: EdgeInsets.all(20.r),
+                    child: CustomText(text: "No items found", color: Colors.white70),
+                  )
+                else
+                  ...items.take(5).map((item) {
+                    String imageUrl = "";
+                    String id = item.id ?? "";
+                    String route = isVendor
+                        ? RouteConstants.vendorProductDetailScreen
+                        : RouteConstants.serviceDetailsScreen;
+
+                    // Dynamic Image Path based on Role
+                    if (isVendor) {
+                      imageUrl = item.images.isNotEmpty
+                          ? "${ApiConstants.baseImageUrl}${item.images[0]}"
+                          : "";
+                    } else {
+                      imageUrl = item.images.isNotEmpty
+                          ? "${ApiConstants.imageUrl}${item.images[0]}"
+                          : "";
+                    }
+
+                    return _buildItemTile(imageUrl, id, route);
+                  }),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+// Simple error helper
+  Widget _buildErrorState(String title, String sub) {
+    return Container(
+      padding: EdgeInsets.all(20.r),
+      decoration: BoxDecoration(color: Colors.redAccent.withOpacity(0.1), borderRadius: BorderRadius.circular(25.r)),
+      child: Column(
+        children: [
+          Icon(Icons.lock_person, color: Colors.red),
+          CustomText(text: title, fontWeight: FontWeight.bold),
+          CustomText(text: sub, fontSize: 12.sp),
+        ],
+      ),
+    );
+  }
+
+
+  Widget _buildItemTile(String url, String id, String route) {
+    return GestureDetector(
+      onTap: () => Get.toNamed(route, arguments: id),
+      child: Container(
+        width: 100.w,
+        height: 110.h,
+        margin: EdgeInsets.symmetric(horizontal: 8.w),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.2),
+          borderRadius: BorderRadius.circular(25.r),
+          border: Border.all(color: AppColors.white, width: 4),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20.r),
+          child: CustomNetworkImage( 
+            imageUrl: url,
+            fit: BoxFit.cover, height: 70, width: 70,
+          ),
+        ),
+      ),
+    );
+  }
 
   Widget _buildHeader(BuildContext context, {String? fullImageUrl}) {
     return Padding(
@@ -189,59 +316,6 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProductsSection(
-      bool isVendor,
-      bool isBeautician,
-      BuildContext context,
-      ) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(vertical: 20.h, horizontal: 15.w),
-      decoration: BoxDecoration(
-        color: const Color(0XFF9BB575),
-        borderRadius: BorderRadius.circular(25.r),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsets.only(left: 10.w),
-            child: CustomText(
-              text: isVendor ? "Your Products" : "Your Services",
-              fontSize: 18.sp,
-              fontWeight: FontWeight.bold,
-              color: const Color(0XFF1D3826),
-            ),
-          ),
-          SizedBox(height: 15.h),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            child: Row(
-              children: [
-                _buildAddButton(isBeautician, isVendor, context),
-
-                // 3. Show loading state or real products
-                if (controller.isLoading.value)
-                  const Padding(
-                    padding: EdgeInsets.all(20.0),
-                    child: CircularProgressIndicator(color: Colors.white),
-                  )
-                else
-                  ...controller.productList.take(5).map((product) {
-                    // Get the first image from the product's image list
-                    String imageUrl = product.images.isNotEmpty
-                        ? "${ApiConstants.baseImageUrl}${product.images[0]}"
-                        : "";
-                    return _buildProductTile(imageUrl,product.id);
-                  }),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildAddButton(
     bool isBeautician,

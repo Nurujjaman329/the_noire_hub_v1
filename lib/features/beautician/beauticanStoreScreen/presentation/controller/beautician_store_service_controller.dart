@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:the_noire_hub_v1/core/utils/app_snackbar.dart';
 
+import '../../../../../core/services/cache_service.dart';
 import '../../data/beautician_store_response_model.dart';
 import '../../data/beautician_store_service.dart';
 
@@ -19,7 +20,10 @@ class BeauticianStoreServiceController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    fetchServices();
+    // ONLY fetch if the role is correct to avoid 403 logs
+    if (CacheService.role.toLowerCase().contains('beautician')) {
+      fetchServices();
+    }
   }
 
   /// Initial Fetch
