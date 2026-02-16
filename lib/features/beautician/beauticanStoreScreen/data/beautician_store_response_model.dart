@@ -1,4 +1,3 @@
-
 class BeauticianStoreResponseModel {
   final int code;
   final String message;
@@ -12,12 +11,13 @@ class BeauticianStoreResponseModel {
 
   factory BeauticianStoreResponseModel.fromJson(Map<String, dynamic> json) {
     return BeauticianStoreResponseModel(
-      code: json['code'] ?? 0,
+      code: (json['code'] ?? 0).toDouble().toInt(),
       message: json['message'] ?? '',
       data: ServicesData.fromJson(json['data'] ?? {}),
     );
   }
 }
+
 class ServicesData {
   final ServicesAttributes attributes;
 
@@ -31,6 +31,7 @@ class ServicesData {
     );
   }
 }
+
 class ServicesAttributes {
   final List<ServiceModel> results;
   final int page;
@@ -52,13 +53,14 @@ class ServicesAttributes {
           ?.map((e) => ServiceModel.fromJson(e))
           .toList() ??
           [],
-      page: json['page'] ?? 0,
-      limit: json['limit'] ?? 0,
-      totalPages: json['totalPages'] ?? 0,
-      totalResults: json['totalResults'] ?? 0,
+      page: (json['page'] ?? 0).toDouble().toInt(),
+      limit: (json['limit'] ?? 0).toDouble().toInt(),
+      totalPages: (json['totalPages'] ?? 0).toDouble().toInt(),
+      totalResults: (json['totalResults'] ?? 0).toDouble().toInt(),
     );
   }
 }
+
 class ServiceModel {
   final String id;
   final String name;
@@ -116,11 +118,11 @@ class ServiceModel {
       id: json['_id'] ?? '',
       name: json['name'] ?? '',
       description: json['description'] ?? '',
-      price: json['price'] ?? 0,
-      originalPrice: json['originalPrice'] ?? 0,
-      discountedPrice: json['discountedPrice'] ?? 0,
+      price: (json['price'] ?? 0).toDouble().toInt(),
+      originalPrice: (json['originalPrice'] ?? 0).toDouble().toInt(),
+      discountedPrice: (json['discountedPrice'] ?? 0).toDouble().toInt(),
       rating: (json['rating'] ?? 0).toDouble(),
-      totalReviews: json['totalReviews'] ?? 0,
+      totalReviews: (json['totalReviews'] ?? 0).toDouble().toInt(),
       isActive: json['isActive'] ?? false,
       isDeleted: json['isDeleted'] ?? false,
       isApproved: json['isApproved'] ?? false,
@@ -132,23 +134,14 @@ class ServiceModel {
       updatedAt: json['updatedAt'] ?? '',
       discount: DiscountModel.fromJson(json['discount'] ?? {}),
       location: LocationModel.fromJson(json['location'] ?? {}),
-      workingHours:
-      WorkingHoursModel.fromJson(json['workingHours'] ?? {}),
-      images:
-      (json['images'] as List?)?.map((e) => e.toString()).toList() ??
-          [],
-      availableDates:
-      (json['availableDates'] as List?)
-          ?.map((e) => e.toString())
-          .toList() ??
-          [],
-      variants: (json['variants'] as List?)
-          ?.map((e) => VariantModel.fromJson(e))
-          .toList() ??
-          [],
+      workingHours: WorkingHoursModel.fromJson(json['workingHours'] ?? {}),
+      images: (json['images'] as List?)?.map((e) => e.toString()).toList() ?? [],
+      availableDates: (json['availableDates'] as List?)?.map((e) => e.toString()).toList() ?? [],
+      variants: (json['variants'] as List?)?.map((e) => VariantModel.fromJson(e)).toList() ?? [],
     );
   }
 }
+
 class DiscountModel {
   final int value;
   final String type;
@@ -162,12 +155,13 @@ class DiscountModel {
 
   factory DiscountModel.fromJson(Map<String, dynamic> json) {
     return DiscountModel(
-      value: json['value'] ?? 0,
+      value: (json['value'] ?? 0).toDouble().toInt(),
       type: json['type'] ?? '',
-      maxAmount: json['maxAmount'] ?? 0,
+      maxAmount: (json['maxAmount'] ?? 0).toDouble().toInt(),
     );
   }
 }
+
 class LocationModel {
   final String type;
   final double longitude;
@@ -184,13 +178,12 @@ class LocationModel {
 
     return LocationModel(
       type: json['type'] ?? '',
-      longitude:
-      coordinates.isNotEmpty ? (coordinates[0] ?? 0).toDouble() : 0.0,
-      latitude:
-      coordinates.length > 1 ? (coordinates[1] ?? 0).toDouble() : 0.0,
+      longitude: coordinates.isNotEmpty ? (coordinates[0] ?? 0).toDouble() : 0.0,
+      latitude: coordinates.length > 1 ? (coordinates[1] ?? 0).toDouble() : 0.0,
     );
   }
 }
+
 class WorkingHoursModel {
   final String id;
   final String startTime;
@@ -210,6 +203,7 @@ class WorkingHoursModel {
     );
   }
 }
+
 class VariantModel {
   final String id;
   final String variantName;
@@ -251,7 +245,7 @@ class SubVariantModel {
     return SubVariantModel(
       id: json['_id'] ?? '',
       name: json['name'] ?? '',
-      price: json['price'] ?? 0,
+      price: (json['price'] ?? 0).toDouble().toInt(),
     );
   }
 }

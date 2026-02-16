@@ -11,12 +11,13 @@ class ServiceDetailsResponseModel {
 
   factory ServiceDetailsResponseModel.fromJson(Map<String, dynamic> json) {
     return ServiceDetailsResponseModel(
-      code: json['code'] ?? 0,
+      code: (json['code'] ?? 0).toDouble().toInt(),
       message: json['message'] ?? '',
       data: ServiceData.fromJson(json['data'] ?? {}),
     );
   }
 }
+
 class ServiceData {
   final ServiceAttributes attributes;
 
@@ -28,6 +29,7 @@ class ServiceData {
     );
   }
 }
+
 class ServiceAttributes {
   final String id;
   final String name;
@@ -40,7 +42,7 @@ class ServiceAttributes {
   final bool isDeleted;
   final bool isApproved;
   final bool homeService;
-  final int rating;
+  final double rating; // Changed to double to match your other model and server logic
   final int totalReviews;
   final List<String> images;
   final List<String> availableDates;
@@ -85,17 +87,17 @@ class ServiceAttributes {
     return ServiceAttributes(
       id: json['_id'] ?? '',
       name: json['name'] ?? '',
-      price: json['price'] ?? 0,
-      originalPrice: json['originalPrice'] ?? 0,
-      discountedPrice: json['discountedPrice'] ?? 0,
+      price: (json['price'] ?? 0).toDouble().toInt(),
+      originalPrice: (json['originalPrice'] ?? 0).toDouble().toInt(),
+      discountedPrice: (json['discountedPrice'] ?? 0).toDouble().toInt(),
       description: json['description'] ?? '',
       isRecurring: json['isRecurring'] ?? false,
       isActive: json['isActive'] ?? false,
       isDeleted: json['isDeleted'] ?? false,
       isApproved: json['isApproved'] ?? false,
       homeService: json['homeService'] ?? false,
-      rating: json['rating'] ?? 0,
-      totalReviews: json['totalReviews'] ?? 0,
+      rating: (json['rating'] ?? 0).toDouble(), // Safe cast to double
+      totalReviews: (json['totalReviews'] ?? 0).toDouble().toInt(),
       images: List<String>.from(json['images'] ?? []),
       availableDates: List<String>.from(json['availableDates'] ?? []),
       discount: Discount.fromJson(json['discount'] ?? {}),
@@ -113,6 +115,7 @@ class ServiceAttributes {
     );
   }
 }
+
 class Discount {
   final int value;
   final String type;
@@ -126,12 +129,16 @@ class Discount {
 
   factory Discount.fromJson(Map<String, dynamic> json) {
     return Discount(
-      value: json['value'] ?? 0,
+      value: (json['value'] ?? 0).toDouble().toInt(),
       type: json['type'] ?? '',
-      maxAmount: json['maxAmount'],
+      // Use null check because your log shows maxAmount can be null
+      maxAmount: json['maxAmount'] != null
+          ? (json['maxAmount'] as num).toDouble().toInt()
+          : null,
     );
   }
 }
+
 class Location {
   final String type;
   final List<double> coordinates;
@@ -151,6 +158,7 @@ class Location {
     );
   }
 }
+
 class Beautician {
   final String id;
   final String fullName;
@@ -176,6 +184,7 @@ class Beautician {
     );
   }
 }
+
 class Category {
   final String id;
   final String name;
@@ -192,6 +201,7 @@ class Category {
     );
   }
 }
+
 class WorkingHours {
   final String startTime;
   final String endTime;
@@ -211,6 +221,7 @@ class WorkingHours {
     );
   }
 }
+
 class ServiceVariant {
   final String id;
   final String variantName;
@@ -236,6 +247,7 @@ class ServiceVariant {
     );
   }
 }
+
 class SubVariant {
   final String id;
   final String name;
@@ -251,7 +263,7 @@ class SubVariant {
     return SubVariant(
       id: json['_id'] ?? '',
       name: json['name'] ?? '',
-      price: json['price'] ?? 0,
+      price: (json['price'] ?? 0).toDouble().toInt(),
     );
   }
 }

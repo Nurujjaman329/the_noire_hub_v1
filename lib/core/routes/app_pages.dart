@@ -25,6 +25,7 @@ import '../../features/beautician/beauticanStoreScreen/presentation/screens/beau
 import '../../features/beautician/beauticianAddService/presentation/bindings/beauticians_create_service_bindings.dart';
 import '../../features/beautician/beauticianAvailabiltySection/presentation/screens/beautician_availability_section.dart';
 import '../../features/beautician/beauticiansBookingHistory/presentation/screens/beauticians_bookings_history_screen.dart';
+import '../../features/beautician/editServiceScreen/presentation/bindings/beauticians_update_service_bindings.dart';
 import '../../features/beautician/editServiceScreen/presentation/edit_service_screen.dart';
 import '../../features/beautician/serviceDetailsScreen/presentation/service_details_screen.dart';
 import '../../features/common/aboutUS/presentation/about_us_screen.dart';
@@ -395,6 +396,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.editServiceScreen,
       page: () => const EditServicesScreen(),
+      binding: BeauticiansUpdateServiceBindings(),
       transition: Transition.cupertino,
     ),
     GetPage(

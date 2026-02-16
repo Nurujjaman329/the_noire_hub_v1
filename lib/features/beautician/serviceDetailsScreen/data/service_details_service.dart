@@ -12,16 +12,27 @@ class ServiceDetailsService {
 
   Future<ServiceDetailsResponseModel> getServiceDetails(String serviceId) async {
     try {
-      debugPrint('🚀 [GET] Fetching Service Details: $serviceId');
+      debugPrint('🚀 [GET] Fetching Service Details for ID: $serviceId');
+      debugPrint('🔗 URL: ${ApiConstants.serviceRoute}/$serviceId');
 
       final response = await _apiClient.get(
         "${ApiConstants.serviceRoute}/$serviceId",
       );
 
-      return ServiceDetailsResponseModel.fromJson(response.data);
-    } on AppException {
+      // Log the raw data to see exactly what the server returned
+      // (Useful for catching "double vs int" issues)
+      debugPrint('📥 RAW RESPONSE DATA: ${response.data}');
+
+      final model = ServiceDetailsResponseModel.fromJson(response.data);
+
+      debugPrint('✅ Successfully parsed ServiceDetailsResponseModel');
+      return model;
+
+    } on AppException catch (e) {
+      debugPrint('❌ API Error in getServiceDetails: ${e.message}');
       rethrow;
     } catch (e) {
+      debugPrint('💥 Unexpected Error in getServiceDetails: $e');
       throw UnknownException(e.toString());
     }
   }

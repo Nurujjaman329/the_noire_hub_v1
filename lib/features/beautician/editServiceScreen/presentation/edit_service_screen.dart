@@ -1,12 +1,21 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:table_calendar/table_calendar.dart';
+import '../../../../core/constants/api_constants.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_network_image.dart';
 import '../../../../core/widgets/custom_text.dart';
+import '../../beauticanStoreScreen/data/beautician_store_response_model.dart';
+import '../data/Beautician_service_update_post_body.dart';
+import 'package:get/get.dart';
+
+import 'controller/beauticians_update_service_controller.dart';
 
 class EditServicesScreen extends StatefulWidget {
   const EditServicesScreen({super.key});
@@ -16,97 +25,131 @@ class EditServicesScreen extends StatefulWidget {
 }
 
 class _EditServicesScreenState extends State<EditServicesScreen> {
+  // Controller and Data
+  final controller = Get.find<BeauticiansUpdateServiceController>();
+  late ServiceModel service;
 
+  // Form Controllers
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController priceController = TextEditingController();
+  final TextEditingController discountController = TextEditingController();
+  final TextEditingController descController = TextEditingController();
+
+  // Date & Time State
   DateTime _focusedDay = DateTime.now();
   final Set<DateTime> _selectedDates = {};
-  bool applyToFullYear = false;
+  final Set<DateTime> _originalDates = {}; // To track what was already there
   TimeOfDay startTime = const TimeOfDay(hour: 9, minute: 0);
   TimeOfDay endTime = const TimeOfDay(hour: 18, minute: 0);
+
+  // Image State
+  List<String> existingImages = [];
+  List<File> newImages = [];
+
+  @override
+  void initState() {
+    super.initState();
+    // Get the service object passed from the previous screen
+    service = Get.arguments as ServiceModel;
+    _initializeData();
+  }
+
+  void _initializeData() {
+    nameController.text = service.name;
+    priceController.text = service.price.toString();
+    descController.text = service.description;
+    existingImages = List.from(service.images);
+
+    // 1. Convert string dates from backend to DateTime objects
+    for (var dateStr in service.availableDates) {
+      DateTime dt = DateTime.parse(dateStr);
+      DateTime dayOnly = DateTime(dt.year, dt.month, dt.day);
+      _selectedDates.add(dayOnly);
+      _originalDates.add(dayOnly);
+    }
+
+    // 2. Initialize Time with AM/PM support
+    String rawStart = service.workingHours.startTime; // e.g., "09:00 AM"
+    String rawEnd = service.workingHours.endTime;     // e.g., "06:00 PM"
+
+    startTime = _parseTimeString(rawStart);
+    endTime = _parseTimeString(rawEnd);
+  }
+
+  /// Helper method to safely parse "HH:mm AM/PM" or "HH:mm" into TimeOfDay
+  TimeOfDay _parseTimeString(String timeStr) {
+    try {
+      // 1. Extract digits only for splitting (removes AM/PM)
+      // RegExp matches the numbers before and after the colon
+      final timeMatch = RegExp(r'(\d+):(\d+)').firstMatch(timeStr);
+      if (timeMatch == null) return const TimeOfDay(hour: 9, minute: 0);
+
+      int hour = int.parse(timeMatch.group(1)!);
+      int minute = int.parse(timeMatch.group(2)!);
+
+      // 2. Handle AM/PM logic
+      String period = timeStr.toUpperCase();
+      if (period.contains("PM") && hour < 12) {
+        hour += 12;
+      } else if (period.contains("AM") && hour == 12) {
+        hour = 0;
+      }
+
+      return TimeOfDay(hour: hour, minute: minute);
+    } catch (e) {
+      debugPrint("Error parsing time '$timeStr': $e");
+      return const TimeOfDay(hour: 9, minute: 0); // Fallback
+    }
+  }
+
+  Future<void> _pickImage() async {
+    final List<XFile> pickedFiles = await ImagePicker().pickMultiImage();
+    if (pickedFiles.isNotEmpty) {
+      setState(() {
+        newImages.addAll(pickedFiles.map((x) => File(x.path)));
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1D3826), // Deep green background for the sliver part
+      backgroundColor: const Color(0xFF1D3826),
       body: CustomScrollView(
         slivers: [
-          // 1. Top Logo Section (Moss Green)
           _buildSliverAppBar(),
-
-          // 2. White Content Card
           SliverToBoxAdapter(
             child: Container(
-              width: double.infinity,
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(50.r),
-                  topRight: Radius.circular(50.r),
-                ),
+                borderRadius: BorderRadius.only(topLeft: Radius.circular(50.r), topRight: Radius.circular(50.r)),
               ),
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 25.w, vertical: 30.h),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Center(
-                      child: CustomText(
-                        text: "Edit Services",
-                        fontSize: 20.sp,
-                        fontWeight: FontWeight.bold,
-                        color: const Color(0xFF1D3826),
-                      ),
-                    ),
+                    CustomText(text: "Edit Services", fontSize: 20.sp, fontWeight: FontWeight.bold, color: const Color(0xFF1D3826)),
                     SizedBox(height: 20.h),
 
-                    // Image Section with Upload Icon
-                    _buildServiceImage(),
+                    // Multi-Image Preview Section
+                    _buildImageSection(),
 
                     SizedBox(height: 25.h),
-
-                    // Form Fields
                     _buildLabel("Services Name"),
-                    _buildInputField(hint: "Ada's Deep Cleanse Avocado Clay Mask"),
+                    _buildInputField(controller: nameController, hint: "Service Name"),
 
                     SizedBox(height: 15.h),
                     _buildLabel("Services Price"),
-                    _buildInputField(hint: "\$120"),
-
-                    SizedBox(height: 15.h),
-                    _buildLabel("Services Discount Price"),
-                    _buildInputField(hint: "12 %"),
-
-                    SizedBox(height: 15.h),
-                    _buildLabel("Description (optional)"),
-                    _buildInputField(hint: "", isLarge: true),
+                    _buildInputField(controller: priceController, hint: "Price", isNumber: true),
 
                     SizedBox(height: 30.h),
-
-                    // Date & Time Section
-                    CustomText(
-                      text: "Services Data & Time",
-                      fontSize: 18.sp,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF1D3826),
-                    ),
-                    SizedBox(height: 15.h),
-
-                    // Calendar Container
                     _buildCalendarSection(),
 
-                    SizedBox(height: 20.h),
-
-                    // Time Picker Row
-                    _buildTimePickerRow(),
-
                     SizedBox(height: 40.h),
-
-                    // Update Button
-                    CustomButton(
-                      text: "Update Services",
-                      onTap: () {
-                        // Update Logic
-                      },
-                    ),
+                    Obx(() => CustomButton(
+                      text: controller.isLoading.value ? "Updating..." : "Update Services",
+                      onTap: controller.isLoading.value ? null : _handleUpdate,
+                    )),
                     SizedBox(height: 20.h),
                   ],
                 ),
@@ -118,6 +161,115 @@ class _EditServicesScreenState extends State<EditServicesScreen> {
     );
   }
 
+  Widget _buildImageSection() {
+    return Column(
+      children: [
+        SizedBox(
+          height: 100.h,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: [
+              // Add Button
+              GestureDetector(
+                onTap: _pickImage,
+                child: Container(
+                  width: 100.w,
+                  margin: EdgeInsets.only(right: 10.w),
+                  decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(15.r)),
+                  child: Icon(Icons.add_a_photo, color: const Color(0xFF1D3826)),
+                ),
+              ),
+              // Existing Images from Server
+              ...existingImages.map((img) => _imageThumbnail(img, isNetwork: true)),
+              // New Selected Images
+              ...newImages.map((file) => _imageThumbnail(file.path, isNetwork: false)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _imageThumbnail(String path, {required bool isNetwork}) {
+    return Stack(
+      children: [
+        Container(
+          width: 100.w,
+          margin: EdgeInsets.only(right: 10.w),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(15.r),
+            child: isNetwork
+                ? CustomNetworkImage(imageUrl: "${ApiConstants.imageUrl}$path", fit: BoxFit.cover, height: 70, width: 70,)
+                : Image.file(File(path), fit: BoxFit.cover),
+          ),
+        ),
+        Positioned(
+          top: 5, right: 15,
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                isNetwork ? existingImages.remove(path) : newImages.removeWhere((f) => f.path == path);
+              });
+            },
+            child: CircleAvatar(radius: 10, backgroundColor: Colors.red, child: Icon(Icons.close, size: 12, color: Colors.white)),
+          ),
+        )
+      ],
+    );
+  }
+
+  Widget _buildCalendarSection() {
+    return TableCalendar(
+      firstDay: DateTime.now(),
+      lastDay: DateTime.now().add(const Duration(days: 365)),
+      focusedDay: _focusedDay,
+      selectedDayPredicate: (day) => _selectedDates.contains(DateTime(day.year, day.month, day.day)),
+      calendarStyle: CalendarStyle(
+        // Style for dates already in the database
+        markerDecoration: const BoxDecoration(color: Colors.orange, shape: BoxShape.circle),
+        selectedDecoration: const BoxDecoration(color: Color(0XFF1D3826), shape: BoxShape.circle),
+      ),
+      onDaySelected: (selectedDay, focusedDay) {
+        DateTime dayOnly = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
+
+        // 🔒 Lock Logic: If it was originally there, don't allow removing it
+        if (_originalDates.contains(dayOnly)) {
+          Get.snackbar("Notice", "Previous dates cannot be removed", snackPosition: SnackPosition.BOTTOM);
+          return;
+        }
+
+        setState(() {
+          _focusedDay = focusedDay;
+          if (_selectedDates.contains(dayOnly)) {
+            _selectedDates.remove(dayOnly);
+          } else {
+            _selectedDates.add(dayOnly);
+          }
+        });
+      },
+    );
+  }
+
+  void _handleUpdate() {
+    // 1. Extract only the NEW dates
+    List<String> newDatesOnly = _selectedDates
+        .where((d) => !_originalDates.contains(d))
+        .map((d) => d.toIso8601String())
+        .toList();
+
+    // 2. Build the Body
+    final updateBody = BeauticianServiceUpdatePostBody(
+      name: nameController.text.trim(),
+      price: double.tryParse(priceController.text),
+      description: descController.text.trim(),
+      images: newImages,
+      // Add this field to your PostBody class if you haven't yet
+      // availableDates: newDatesOnly,
+    );
+
+    // 3. Call Controller
+    controller.patchService(service.id, updateBody);
+  }
   Widget _buildSliverAppBar() {
     return SliverAppBar(
       expandedHeight: 180.h,
@@ -139,26 +291,6 @@ class _EditServicesScreenState extends State<EditServicesScreen> {
     );
   }
 
-  Widget _buildServiceImage() {
-    return Container(
-      height: 160.h,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20.r),
-        image: const DecorationImage(
-          image: NetworkImage("https://images.pexels.com/photos/3616991/pexels-photo-3616991.jpeg"),
-          fit: BoxFit.cover,
-        ),
-      ),
-      child: Center(
-        child: CircleAvatar(
-          backgroundColor: const Color(0xFF1D3826),
-          radius: 20.r,
-          child: Icon(Icons.file_upload_outlined, color: Colors.white, size: 22.sp),
-        ),
-      ),
-    );
-  }
 
   Widget _buildLabel(String text) {
     return Padding(
@@ -167,18 +299,26 @@ class _EditServicesScreenState extends State<EditServicesScreen> {
     );
   }
 
-  Widget _buildInputField({required String hint, bool isLarge = false}) {
+  Widget _buildInputField({
+    required String hint,
+    required TextEditingController controller, // Add this
+    bool isLarge = false,
+    bool isNumber = false
+  }) {
     return Container(
       height: isLarge ? 100.h : 45.h,
       decoration: BoxDecoration(
-        color: const Color(0xFF9BB575).withValues(alpha:0.7), // Moss green opacity
+        color: const Color(0xFF9BB575).withOpacity(0.7),
         borderRadius: BorderRadius.circular(10.r),
       ),
       child: TextField(
+        controller: controller, // Use it here
+        keyboardType: isNumber ? TextInputType.number : TextInputType.text,
         maxLines: isLarge ? 5 : 1,
+        style: const TextStyle(color: Colors.white), // Ensure text is visible
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: TextStyle(color: Colors.white, fontSize: 13.sp),
+          hintStyle: TextStyle(color: Colors.white70, fontSize: 13.sp),
           border: InputBorder.none,
           contentPadding: EdgeInsets.symmetric(horizontal: 15.w, vertical: isLarge ? 10.h : 0),
         ),
@@ -186,159 +326,9 @@ class _EditServicesScreenState extends State<EditServicesScreen> {
     );
   }
 
-  Widget _buildCalendarSection() {
-    return Container(
-      padding: EdgeInsets.all(10.r),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(color: AppColors.geryColor.withValues(alpha:0.1)),
-      ),
-      child: TableCalendar(
-        availableGestures: AvailableGestures.horizontalSwipe,
-        firstDay: DateTime.now(),
-        lastDay: DateTime.now().add(const Duration(days: 365)),
-        focusedDay: _focusedDay,
-        headerStyle: HeaderStyle(
-          formatButtonVisible: false,
-          titleCentered: true,
-          titleTextStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp, color: AppColors.primaryDark),
-        ),
-        selectedDayPredicate: (day) => _selectedDates.contains(DateTime(day.year, day.month, day.day)),
-        onDaySelected: (selectedDay, focusedDay) {
-          setState(() {
-            _focusedDay = focusedDay;
-            DateTime dayOnly = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
-
-            if (applyToFullYear) {
-              // --- FULL YEAR LOGIC ---
-              int targetWeekday = dayOnly.weekday;
-              DateTime start = DateTime.now();
-
-              // Determine if we are adding or removing based on the clicked day
-              bool isAdding = !_selectedDates.contains(dayOnly);
-
-              for (int i = 0; i <= 365; i++) {
-                DateTime runner = start.add(Duration(days: i));
-                DateTime runnerDay = DateTime(runner.year, runner.month, runner.day);
-
-                if (runnerDay.weekday == targetWeekday) {
-                  if (isAdding) {
-                    _selectedDates.add(runnerDay);
-                  } else {
-                    _selectedDates.remove(runnerDay);
-                  }
-                }
-              }
-            } else {
-              // --- MULTI-SELECT LOGIC ---
-              if (_selectedDates.contains(dayOnly)) {
-                _selectedDates.remove(dayOnly);
-              } else {
-                _selectedDates.add(dayOnly);
-              }
-            }
-          });
-        },
-        calendarStyle: CalendarStyle(
-          selectedDecoration: const BoxDecoration(color: Color(0XFF1D3826), shape: BoxShape.circle),
-          selectedTextStyle: const TextStyle(color: Colors.white),
-          todayDecoration: BoxDecoration(color: const Color(0XFF627E4C).withValues(alpha:0.2), shape: BoxShape.circle),
-          todayTextStyle: const TextStyle(color: Color(0XFF1D3826), fontWeight: FontWeight.bold),
-          defaultTextStyle: const TextStyle(color: Colors.black87),
-          weekendTextStyle: const TextStyle(color: Colors.redAccent),
-          outsideTextStyle: const TextStyle(color: Colors.grey),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTimePickerRow() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        GestureDetector(
-          onTap: () => _pickTime(true),
-          child: _buildTimeBox(
-            startTime.hourOfPeriod == 0 ? "12" : startTime.hourOfPeriod.toString().padLeft(2, '0'),
-            startTime.minute.toString().padLeft(2, '0'),
-            startTime.period == DayPeriod.am ? "AM" : "PM",
-          ),
-        ),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 15.w),
-          child: CustomText(text: "to", color: AppColors.geryColor, fontWeight: FontWeight.bold),
-        ),
-        GestureDetector(
-          onTap: () => _pickTime(false),
-          child: _buildTimeBox(
-            endTime.hourOfPeriod == 0 ? "12" : endTime.hourOfPeriod.toString().padLeft(2, '0'),
-            endTime.minute.toString().padLeft(2, '0'),
-            endTime.period == DayPeriod.am ? "AM" : "PM",
-          ),
-        ),
-      ],
-    );
-  }
-
-  Future<void> _pickTime(bool isStart) async {
-    final TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: isStart ? startTime : endTime,
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: AppColors.secondaryVariant,
-              onPrimary: AppColors.white,
-              onSurface: AppColors.primaryDark,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (picked != null) {
-      setState(() {
-        if (isStart) {
-          startTime = picked;
-        } else {
-          endTime = picked;
-        }
-      });
-    }
-  }
 
 
-  Widget _buildTimeBox(String hour, String minute, String period) {
-    return Row(
-      children: [
-        _timeInputField(hour),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 5.w),
-          child: CustomText(text: ":", fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.primaryDark),
-        ),
-        _timeInputField(minute),
-        SizedBox(width: 8.w),
-        Column(
-          children: [
-            CustomText(
-                text: "AM",
-                fontSize: 10.sp,
-                color: period == "AM" ? AppColors.secondaryVariant : AppColors.geryColor,
-                fontWeight: period == "AM" ? FontWeight.bold : FontWeight.normal
-            ),
-            CustomText(
-                text: "PM",
-                fontSize: 10.sp,
-                color: period == "PM" ? AppColors.secondaryVariant : AppColors.geryColor,
-                fontWeight: period == "PM" ? FontWeight.bold : FontWeight.normal
-            ),
-          ],
-        )
-      ],
-    );
-  }
+
 
   Widget _timeInputField(String value) {
     return Container(
