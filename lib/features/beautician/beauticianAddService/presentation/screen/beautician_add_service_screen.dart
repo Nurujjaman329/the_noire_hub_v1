@@ -65,39 +65,64 @@ class _BeauticianAddServiceScreenState extends State<BeauticianAddServiceScreen>
   }
 
   void _handleSave() {
-    // 1. Validation
+    // 1. Basic Validation
     if (selectedCategoryId == null || selectedSubCategoryId == null) {
       Get.snackbar("Error", "Please select category and subcategory",
           backgroundColor: Colors.redAccent, colorText: Colors.white);
       return;
     }
 
-    // 2. Data Preparation
-    final double? discountAmount = double.tryParse(discountValueController.text.trim());
-    // Only send discount if value > 0 and type is selected
-    final bool isValidDiscount = (discountAmount ?? 0) > 0 && selectedDiscountType != null;
+    final String name = nameController.text.trim();
+    final String priceStr = priceController.text.trim();
+    final String discountValStr = discountValueController.text.trim();
+    final String maxDiscountStr = maxDiscountController.text.trim();
 
+    if (name.isEmpty || priceStr.isEmpty) {
+      Get.snackbar("Error", "Service name and price are required",
+          backgroundColor: Colors.redAccent, colorText: Colors.white);
+      return;
+    }
+
+    // 2. Complex Discount Validation
+    double? discountValue = double.tryParse(discountValStr);
+    double? maxDiscount = double.tryParse(maxDiscountStr);
+
+    // Logic: If Max Discount exists OR if Discount Value exists -> Must have both Value and Type
+    bool hasDiscountValue = discountValStr.isNotEmpty && discountValue != null;
+    bool hasMaxDiscount = maxDiscountStr.isNotEmpty && maxDiscount != null;
+    bool hasType = selectedDiscountType != null;
+
+    if (hasDiscountValue || hasMaxDiscount) {
+      if (!hasDiscountValue || !hasType) {
+        Get.snackbar("Discount Error", "To apply a discount (or max limit), you must provide both Value and Type.",
+            backgroundColor: Colors.orangeAccent, colorText: Colors.white);
+        return;
+      }
+    }
+
+    // 3. Data Preparation
     final List<String> formattedDates = _selectedDates.map((d) => DateFormat('yyyy-MM-dd').format(d)).toList();
 
     final serviceData = BeauticiansCreateServicePostBody(
-      images: serviceController.selectedImages.toList(), // .toList() for safety
+      images: serviceController.selectedImages.toList(),
       categoryId: selectedCategoryId!,
       subCategoryId: selectedSubCategoryId!,
-      name: nameController.text.trim(),
+      name: name,
       description: descController.text.trim(),
-      price: double.tryParse(priceController.text) ?? 0.0,
+      price: double.tryParse(priceStr) ?? 0.0,
       homeService: isHomeServiceAvailable,
       availableDates: formattedDates,
       startTime: _formatTime(startTime),
       endTime: _formatTime(endTime),
-      discountType: isValidDiscount ? selectedDiscountType : null,
-      discountValue: isValidDiscount ? discountAmount : null,
-      discountMaxAmount: double.tryParse(maxDiscountController.text.trim()),
+      discountType: hasDiscountValue ? selectedDiscountType : null,
+      discountValue: hasDiscountValue ? discountValue : null,
+      discountMaxAmount: hasMaxDiscount ? maxDiscount : null,
       variants: serviceController.selectedVariants.toList(),
     );
 
     serviceController.addService(serviceData);
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -297,38 +322,43 @@ class _BeauticianAddServiceScreenState extends State<BeauticianAddServiceScreen>
         borderRadius: BorderRadius.circular(20.r),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
       ),
-      child: TableCalendar(
-        firstDay: DateTime.now(),
-        lastDay: DateTime.now().add(const Duration(days: 365)),
-        focusedDay: _focusedDay,
-        headerStyle: HeaderStyle(
-          formatButtonVisible: false,
-          titleCentered: true,
-          leftChevronIcon: Icon(Icons.chevron_left, color: const Color(0xFF1D3826), size: 24.sp),
-          rightChevronIcon: Icon(Icons.chevron_right, color: const Color(0xFF1D3826), size: 24.sp),
-          titleTextStyle: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: const Color(0xFF1D3826)),
-        ),
-        selectedDayPredicate: (day) => _selectedDates.contains(day),
-        onDaySelected: (selectedDay, focusedDay) {
-          setState(() {
-            _focusedDay = focusedDay;
-            if (_selectedDates.contains(selectedDay)) {
-              _selectedDates.remove(selectedDay);
-            } else {
-              _selectedDates.add(selectedDay);
-            }
-          });
-        },
-        calendarStyle: CalendarStyle(
-          selectedDecoration: const BoxDecoration(color: Color(0xFFCADA9F), shape: BoxShape.circle),
-          selectedTextStyle: const TextStyle(color: Color(0xFF1D3826), fontWeight: FontWeight.bold),
-          todayDecoration: BoxDecoration(color: Colors.grey.shade100, shape: BoxShape.circle),
-          todayTextStyle: const TextStyle(color: Colors.black),
-          outsideDaysVisible: false,
+      // Fix: GestureDetector stops the parent ScrollView from scrolling when touching the calendar
+      child: GestureDetector(
+        onVerticalDragUpdate: (_) {},
+        child: TableCalendar(
+          firstDay: DateTime.now(),
+          lastDay: DateTime.now().add(const Duration(days: 365)),
+          focusedDay: _focusedDay,
+          headerStyle: HeaderStyle(
+            formatButtonVisible: false,
+            titleCentered: true,
+            leftChevronIcon: Icon(Icons.chevron_left, color: const Color(0xFF1D3826), size: 24.sp),
+            rightChevronIcon: Icon(Icons.chevron_right, color: const Color(0xFF1D3826), size: 24.sp),
+            titleTextStyle: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: const Color(0xFF1D3826)),
+          ),
+          selectedDayPredicate: (day) => _selectedDates.contains(day),
+          onDaySelected: (selectedDay, focusedDay) {
+            setState(() {
+              _focusedDay = focusedDay;
+              if (_selectedDates.contains(selectedDay)) {
+                _selectedDates.remove(selectedDay);
+              } else {
+                _selectedDates.add(selectedDay);
+              }
+            });
+          },
+          calendarStyle: CalendarStyle(
+            selectedDecoration: const BoxDecoration(color: Color(0xFFCADA9F), shape: BoxShape.circle),
+            selectedTextStyle: const TextStyle(color: Color(0xFF1D3826), fontWeight: FontWeight.bold),
+            todayDecoration: BoxDecoration(color: Colors.grey.shade100, shape: BoxShape.circle),
+            todayTextStyle: const TextStyle(color: Colors.black),
+            outsideDaysVisible: false,
+          ),
         ),
       ),
     );
   }
+
 
   Widget _buildTimePickerRow() {
     return Row(

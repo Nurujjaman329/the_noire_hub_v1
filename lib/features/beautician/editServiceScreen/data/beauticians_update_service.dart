@@ -6,7 +6,7 @@ import '../../../../core/constants/api_constants.dart';
 import 'Beautician_service_update_post_body.dart';
 
 class BeauticiansUpdateService {
-  final ApiClient _apiClient; // Assuming you have an ApiClient for Dio
+  final ApiClient _apiClient;
 
   BeauticiansUpdateService(this._apiClient);
 

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:the_noire_hub_v1/features/beautician/editServiceScreen/presentation/widgets/beautician_edit_variant_sheet.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -25,31 +26,29 @@ class EditServicesScreen extends StatefulWidget {
 }
 
 class _EditServicesScreenState extends State<EditServicesScreen> {
-  // Controller and Data
   final controller = Get.find<BeauticiansUpdateServiceController>();
   late ServiceModel service;
 
-  // Form Controllers
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController priceController = TextEditingController();
-  final TextEditingController discountController = TextEditingController();
-  final TextEditingController descController = TextEditingController();
+  // Controllers...
+  final nameController = TextEditingController();
+  final priceController = TextEditingController();
+  final descController = TextEditingController();
+  final discountValueController = TextEditingController();
+  final maxDiscountController = TextEditingController();
 
-  // Date & Time State
+  String? selectedDiscountType;
+  bool isHomeServiceAvailable = false;
+
   DateTime _focusedDay = DateTime.now();
   final Set<DateTime> _selectedDates = {};
-  final Set<DateTime> _originalDates = {}; // To track what was already there
-  TimeOfDay startTime = const TimeOfDay(hour: 9, minute: 0);
-  TimeOfDay endTime = const TimeOfDay(hour: 18, minute: 0);
+  final Set<DateTime> _originalDates = {};
 
-  // Image State
   List<String> existingImages = [];
   List<File> newImages = [];
 
   @override
   void initState() {
     super.initState();
-    // Get the service object passed from the previous screen
     service = Get.arguments as ServiceModel;
     _initializeData();
   }
@@ -58,97 +57,142 @@ class _EditServicesScreenState extends State<EditServicesScreen> {
     nameController.text = service.name;
     priceController.text = service.price.toString();
     descController.text = service.description;
+
+    _selectedDates.clear();
+    _originalDates.clear();
+
+    // Discount initialization
+    if (service.discount.value > 0) discountValueController.text = service.discount.value.toString();
+    if (service.discount.maxAmount > 0) maxDiscountController.text = service.discount.maxAmount.toString();
+    selectedDiscountType = service.discount.type;
+
+    isHomeServiceAvailable = service.homeService;
     existingImages = List.from(service.images);
 
-    // 1. Convert string dates from backend to DateTime objects
+    // ✅ MERGE DATES: Add all existing dates to the selection set
     for (var dateStr in service.availableDates) {
-      DateTime dt = DateTime.parse(dateStr);
-      DateTime dayOnly = DateTime(dt.year, dt.month, dt.day);
-      _selectedDates.add(dayOnly);
-      _originalDates.add(dayOnly);
-    }
+      try {
+        DateTime dt = DateTime.parse(dateStr);
+        DateTime dayOnly = DateTime(dt.year, dt.month, dt.day);
 
-    // 2. Initialize Time with AM/PM support
-    String rawStart = service.workingHours.startTime; // e.g., "09:00 AM"
-    String rawEnd = service.workingHours.endTime;     // e.g., "06:00 PM"
-
-    startTime = _parseTimeString(rawStart);
-    endTime = _parseTimeString(rawEnd);
-  }
-
-  /// Helper method to safely parse "HH:mm AM/PM" or "HH:mm" into TimeOfDay
-  TimeOfDay _parseTimeString(String timeStr) {
-    try {
-      // 1. Extract digits only for splitting (removes AM/PM)
-      // RegExp matches the numbers before and after the colon
-      final timeMatch = RegExp(r'(\d+):(\d+)').firstMatch(timeStr);
-      if (timeMatch == null) return const TimeOfDay(hour: 9, minute: 0);
-
-      int hour = int.parse(timeMatch.group(1)!);
-      int minute = int.parse(timeMatch.group(2)!);
-
-      // 2. Handle AM/PM logic
-      String period = timeStr.toUpperCase();
-      if (period.contains("PM") && hour < 12) {
-        hour += 12;
-      } else if (period.contains("AM") && hour == 12) {
-        hour = 0;
+        _selectedDates.add(dayOnly);  // For the UI selection
+        _originalDates.add(dayOnly);  // ✅ For the "already saved" check
+      } catch (e) {
+        debugPrint("Date Error: $e");
       }
-
-      return TimeOfDay(hour: hour, minute: minute);
-    } catch (e) {
-      debugPrint("Error parsing time '$timeStr': $e");
-      return const TimeOfDay(hour: 9, minute: 0); // Fallback
     }
+
+    // ✅ Map variants with IDs
+    controller.selectedVariants.value = service.variants.map((v) {
+      return ServiceVariantUpdateBody(
+        id: v.id,
+        variantName: v.variantName,
+        description: v.description,
+        subVariants: v.subVariants.map((sv) => ServiceSubVariantUpdateBody(
+          name: sv.name,
+          price: sv.price.toDouble(),
+        )).toList(),
+      );
+    }).toList();
   }
 
-  Future<void> _pickImage() async {
-    final List<XFile> pickedFiles = await ImagePicker().pickMultiImage();
-    if (pickedFiles.isNotEmpty) {
-      setState(() {
-        newImages.addAll(pickedFiles.map((x) => File(x.path)));
-      });
-    }
+  void _handleUpdate() {
+    // Basic validation...
+    double? dVal = double.tryParse(discountValueController.text);
+    double? maxD = double.tryParse(maxDiscountController.text);
+
+    String? finalType = (dVal == null || dVal == 0) ? null : selectedDiscountType;
+    double? finalValue = (dVal == null || dVal == 0) ? null : dVal;
+
+    // ✅ PASS PREVIOUS + NEW DATES: Send the entire _selectedDates set
+    final updateBody = BeauticianServiceUpdatePostBody(
+      name: nameController.text.trim(),
+      price: double.tryParse(priceController.text.trim()),
+      description: descController.text.trim(),
+      images: newImages.isEmpty ? null : newImages,
+      availableDates: _selectedDates.toList(), // Full list (Original + New)
+      discountType: finalType,
+      discountValue: finalValue,
+      discountMaxAmount: maxD,
+      variants: controller.selectedVariants.toList(),
+    );
+
+    controller.patchService(service.id, updateBody);
   }
+
+  void _openVariantEditSheet() {
+    Get.dialog(
+      const BeauticiansEditVariantSheet(),
+      barrierDismissible: false,
+    );
+  }
+
+  // --- ADD VARIANT LOGIC (Matches your JSON requirements) ---
+  void _addNewVariant() {
+    String name = "";
+    String desc = "";
+
+    Get.defaultDialog(
+        title: "Add Variant",
+        content: Column(
+          children: [
+            TextField(onChanged: (v) => name = v, decoration: const InputDecoration(hintText: "Variant Name")),
+            TextField(onChanged: (v) => desc = v, decoration: const InputDecoration(hintText: "Description")),
+          ],
+        ),
+        onConfirm: () {
+          if (name.isNotEmpty) {
+            controller.selectedVariants.add(
+              ServiceVariantUpdateBody(
+                variantName: name,
+                description: desc,
+                subVariants: [], // You can then add sub-variants in a second step
+              ),
+            );
+            Get.back();
+          }
+        }
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1D3826),
+      backgroundColor: AppColors.primaryDark,
       body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
         slivers: [
           _buildSliverAppBar(),
           SliverToBoxAdapter(
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.only(topLeft: Radius.circular(50.r), topRight: Radius.circular(50.r)),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(50.r)),
               ),
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 25.w, vertical: 30.h),
+                padding: EdgeInsets.all(25.w),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CustomText(text: "Edit Services", fontSize: 20.sp, fontWeight: FontWeight.bold, color: const Color(0xFF1D3826)),
-                    SizedBox(height: 20.h),
+                    Center(child: CustomText(text: "Edit Service", fontSize: 24.sp, fontWeight: FontWeight.bold, color: AppColors.background)),
+                    SizedBox(height: 30.h),
 
-                    // Multi-Image Preview Section
-                    _buildImageSection(),
-
-                    SizedBox(height: 25.h),
-                    _buildLabel("Services Name"),
-                    _buildInputField(controller: nameController, hint: "Service Name"),
-
-                    SizedBox(height: 15.h),
-                    _buildLabel("Services Price"),
-                    _buildInputField(controller: priceController, hint: "Price", isNumber: true),
+                    // --- CALENDAR SECTION (Matches Add Screen UI) ---
+                    _buildSectionTitle("Update Availability", "Manage your booking dates"),
+                    _buildCalendarCard(),
 
                     SizedBox(height: 30.h),
-                    _buildCalendarSection(),
+
+                    // --- SERVICE DETAILS FORM (Matches Add Screen UI) ---
+                    _buildServiceForm(),
+                    SizedBox(height: 20.h),
+                    _buildVariantSection(),
 
                     SizedBox(height: 40.h),
                     Obx(() => CustomButton(
-                      text: controller.isLoading.value ? "Updating..." : "Update Services",
                       onTap: controller.isLoading.value ? null : _handleUpdate,
+                      text: controller.isLoading.value ? "Updating..." : "Save Changes",
                     )),
                     SizedBox(height: 20.h),
                   ],
@@ -161,187 +205,174 @@ class _EditServicesScreenState extends State<EditServicesScreen> {
     );
   }
 
-  Widget _buildImageSection() {
+  Widget _buildServiceForm() {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(
-          height: 100.h,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            children: [
-              // Add Button
-              GestureDetector(
-                onTap: _pickImage,
-                child: Container(
-                  width: 100.w,
-                  margin: EdgeInsets.only(right: 10.w),
-                  decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(15.r)),
-                  child: Icon(Icons.add_a_photo, color: const Color(0xFF1D3826)),
-                ),
-              ),
-              // Existing Images from Server
-              ...existingImages.map((img) => _imageThumbnail(img, isNetwork: true)),
-              // New Selected Images
-              ...newImages.map((file) => _imageThumbnail(file.path, isNetwork: false)),
-            ],
-          ),
+        CustomText(text: "Service Details", fontSize: 18.sp, fontWeight: FontWeight.bold),
+        SizedBox(height: 20.h),
+
+        // Image Uploader Section
+        _buildPhotoUploader(),
+
+        SizedBox(height: 20.h),
+        _buildLabel("Service Name"),
+        _buildInputWrapper(child: TextField(controller: nameController, decoration: const InputDecoration(hintText: "e.g. Silk Press", border: InputBorder.none))),
+
+        SizedBox(height: 20.h),
+        _buildPriceAndDiscountRow(),
+
+        SizedBox(height: 15.h),
+        _buildLabel("Max Discount Amount (Optional)"),
+        _buildInputWrapper(child: TextField(controller: maxDiscountController, keyboardType: TextInputType.number, decoration: const InputDecoration(hintText: "Cap the discount", border: InputBorder.none))),
+
+        SizedBox(height: 20.h),
+        _buildHomeServiceToggle(),
+
+        SizedBox(height: 15.h),
+        _buildLabel("Description"),
+        _buildDescriptionField(),
+      ],
+    );
+  }
+
+  Widget _buildVariantSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildLabel("Service Variants"),
+        Obx(() => Column(
+          children: controller.selectedVariants.map((v) => _buildVariantTile(v)).toList(),
+        )),
+        SizedBox(height: 10.h),
+        CustomButton(
+          text: "Manage Variants",
+          onTap: _openVariantEditSheet,
         ),
       ],
     );
   }
 
-  Widget _imageThumbnail(String path, {required bool isNetwork}) {
-    return Stack(
-      children: [
-        Container(
-          width: 100.w,
-          margin: EdgeInsets.only(right: 10.w),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(15.r),
-            child: isNetwork
-                ? CustomNetworkImage(imageUrl: "${ApiConstants.imageUrl}$path", fit: BoxFit.cover, height: 70, width: 70,)
-                : Image.file(File(path), fit: BoxFit.cover),
-          ),
-        ),
-        Positioned(
-          top: 5, right: 15,
-          child: GestureDetector(
-            onTap: () {
-              setState(() {
-                isNetwork ? existingImages.remove(path) : newImages.removeWhere((f) => f.path == path);
-              });
-            },
-            child: CircleAvatar(radius: 10, backgroundColor: Colors.red, child: Icon(Icons.close, size: 12, color: Colors.white)),
-          ),
-        )
-      ],
-    );
-  }
-
-  Widget _buildCalendarSection() {
-    return TableCalendar(
-      firstDay: DateTime.now(),
-      lastDay: DateTime.now().add(const Duration(days: 365)),
-      focusedDay: _focusedDay,
-      selectedDayPredicate: (day) => _selectedDates.contains(DateTime(day.year, day.month, day.day)),
-      calendarStyle: CalendarStyle(
-        // Style for dates already in the database
-        markerDecoration: const BoxDecoration(color: Colors.orange, shape: BoxShape.circle),
-        selectedDecoration: const BoxDecoration(color: Color(0XFF1D3826), shape: BoxShape.circle),
-      ),
-      onDaySelected: (selectedDay, focusedDay) {
-        DateTime dayOnly = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
-
-        // 🔒 Lock Logic: If it was originally there, don't allow removing it
-        if (_originalDates.contains(dayOnly)) {
-          Get.snackbar("Notice", "Previous dates cannot be removed", snackPosition: SnackPosition.BOTTOM);
-          return;
-        }
-
-        setState(() {
-          _focusedDay = focusedDay;
-          if (_selectedDates.contains(dayOnly)) {
-            _selectedDates.remove(dayOnly);
-          } else {
-            _selectedDates.add(dayOnly);
-          }
-        });
-      },
-    );
-  }
-
-  void _handleUpdate() {
-    // 1. Extract only the NEW dates
-    List<String> newDatesOnly = _selectedDates
-        .where((d) => !_originalDates.contains(d))
-        .map((d) => d.toIso8601String())
-        .toList();
-
-    // 2. Build the Body
-    final updateBody = BeauticianServiceUpdatePostBody(
-      name: nameController.text.trim(),
-      price: double.tryParse(priceController.text),
-      description: descController.text.trim(),
-      images: newImages,
-      // Add this field to your PostBody class if you haven't yet
-      // availableDates: newDatesOnly,
-    );
-
-    // 3. Call Controller
-    controller.patchService(service.id, updateBody);
-  }
-  Widget _buildSliverAppBar() {
-    return SliverAppBar(
-      expandedHeight: 180.h,
-      backgroundColor: const Color(0xFF9BB575), // Moss Green header
-      pinned: true,
-      elevation: 0,
-      automaticallyImplyLeading: false,
-      title: CustomAppBar(title: "",showBackButton: true,bgColor: Colors.transparent,),
-
-      flexibleSpace: FlexibleSpaceBar(
-        background: Center(
-          child: CustomNetworkImage(
-            imageUrl: AppAssets.appLogo, // Use your TNP logo
-            height: 60.h,
-            width: 140.w,
-          ),
-        ),
+  Widget _buildVariantTile(ServiceVariantUpdateBody variant) {
+    return ListTile(
+      title: Text(variant.variantName),
+      subtitle: Text("${variant.subVariants.length} sub-variants"),
+      trailing: IconButton(
+        icon: const Icon(Icons.delete, color: Colors.red),
+        onPressed: () => controller.selectedVariants.remove(variant),
       ),
     );
   }
 
-
-  Widget _buildLabel(String text) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 8.h),
-      child: CustomText(text: text, fontSize: 14.sp, fontWeight: FontWeight.w600),
-    );
-  }
-
-  Widget _buildInputField({
-    required String hint,
-    required TextEditingController controller, // Add this
-    bool isLarge = false,
-    bool isNumber = false
-  }) {
+  // --- CALENDAR CARD (With fix for scrolling) ---
+  Widget _buildCalendarCard() {
     return Container(
-      height: isLarge ? 100.h : 45.h,
+      padding: EdgeInsets.all(10.w),
       decoration: BoxDecoration(
-        color: const Color(0xFF9BB575).withOpacity(0.7),
-        borderRadius: BorderRadius.circular(10.r),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20.r),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
       ),
-      child: TextField(
-        controller: controller, // Use it here
-        keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-        maxLines: isLarge ? 5 : 1,
-        style: const TextStyle(color: Colors.white), // Ensure text is visible
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: TextStyle(color: Colors.white70, fontSize: 13.sp),
-          border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(horizontal: 15.w, vertical: isLarge ? 10.h : 0),
+      child: GestureDetector(
+        onVerticalDragUpdate: (_) {}, // Prevents page scroll when touching calendar
+        child: TableCalendar(
+          firstDay: DateTime.now(),
+          lastDay: DateTime.now().add(const Duration(days: 365)),
+          focusedDay: _focusedDay,
+          headerStyle: HeaderStyle(
+            formatButtonVisible: false,
+            titleCentered: true,
+            leftChevronIcon: Icon(Icons.chevron_left, color: const Color(0xFF1D3826), size: 24.sp),
+            rightChevronIcon: Icon(Icons.chevron_right, color: const Color(0xFF1D3826), size: 24.sp),
+            titleTextStyle: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: const Color(0xFF1D3826)),
+          ),
+          selectedDayPredicate: (day) => _selectedDates.contains(DateTime(day.year, day.month, day.day)),
+          onDaySelected: (selectedDay, focusedDay) {
+            DateTime dayOnly = DateTime(selectedDay.year, selectedDay.month, selectedDay.day);
+            if (_originalDates.contains(dayOnly)) {
+              Get.snackbar("Notice", "Previously saved dates cannot be removed", snackPosition: SnackPosition.BOTTOM);
+              return;
+            }
+            setState(() {
+              _focusedDay = focusedDay;
+              if (_selectedDates.contains(dayOnly)) {
+                _selectedDates.remove(dayOnly);
+              } else {
+                _selectedDates.add(dayOnly);
+              }
+            });
+          },
+          calendarStyle: const CalendarStyle(
+            selectedDecoration: BoxDecoration(color: Color(0xFFCADA9F), shape: BoxShape.circle),
+            selectedTextStyle: TextStyle(color: Color(0xFF1D3826), fontWeight: FontWeight.bold),
+            todayDecoration: BoxDecoration(color: Color(0xFFF5F5F5), shape: BoxShape.circle),
+          ),
         ),
       ),
     );
   }
 
+  // --- UI HELPERS (Directly from Add Screen) ---
+  Widget _buildSectionTitle(String title, String sub) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [CustomText(text: title, fontSize: 16.sp, fontWeight: FontWeight.bold, color: const Color(0XFF1D3826)), CustomText(text: sub, fontSize: 11.sp, color: const Color(0XFFB5B475)), SizedBox(height: 15.h)]);
+  Widget _buildLabel(String text) => Padding(padding: EdgeInsets.only(bottom: 8.h), child: CustomText(text: text, fontSize: 12.sp, fontWeight: FontWeight.w600, color: const Color(0xFF1D3826)));
+  Widget _buildInputWrapper({required Widget child}) => Container(padding: EdgeInsets.symmetric(horizontal: 12.w), decoration: BoxDecoration(border: Border.all(color: const Color(0xFF1D3826)), borderRadius: BorderRadius.circular(8.r)), child: child);
 
+  Widget _buildPriceAndDiscountRow() => Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+    Expanded(flex: 2, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [_buildLabel("Price"), _buildInputWrapper(child: TextField(controller: priceController, keyboardType: TextInputType.number, decoration: const InputDecoration(hintText: "0.00", border: InputBorder.none, prefixText: "\$ ")))])),
+    SizedBox(width: 10.w),
+    Expanded(flex: 3, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [_buildLabel("Discount"), Row(children: [Expanded(child: _buildInputWrapper(child: TextField(controller: discountValueController, keyboardType: TextInputType.number, decoration: const InputDecoration(hintText: "Val", border: InputBorder.none)))), SizedBox(width: 5.w), _buildDiscountTypeDropdown()])]))
+  ]);
 
+  Widget _buildDiscountTypeDropdown() => Container(padding: EdgeInsets.symmetric(horizontal: 8.w), decoration: BoxDecoration(border: Border.all(color: const Color(0xFF1D3826)), borderRadius: BorderRadius.circular(8.r)), child: DropdownButtonHideUnderline(child: DropdownButton<String>(value: selectedDiscountType, hint: Text("Type", style: TextStyle(fontSize: 11.sp)), items: ["flat", "%"].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(), onChanged: (v) => setState(() => selectedDiscountType = v))));
 
+  Widget _buildHomeServiceToggle() => Container(padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h), decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(12.r), border: Border.all(color: const Color(0xFF1D3826).withOpacity(0.3))), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Row(children: [Icon(Icons.home_work_outlined, color: const Color(0xFF1D3826), size: 22.sp), SizedBox(width: 10.w), CustomText(text: "Home Service Available", fontSize: 14.sp, fontWeight: FontWeight.w600)]), Switch(value: isHomeServiceAvailable, activeColor: const Color(0xFF1D3826), onChanged: (v) => setState(() => isHomeServiceAvailable = v))]));
 
-  Widget _timeInputField(String value) {
-    return Container(
-      width: 50.w,
-      height: 40.h,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8.r),
-        border: Border.all(color: AppColors.geryColor.withValues(alpha:0.3)),
+  Widget _buildDescriptionField() => Container(padding: EdgeInsets.symmetric(horizontal: 10.w), decoration: BoxDecoration(border: Border.all(color: const Color(0xFF1D3826)), borderRadius: BorderRadius.circular(8.r)), child: TextField(controller: descController, maxLines: 3, decoration: const InputDecoration(hintText: "Describe your service...", border: InputBorder.none)));
+
+  Widget _buildSliverAppBar() => SliverAppBar(expandedHeight: 180.h, backgroundColor: AppColors.primaryDark, pinned: true, leading: IconButton(icon: Icon(Icons.arrow_back_ios_new, color: AppColors.white, size: 20.sp), onPressed: () => Get.back()), flexibleSpace: FlexibleSpaceBar(background: Center(child: CustomNetworkImage(imageUrl: AppAssets.appLogo, height: 60.h, width: 150.w, fit: BoxFit.contain))));
+
+  // --- PHOTO UPLOADER (Updated for existing + new images) ---
+  Widget _buildPhotoUploader() => GestureDetector(
+    onTap: _pickImage,
+    child: Container(
+      width: double.infinity, height: 120.h,
+      decoration: BoxDecoration(color: const Color(0XFFCADA9F).withOpacity(0.3), border: Border.all(color: const Color(0xFF1D3826)), borderRadius: BorderRadius.circular(15.r)),
+      child: (existingImages.isEmpty && newImages.isEmpty)
+          ? Column(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.add_a_photo_outlined, size: 30, color: Color(0xFF1D3826)), CustomText(text: "Tap to add service photos", fontSize: 11.sp, top: 8.h)])
+          : ListView(
+        scrollDirection: Axis.horizontal,
+        padding: EdgeInsets.all(10.w),
+        children: [
+          ...existingImages.map((img) => _imageTile(img, true)),
+          ...newImages.map((file) => _imageTile(file.path, false)),
+        ],
       ),
-      child: CustomText(text: value, color: AppColors.primaryDark, fontWeight: FontWeight.bold, fontSize: 16.sp),
-    );
+    ),
+  );
+
+  Widget _imageTile(String path, bool isNetwork) {
+    return Stack(children: [
+      Container(
+        margin: EdgeInsets.only(right: 10.w), width: 100.w,
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10.r),
+            image: DecorationImage(
+                image: isNetwork ? NetworkImage("${ApiConstants.imageUrl}$path") : FileImage(File(path)) as ImageProvider,
+                fit: BoxFit.cover
+            )
+        ),
+      ),
+      Positioned(top: 0, right: 5.w, child: GestureDetector(
+        onTap: () => setState(() => isNetwork ? existingImages.remove(path) : newImages.removeWhere((f) => f.path == path)),
+        child: const CircleAvatar(radius: 12, backgroundColor: Colors.red, child: Icon(Icons.close, size: 14, color: Colors.white)),
+      ))
+    ]);
   }
 
-
+  Future<void> _pickImage() async {
+    final List<XFile> pickedFiles = await ImagePicker().pickMultiImage();
+    if (pickedFiles.isNotEmpty) {
+      setState(() { newImages.addAll(pickedFiles.map((x) => File(x.path))); });
+    }
+  }
 }
