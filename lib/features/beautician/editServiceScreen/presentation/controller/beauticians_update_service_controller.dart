@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import '../../../beauticanStoreScreen/presentation/controller/beautician_store_service_controller.dart';
-import '../../data/Beautician_service_update_post_body.dart';
+import '../../data/beautician_service_update_post_body.dart';
 import '../../data/beauticians_update_service.dart';
 
 

@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:the_noire_hub_v1/core/widgets/custom_button.dart';
 import '../../../../../core/widgets/custom_text.dart';
-import '../../data/Beautician_service_update_post_body.dart';
+import '../../data/beautician_service_update_post_body.dart';
 import '../controller/beauticians_update_service_controller.dart';
 import 'edit_variant_set.dart';
 

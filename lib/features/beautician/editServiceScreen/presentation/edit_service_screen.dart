@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:the_noire_hub_v1/features/beautician/editServiceScreen/presentation/widgets/beautician_edit_variant_sheet.dart';
 import '../../../../core/constants/api_constants.dart';
@@ -12,7 +13,7 @@ import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_network_image.dart';
 import '../../../../core/widgets/custom_text.dart';
 import '../../beauticanStoreScreen/data/beautician_store_response_model.dart';
-import '../data/Beautician_service_update_post_body.dart';
+import '../data/beautician_service_update_post_body.dart';
 import 'package:get/get.dart';
 
 import 'controller/beauticians_update_service_controller.dart';
@@ -42,9 +43,9 @@ class _EditServicesScreenState extends State<EditServicesScreen> {
   final Set<DateTime> _selectedDates = {};
   final Set<DateTime> _originalDates = {};
 
-  List<String> existingImages = [];
   List<File> newImages = [];
-  Set<String> _originalVariantIds = {}; // ✅ Track original variant IDs for deletion
+  final Set<String> _originalVariantIds = {};
+  List<String> existingImages = [];
 
   @override
   void initState() {
@@ -68,7 +69,7 @@ class _EditServicesScreenState extends State<EditServicesScreen> {
     selectedDiscountType = service.discount.type;
 
     isHomeServiceAvailable = service.homeService;
-    existingImages = List.from(service.images);
+    existingImages = service.images ?? [];
 
     // ✅ MERGE DATES: Add all existing dates to the selection set
     for (var dateStr in service.availableDates) {
@@ -150,25 +151,21 @@ class _EditServicesScreenState extends State<EditServicesScreen> {
 
     debugPrint("📝 [UPDATE] Total variants to send: ${variantsToSend.length}");
 
-    // ✅ Backend doesn't accept image fields unless uploading NEW images
-    // - No new images = don't send ANY image fields (backend keeps existing)
-    // - Has new images = send only 'files' field (backend handles existing automatically)
-    final hasNewImages = newImages.isNotEmpty;
-    
+    // ✅ Send new images (files) only
     final updateBody = BeauticianServiceUpdatePostBody(
       name: nameController.text.trim(),
       price: price,
       description: descController.text.trim(),
-      images: hasNewImages ? newImages : null,
+      images: newImages.isNotEmpty ? newImages : null, // New image files only
       availableDates: _selectedDates.toList(),
       discountType: finalType,
       discountValue: finalValue,
       discountMaxAmount: maxD,
       homeService: isHomeServiceAvailable,
-      existingImages: null, // ✅ Don't send - backend keeps existing images automatically
       variants: variantsToSend.isEmpty ? null : variantsToSend,
     );
 
+    debugPrint("📸 Images to send: ${newImages.length} (files)");
     controller.patchService(service.id, updateBody);
   }
 
@@ -402,17 +399,16 @@ class _EditServicesScreenState extends State<EditServicesScreen> {
       name: nameController.text.trim(),
       price: price,
       description: descController.text.trim(),
-      images: null, // Don't send image fields
+      images: newImages.isNotEmpty ? newImages : null, // New images only
       availableDates: _selectedDates.toList(),
       discountType: finalType,
       discountValue: finalValue,
       discountMaxAmount: maxD,
       homeService: isHomeServiceAvailable,
-      existingImages: null, // ✅ Don't send - backend keeps existing images automatically
       variants: variantsToSend.isEmpty ? null : variantsToSend,
     );
 
-    debugPrint("📦 Full update body sent");
+    debugPrint("📦 Full update body sent (with ${newImages.length} new images)");
     // Hit the API (Set shouldPop to false so screen stays open)
     controller.patchService(service.id, updateBody, shouldPop: false);
   }
@@ -484,48 +480,142 @@ class _EditServicesScreenState extends State<EditServicesScreen> {
 
   Widget _buildSliverAppBar() => SliverAppBar(expandedHeight: 180.h, backgroundColor: AppColors.primaryDark, pinned: true, leading: IconButton(icon: Icon(Icons.arrow_back_ios_new, color: AppColors.white, size: 20.sp), onPressed: () => Get.back()), flexibleSpace: FlexibleSpaceBar(background: Center(child: CustomNetworkImage(imageUrl: AppAssets.appLogo, height: 60.h, width: 150.w, fit: BoxFit.contain))));
 
-  // --- PHOTO UPLOADER (Updated for existing + new images) ---
+  // --- PHOTO UPLOADER ---
   Widget _buildPhotoUploader() => GestureDetector(
     onTap: _pickImage,
     child: Container(
-      width: double.infinity, height: 120.h,
-      decoration: BoxDecoration(color: const Color(0XFFCADA9F).withOpacity(0.3), border: Border.all(color: const Color(0xFF1D3826)), borderRadius: BorderRadius.circular(15.r)),
+      width: double.infinity,
+      height: 120.h,
+      decoration: BoxDecoration(
+        color: const Color(0XFFCADA9F).withOpacity(0.3),
+        border: Border.all(color: const Color(0xFF1D3826)),
+        borderRadius: BorderRadius.circular(15.r),
+      ),
       child: (existingImages.isEmpty && newImages.isEmpty)
-          ? Column(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.add_a_photo_outlined, size: 30, color: Color(0xFF1D3826)), CustomText(text: "Tap to add service photos", fontSize: 11.sp, top: 8.h)])
+          ? Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.add_a_photo_outlined, size: 30, color: Color(0xFF1D3826)),
+          CustomText(text: "Tap to add service photos", fontSize: 11.sp, top: 8.h),
+        ],
+      )
           : ListView(
         scrollDirection: Axis.horizontal,
         padding: EdgeInsets.all(10.w),
         children: [
-          ...existingImages.map((img) => _imageTile(img, true)),
-          ...newImages.map((file) => _imageTile(file.path, false)),
+          // Existing images from server
+          ...existingImages.map((fileName) => _imageTile(
+            "${ApiConstants.baseImageUrl}$fileName",
+            isNetwork: true,
+          )),
+          // New images from local picker
+          ...newImages.map((file) => _imageTile(file.path, isNetwork: false)),
         ],
       ),
     ),
   );
 
-  Widget _imageTile(String path, bool isNetwork) {
-    return Stack(children: [
-      Container(
-        margin: EdgeInsets.only(right: 10.w), width: 100.w,
-        decoration: BoxDecoration(
+  Widget _imageTile(String path, {required bool isNetwork}) {
+    return Stack(
+      children: [
+        Container(
+          margin: EdgeInsets.only(right: 10.w),
+          width: 100.w,
+          decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10.r),
             image: DecorationImage(
-                image: isNetwork ? NetworkImage("${ApiConstants.imageUrl}$path") : FileImage(File(path)) as ImageProvider,
-                fit: BoxFit.cover
-            )
+              image: isNetwork ? NetworkImage(path) : FileImage(File(path)) as ImageProvider,
+              fit: BoxFit.cover,
+            ),
+          ),
         ),
-      ),
-      Positioned(top: 0, right: 5.w, child: GestureDetector(
-        onTap: () => setState(() => isNetwork ? existingImages.remove(path) : newImages.removeWhere((f) => f.path == path)),
-        child: const CircleAvatar(radius: 12, backgroundColor: Colors.red, child: Icon(Icons.close, size: 14, color: Colors.white)),
-      ))
-    ]);
+        if (!isNetwork) // Only allow deletion of new images
+          Positioned(
+            top: 0,
+            right: 5.w,
+            child: GestureDetector(
+              onTap: () => setState(() => newImages.removeWhere((f) => f.path == path)),
+              child: const CircleAvatar(
+                radius: 12,
+                backgroundColor: Colors.red,
+                child: Icon(Icons.close, size: 14, color: Colors.white),
+              ),
+            ),
+          ),
+      ],
+    );
   }
 
+
   Future<void> _pickImage() async {
-    final List<XFile> pickedFiles = await ImagePicker().pickMultiImage();
-    if (pickedFiles.isNotEmpty) {
-      setState(() { newImages.addAll(pickedFiles.map((x) => File(x.path))); });
+    // Show bottom sheet with camera and gallery options
+    final ImageSource? source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo_library, color: Color(0xFF1D3826)),
+                title: const Text('Gallery', style: TextStyle(fontSize: 16)),
+                onTap: () => Navigator.pop(context, ImageSource.gallery),
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt, color: Color(0xFF1D3826)),
+                title: const Text('Camera', style: TextStyle(fontSize: 16)),
+                onTap: () => Navigator.pop(context, ImageSource.camera),
+              ),
+
+            ],
+          ),
+        );
+      },
+    );
+
+    if (source == null) return;
+
+    try {
+      XFile? pickedFile;
+      
+      if (source == ImageSource.camera) {
+        // Take photo with camera
+        pickedFile = await ImagePicker().pickImage(
+          source: ImageSource.camera,
+          imageQuality: 85,
+        );
+      } else {
+        // Pick multiple from gallery
+        final List<XFile> pickedFiles = await ImagePicker().pickMultiImage(
+          imageQuality: 85,
+        );
+        if (pickedFiles.isNotEmpty) {
+          setState(() {
+            newImages.addAll(pickedFiles.map((x) => File(x.path)));
+          });
+        }
+        return;
+      }
+
+      // Handle single image (from camera)
+      if (pickedFile != null) {
+        // Copy to app's documents directory to prevent cache deletion
+        final String appDir = (await getApplicationDocumentsDirectory()).path;
+        final String fileName = 'image_${DateTime.now().millisecondsSinceEpoch}.jpg';
+        final String newPath = '$appDir/$fileName';
+        
+        final File copiedFile = await File(pickedFile.path).copy(newPath);
+        
+        setState(() {
+          newImages.add(copiedFile);
+        });
+      }
+    } catch (e) {
+      debugPrint('Image picker error: $e');
+      Get.snackbar('Error', 'Failed to pick image');
     }
   }
 }

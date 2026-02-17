@@ -129,6 +129,7 @@ class ApiClient {
   }
 
   // ====================== PATCH ======================
+  // ====================== PATCH ======================
   Future<Response> patch(
       String path, {
         dynamic data,
@@ -137,6 +138,12 @@ class ApiClient {
         CancelToken? cancelToken,
       }) async {
     try {
+      // ✅ IMPROVEMENT: Automatically set contentType if data is FormData
+      if (data is FormData) {
+        options ??= Options();
+        options.contentType = 'multipart/form-data';
+      }
+
       return await _dio.patch(
         path,
         data: data,
