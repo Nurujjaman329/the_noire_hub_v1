@@ -8,8 +8,7 @@ class BeauticianServiceUpdatePostBody {
   final String? name;
   final String? description;
   final double? price;
-  final bool sendVariantsIdOnly;
-  final List<String>? existingImages; // ✅ ADD THIS
+  final List<String>? existingImages; // ✅ Tell backend which images to keep
   final bool? homeService;
 
   final List<DateTime>? availableDates;
@@ -32,7 +31,6 @@ class BeauticianServiceUpdatePostBody {
     this.existingImages,
     this.homeService,
     this.variants,
-    this.sendVariantsIdOnly = false,
   });
 
   Future<FormData> toFormData() async {
@@ -57,12 +55,9 @@ class BeauticianServiceUpdatePostBody {
       map['homeService'] = homeService;
     }
 
-    /// ✅ Existing Images (Tell backend which ones to keep)
-    if (existingImages != null) {
-      for (int i = 0; i < existingImages!.length; i++) {
-        map['images[$i]'] = existingImages![i];
-      }
-    }
+    /// ✅ Existing Images - NOT USED
+    /// Backend keeps existing images automatically when no image field is sent
+    /// Image deletion not supported in this API version
 
     /// ✅ Available Dates
     if (availableDates != null && availableDates!.isNotEmpty) {
@@ -103,7 +98,7 @@ class BeauticianServiceUpdatePostBody {
     /// ✅ Variants
     if (variants != null) {
       final List<Map<String, dynamic>> variantList = variants!
-          .map((e) => e.toJson(onlyId: sendVariantsIdOnly)) // ✅ Use the flag here
+          .map((e) => e.toJson()) // ✅ Each variant decides its own format
           .toList();
 
       map['variants'] = jsonEncode(variantList);
@@ -119,22 +114,24 @@ class ServiceVariantUpdateBody {
   final String variantName;
   final String description;
   final List<ServiceSubVariantUpdateBody> subVariants;
+  final bool sendOnlyId; // ✅ Flag to indicate if this variant should only send its ID
 
   ServiceVariantUpdateBody({
     this.id,
     required this.variantName,
     required this.description,
     required this.subVariants,
+    this.sendOnlyId = false,
   });
 
-  // ✅ Modified toJson to accept a flag
-  Map<String, dynamic> toJson({bool onlyId = false}) {
-    // If we only need the ID (for deletion/syncing what stays)
-    if (onlyId && id != null) {
+  // ✅ Modified toJson to check per-variant flag
+  Map<String, dynamic> toJson() {
+    // If this variant should only send ID (for keeping existing variant without changes)
+    if (sendOnlyId && id != null) {
       return {"_id": id};
     }
 
-    // Otherwise, send the full object (for Edit/Create)
+    // Otherwise, send the full object (for new/edited variants)
     final Map<String, dynamic> map = {
       "variantName": variantName,
       "description": description,

@@ -8,7 +8,6 @@ import 'package:the_noire_hub_v1/features/beautician/editServiceScreen/presentat
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_network_image.dart';
 import '../../../../core/widgets/custom_text.dart';
@@ -45,6 +44,7 @@ class _EditServicesScreenState extends State<EditServicesScreen> {
 
   List<String> existingImages = [];
   List<File> newImages = [];
+  Set<String> _originalVariantIds = {}; // ✅ Track original variant IDs for deletion
 
   @override
   void initState() {
@@ -60,6 +60,7 @@ class _EditServicesScreenState extends State<EditServicesScreen> {
 
     _selectedDates.clear();
     _originalDates.clear();
+    _originalVariantIds.clear();
 
     // Discount initialization
     if (service.discount.value > 0) discountValueController.text = service.discount.value.toString();
@@ -82,8 +83,9 @@ class _EditServicesScreenState extends State<EditServicesScreen> {
       }
     }
 
-    // ✅ Map variants with IDs
+    // ✅ Map variants with IDs and track original IDs
     controller.selectedVariants.value = service.variants.map((v) {
+      _originalVariantIds.add(v.id); // ✅ Store original variant ID
       return ServiceVariantUpdateBody(
         id: v.id,
         variantName: v.variantName,
@@ -104,18 +106,67 @@ class _EditServicesScreenState extends State<EditServicesScreen> {
     String? finalType = (dVal == null || dVal == 0) ? null : selectedDiscountType;
     double? finalValue = (dVal == null || dVal == 0) ? null : dVal;
 
+    // Find removed variants (original IDs not in current list)
+    final currentIds = controller.selectedVariants.where((v) => v.id != null).map((v) => v.id!).toSet();
+    final removedIds = _originalVariantIds.difference(currentIds);
+    
+    debugPrint("📝 [UPDATE] Removed variant IDs: $removedIds");
+    debugPrint("📝 [UPDATE] Current variant IDs: $currentIds");
+
+    // Build variants to send
+    List<ServiceVariantUpdateBody> variantsToSend = [];
+    
+    // Add removed variants (send only ID for removal)
+    variantsToSend.addAll(removedIds.map((id) => ServiceVariantUpdateBody(
+      id: id,
+      variantName: '',
+      description: '',
+      subVariants: [],
+      sendOnlyId: true,
+    )));
+    
+    // Add remaining variants
+    variantsToSend.addAll(controller.selectedVariants.map((v) {
+      if (v.id != null && v.id!.isNotEmpty) {
+        // Existing variant - send only ID
+        return ServiceVariantUpdateBody(
+          id: v.id,
+          variantName: v.variantName,
+          description: v.description,
+          subVariants: v.subVariants,
+          sendOnlyId: true,
+        );
+      } else {
+        // New variant - send full data
+        return ServiceVariantUpdateBody(
+          id: v.id,
+          variantName: v.variantName,
+          description: v.description,
+          subVariants: v.subVariants,
+          sendOnlyId: false,
+        );
+      }
+    }));
+
+    debugPrint("📝 [UPDATE] Total variants to send: ${variantsToSend.length}");
+
+    // ✅ Backend doesn't accept image fields unless uploading NEW images
+    // - No new images = don't send ANY image fields (backend keeps existing)
+    // - Has new images = send only 'files' field (backend handles existing automatically)
+    final hasNewImages = newImages.isNotEmpty;
+    
     final updateBody = BeauticianServiceUpdatePostBody(
       name: nameController.text.trim(),
       price: price,
       description: descController.text.trim(),
-      images: newImages.isEmpty ? null : newImages,
+      images: hasNewImages ? newImages : null,
       availableDates: _selectedDates.toList(),
       discountType: finalType,
       discountValue: finalValue,
       discountMaxAmount: maxD,
-      homeService: isHomeServiceAvailable, // ✅ ADD THIS
-      existingImages: existingImages,
-      variants: controller.selectedVariants.toList(),
+      homeService: isHomeServiceAvailable,
+      existingImages: null, // ✅ Don't send - backend keeps existing images automatically
+      variants: variantsToSend.isEmpty ? null : variantsToSend,
     );
 
     controller.patchService(service.id, updateBody);
@@ -289,22 +340,79 @@ class _EditServicesScreenState extends State<EditServicesScreen> {
   void _syncVariantsImmediately() {
     // --- ADD DEBUG LOGS HERE ---
     debugPrint("🗑️ [DELETE SYNC] Initiating permanent removal...");
-    debugPrint("Remaining Variant IDs to keep: ${controller.selectedVariants.map((v) => v.id).toList()}");
+    debugPrint("Remaining variants: ${controller.selectedVariants.length}");
+
+    // Get the IDs of variants that were REMOVED (not in the current list)
+    final currentIds = controller.selectedVariants.where((v) => v.id != null).map((v) => v.id!).toSet();
+    final removedIds = _originalVariantIds.difference(currentIds);
+
+    debugPrint("📦 Original variant IDs: $_originalVariantIds");
+    debugPrint("📦 Current variant IDs: $currentIds");
+    debugPrint("📦 Removed variant IDs: $removedIds");
+
+    List<ServiceVariantUpdateBody> variantsToSend = [];
+
+    // Add removed variants (send only ID for removal)
+    if (removedIds.isNotEmpty) {
+      variantsToSend.addAll(removedIds.map((id) => ServiceVariantUpdateBody(
+        id: id,
+        variantName: '',
+        description: '',
+        subVariants: [],
+        sendOnlyId: true, // Send only _id for removal
+      )));
+      debugPrint("🗑️ Sending variant IDs to REMOVE: ${removedIds.toList()}");
+    }
+
+    // Add remaining variants (send based on whether they're new or existing)
+    if (controller.selectedVariants.isNotEmpty) {
+      variantsToSend.addAll(controller.selectedVariants.map((v) {
+        if (v.id != null && v.id!.isNotEmpty) {
+          // Existing variant - send only ID to keep it
+          return ServiceVariantUpdateBody(
+            id: v.id,
+            variantName: v.variantName,
+            description: v.description,
+            subVariants: v.subVariants,
+            sendOnlyId: true,
+          );
+        } else {
+          // New variant (no ID yet) - send full data
+          return ServiceVariantUpdateBody(
+            id: v.id,
+            variantName: v.variantName,
+            description: v.description,
+            subVariants: v.subVariants,
+            sendOnlyId: false,
+          );
+        }
+      }));
+      debugPrint("✅ Sending remaining variants: ${controller.selectedVariants.map((v) => v.id ?? v.variantName).toList()}");
+    }
+
+    // ✅ Send ALL existing service data along with variant update
+    // Parse current values
+    double? price = double.tryParse(priceController.text.trim().replaceAll('\$', ''));
+    double? dVal = double.tryParse(discountValueController.text.trim());
+    double? maxD = double.tryParse(maxDiscountController.text.trim());
+    String? finalType = (dVal == null || dVal == 0) ? null : selectedDiscountType;
+    double? finalValue = (dVal == null || dVal == 0) ? null : dVal;
 
     final updateBody = BeauticianServiceUpdatePostBody(
-      variants: controller.selectedVariants.toList(),
-      sendVariantsIdOnly: true, // ✅ Tell the model: "Only send IDs this time"
-
-      // Keep everything else null to avoid accidental overwrites
-      name: null,
-      description: null,
-      price: null,
-      availableDates: null,
-      discountType: null,
-      discountValue: null,
-      images: null,
+      name: nameController.text.trim(),
+      price: price,
+      description: descController.text.trim(),
+      images: null, // Don't send image fields
+      availableDates: _selectedDates.toList(),
+      discountType: finalType,
+      discountValue: finalValue,
+      discountMaxAmount: maxD,
+      homeService: isHomeServiceAvailable,
+      existingImages: null, // ✅ Don't send - backend keeps existing images automatically
+      variants: variantsToSend.isEmpty ? null : variantsToSend,
     );
 
+    debugPrint("📦 Full update body sent");
     // Hit the API (Set shouldPop to false so screen stays open)
     controller.patchService(service.id, updateBody, shouldPop: false);
   }

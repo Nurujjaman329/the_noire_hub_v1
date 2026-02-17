@@ -45,6 +45,11 @@ class _BeauticiansEditVariantSheetState extends State<BeauticiansEditVariantShee
     for (var set in editSets) {
       if (set.nameController.text.trim().isEmpty) continue;
 
+      // Determine if this variant should send only ID or full data
+      // - Existing variant (has ID) + user opened edit sheet = send full data (they might have modified it)
+      // - New variant (no ID) = send full data
+      bool sendOnlyId = false; // Always send full data when coming from edit sheet
+
       updatedList.add(
         ServiceVariantUpdateBody(
           id: set.id,
@@ -57,6 +62,7 @@ class _BeauticiansEditVariantSheetState extends State<BeauticiansEditVariantShee
             price: double.tryParse(s['price']!.text.trim()) ?? 0.0,
           ))
               .toList(),
+          sendOnlyId: sendOnlyId,
         ),
       );
     }
