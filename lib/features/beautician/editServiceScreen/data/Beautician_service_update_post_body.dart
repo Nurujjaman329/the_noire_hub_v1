@@ -8,6 +8,9 @@ class BeauticianServiceUpdatePostBody {
   final String? name;
   final String? description;
   final double? price;
+  final bool sendVariantsIdOnly;
+  final List<String>? existingImages; // ✅ ADD THIS
+  final bool? homeService;
 
   final List<DateTime>? availableDates;
 
@@ -26,7 +29,10 @@ class BeauticianServiceUpdatePostBody {
     this.discountType,
     this.discountValue,
     this.discountMaxAmount,
+    this.existingImages,
+    this.homeService,
     this.variants,
+    this.sendVariantsIdOnly = false,
   });
 
   Future<FormData> toFormData() async {
@@ -45,6 +51,17 @@ class BeauticianServiceUpdatePostBody {
     /// ✅ Price (send as number, not string)
     if (price != null) {
       map['price'] = price;
+    }
+
+    if (homeService != null) {
+      map['homeService'] = homeService;
+    }
+
+    /// ✅ Existing Images (Tell backend which ones to keep)
+    if (existingImages != null) {
+      for (int i = 0; i < existingImages!.length; i++) {
+        map['images[$i]'] = existingImages![i];
+      }
     }
 
     /// ✅ Available Dates
@@ -84,9 +101,9 @@ class BeauticianServiceUpdatePostBody {
     }
 
     /// ✅ Variants
-    if (variants != null && variants!.isNotEmpty) {
+    if (variants != null) {
       final List<Map<String, dynamic>> variantList = variants!
-          .map((e) => e.toJson())
+          .map((e) => e.toJson(onlyId: sendVariantsIdOnly)) // ✅ Use the flag here
           .toList();
 
       map['variants'] = jsonEncode(variantList);
@@ -95,8 +112,10 @@ class BeauticianServiceUpdatePostBody {
     return FormData.fromMap(map);
   }
 }
+
+
 class ServiceVariantUpdateBody {
-  final String? id; // existing variant -> send _id
+  final String? id;
   final String variantName;
   final String description;
   final List<ServiceSubVariantUpdateBody> subVariants;
@@ -108,7 +127,14 @@ class ServiceVariantUpdateBody {
     required this.subVariants,
   });
 
-  Map<String, dynamic> toJson() {
+  // ✅ Modified toJson to accept a flag
+  Map<String, dynamic> toJson({bool onlyId = false}) {
+    // If we only need the ID (for deletion/syncing what stays)
+    if (onlyId && id != null) {
+      return {"_id": id};
+    }
+
+    // Otherwise, send the full object (for Edit/Create)
     final Map<String, dynamic> map = {
       "variantName": variantName,
       "description": description,
@@ -122,6 +148,7 @@ class ServiceVariantUpdateBody {
     return map;
   }
 }
+
 class ServiceSubVariantUpdateBody {
   final String name;
   final double price;

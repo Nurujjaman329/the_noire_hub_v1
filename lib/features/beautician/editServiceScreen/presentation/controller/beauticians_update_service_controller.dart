@@ -15,18 +15,18 @@ class BeauticiansUpdateServiceController extends GetxController {
   // Observable list to manage variants directly in the update controller
   var selectedVariants = <ServiceVariantUpdateBody>[].obs;
 
-  Future<void> patchService(String serviceId, BeauticianServiceUpdatePostBody updateData) async {
-    if (serviceId.isEmpty) {
-      Get.snackbar("Error", "Service ID is missing", backgroundColor: Colors.red, colorText: Colors.white);
-      return;
-    }
+  Future<void> patchService(String serviceId, BeauticianServiceUpdatePostBody updateData, {bool shouldPop = true}) async {
+    if (serviceId.isEmpty) return;
 
     isLoading.value = true;
     try {
       final bool success = await _storeService.updateService(serviceId, updateData);
       if (success) {
-        Get.back();
-        Get.snackbar("Success", "Service updated successfully!", backgroundColor: const Color(0xFF1D3826), colorText: Colors.white);
+        // Only navigate back if this is a full manual save
+        if (shouldPop) Get.back();
+
+        Get.snackbar("Success", "Service updated!",
+            backgroundColor: const Color(0xFF1D3826), colorText: Colors.white);
         Get.find<BeauticianStoreServiceController>().fetchServices();
       }
     } finally {

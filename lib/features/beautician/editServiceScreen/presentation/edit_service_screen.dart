@@ -97,23 +97,24 @@ class _EditServicesScreenState extends State<EditServicesScreen> {
   }
 
   void _handleUpdate() {
-    // Basic validation...
-    double? dVal = double.tryParse(discountValueController.text);
-    double? maxD = double.tryParse(maxDiscountController.text);
+    double? price = double.tryParse(priceController.text.trim().replaceAll('\$', ''));
+    double? dVal = double.tryParse(discountValueController.text.trim());
+    double? maxD = double.tryParse(maxDiscountController.text.trim());
 
     String? finalType = (dVal == null || dVal == 0) ? null : selectedDiscountType;
     double? finalValue = (dVal == null || dVal == 0) ? null : dVal;
 
-    // ✅ PASS PREVIOUS + NEW DATES: Send the entire _selectedDates set
     final updateBody = BeauticianServiceUpdatePostBody(
       name: nameController.text.trim(),
-      price: double.tryParse(priceController.text.trim()),
+      price: price,
       description: descController.text.trim(),
       images: newImages.isEmpty ? null : newImages,
-      availableDates: _selectedDates.toList(), // Full list (Original + New)
+      availableDates: _selectedDates.toList(),
       discountType: finalType,
       discountValue: finalValue,
       discountMaxAmount: maxD,
+      homeService: isHomeServiceAvailable, // ✅ ADD THIS
+      existingImages: existingImages,
       variants: controller.selectedVariants.toList(),
     );
 
@@ -127,33 +128,6 @@ class _EditServicesScreenState extends State<EditServicesScreen> {
     );
   }
 
-  // --- ADD VARIANT LOGIC (Matches your JSON requirements) ---
-  void _addNewVariant() {
-    String name = "";
-    String desc = "";
-
-    Get.defaultDialog(
-        title: "Add Variant",
-        content: Column(
-          children: [
-            TextField(onChanged: (v) => name = v, decoration: const InputDecoration(hintText: "Variant Name")),
-            TextField(onChanged: (v) => desc = v, decoration: const InputDecoration(hintText: "Description")),
-          ],
-        ),
-        onConfirm: () {
-          if (name.isNotEmpty) {
-            controller.selectedVariants.add(
-              ServiceVariantUpdateBody(
-                variantName: name,
-                description: desc,
-                subVariants: [], // You can then add sub-variants in a second step
-              ),
-            );
-            Get.back();
-          }
-        }
-    );
-  }
 
 
   @override
@@ -254,14 +228,85 @@ class _EditServicesScreenState extends State<EditServicesScreen> {
   }
 
   Widget _buildVariantTile(ServiceVariantUpdateBody variant) {
-    return ListTile(
-      title: Text(variant.variantName),
-      subtitle: Text("${variant.subVariants.length} sub-variants"),
-      trailing: IconButton(
-        icon: const Icon(Icons.delete, color: Colors.red),
-        onPressed: () => controller.selectedVariants.remove(variant),
+    return Container(
+      margin: EdgeInsets.only(bottom: 10.h),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: const Color(0xFF1D3826).withOpacity(0.1)),
+      ),
+      child: ListTile(
+        contentPadding: EdgeInsets.symmetric(horizontal: 15.w),
+        title: CustomText(
+            text: variant.variantName,
+            fontWeight: FontWeight.bold,
+            fontSize: 14.sp,
+            color: const Color(0xFF1D3826)
+        ),
+        subtitle: CustomText(
+            text: "${variant.subVariants.length} sub-variants",
+            fontSize: 12.sp,
+            color: Colors.grey
+        ),
+        trailing: IconButton(
+          icon: Icon(Icons.delete_outline, color: Colors.redAccent, size: 22.sp),
+          onPressed: () => _confirmDeleteVariant(variant),
+        ),
       ),
     );
+  }
+  void _confirmDeleteVariant(ServiceVariantUpdateBody variant) {
+    Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+        title: CustomText(text: "Delete Variant", fontWeight: FontWeight.bold, fontSize: 18.sp),
+        content: CustomText(
+          text: "Are you sure you want to permanently remove '${variant.variantName}'?",
+          fontSize: 14.sp,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: CustomText(text: "Cancel", color: Colors.grey),
+          ),
+          TextButton(
+            onPressed: () {
+              // 1. Remove from local list
+              controller.selectedVariants.remove(variant);
+              Get.back();
+
+              // 2. Immediate API Sync
+              _syncVariantsImmediately();
+            },
+            child: CustomText(text: "Delete Now", color: Colors.red, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// ✅ NEW: Syncs the variant list to the server immediately after deletion
+  void _syncVariantsImmediately() {
+    // --- ADD DEBUG LOGS HERE ---
+    debugPrint("🗑️ [DELETE SYNC] Initiating permanent removal...");
+    debugPrint("Remaining Variant IDs to keep: ${controller.selectedVariants.map((v) => v.id).toList()}");
+
+    final updateBody = BeauticianServiceUpdatePostBody(
+      variants: controller.selectedVariants.toList(),
+      sendVariantsIdOnly: true, // ✅ Tell the model: "Only send IDs this time"
+
+      // Keep everything else null to avoid accidental overwrites
+      name: null,
+      description: null,
+      price: null,
+      availableDates: null,
+      discountType: null,
+      discountValue: null,
+      images: null,
+    );
+
+    // Hit the API (Set shouldPop to false so screen stays open)
+    controller.patchService(service.id, updateBody, shouldPop: false);
   }
 
   // --- CALENDAR CARD (With fix for scrolling) ---
