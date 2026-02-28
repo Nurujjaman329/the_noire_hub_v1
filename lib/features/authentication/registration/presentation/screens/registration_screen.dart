@@ -61,16 +61,7 @@ class RegistrationScreen extends GetView<RegistrationController> {
                     SizedBox(height: 20.h),
                     CustomTextField(controller: controller.confirmPasswordController, labelText: "Confirm Password", isPassword: true),
                     SizedBox(height: 10.h),
-                    Row(
-                      children: [
-                        Obx(() => Checkbox(
-                          value: controller.rememberMe.value,
-                          activeColor: const Color(0XFF1D3826),
-                          onChanged: (val) => controller.rememberMe.value = val!,
-                        )),
-                        CustomText(text: "Remember Me", fontSize: 12.sp, left: 8.w),
-                      ],
-                    ),
+
                     SizedBox(height: 25.h),
                     CustomButton(
                       text: "Continue",

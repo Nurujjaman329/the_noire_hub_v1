@@ -169,11 +169,7 @@ class LoginScreen extends GetView<LoginController> {
       children: [
         Row(
           children: [
-            Obx(() => Checkbox(
-              value: controller.rememberMe.value,
-              activeColor: const Color(0XFF1D3826),
-              onChanged: (val) => controller.rememberMe.value = val!,
-            )),
+
 
           ],
         ),

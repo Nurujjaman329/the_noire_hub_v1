@@ -2,17 +2,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:the_noire_hub_v1/core/constants/api_constants.dart';
+import 'package:the_noire_hub_v1/features/customer/customerProducts/data/customer_products_response_model.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/route_constants.dart';
 import '../../../../core/widgets/custom_network_image.dart';
 import '../../../../core/widgets/custom_text.dart';
+import '../../../common/category/presentation/controller/category_controller.dart';
+import '../../../common/subCategories/presentation/controller/sub_categories_controller.dart';
+import 'controller/customer_products_controller.dart';
 
 class CustomerProductsScreen extends StatelessWidget {
   const CustomerProductsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // 1. Initialize all required controllers
+    final controller = Get.find<CustomerProductsController>();
+    final categoryController = Get.find<CategoryController>();
+    final subCategoryController = Get.find<SubCategoryController>();
+
+    // Initial data fetch if not already loaded
+    if (categoryController.categories.isEmpty) {
+      categoryController.loadCategories();
+    }
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -35,110 +50,44 @@ class CustomerProductsScreen extends StatelessWidget {
                 color: Color(0XFF000000),
               ),
               SizedBox(height: 15.h),
-              _buildSpecialtiesList(),
+
+              // Reactive Specialties (Categories)
+              _buildSpecialtiesList(categoryController, subCategoryController),
 
               SizedBox(height: 20.h),
+              // Filter chips (Currently static as per your request)
               _buildFilterChips(),
 
               SizedBox(height: 20.h),
-              _buildSubCategoryList(),
+
+              // Reactive SubCategories
+              _buildSubCategoryList(subCategoryController),
+
               SizedBox(height: 30.h),
 
-              _buildHorizontalList([
-                _popularCard(
-                  "Braids By Mia",
-                  "500",
-                  "7 km away",
-                  "4.8",
-                  "https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=500",
-                ),
-                _popularCard(
-                  "Hair Studio",
-                  "300",
-                  "3 km away",
-                  "4.5",
-                  "https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=500",
-                ),
-              ]),
+              // --- DYNAMIC PRODUCT SECTION ---
+              Obx(() {
+                if (controller.isLoading.value && controller.productList.isEmpty) {
+                  return const Center(child: CircularProgressIndicator(color: Color(0xFF1D3826)));
+                }
+                if (controller.productList.isEmpty) {
+                  return const Center(child: CustomText(text: "No products found"));
+                }
 
-              SizedBox(height: 20.h),
-
-              _buildHorizontalList([
-                _popularCard(
-                  "Full Glam Makeup",
-                  "100",
-                  "5 km away",
-                  "4.9 ( 125 )",
-                  "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=500",
-                ),
-                _popularCard(
-                  "Gel Manicure",
-                  "100",
-                  "5 km away",
-                  "4.9 ( 125 )",
-                  "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=500",
-                ),
-              ]),
-
-              SizedBox(height: 20.h),
-
-              _buildHorizontalList([
-                _popularCard(
-                  "Sarah Jenkins",
-                  "100",
-                  "5 km away",
-                  "4.9 ( 125 )",
-                  "https://images.unsplash.com/photo-1595152772835-219674b2a8a6?q=80&w=500",
-                ),
-                _popularCard(
-                  "Elena Rodriguez",
-                  "100",
-                  "5 km away",
-                  "4.9 ( 125 )",
-                  "https://images.unsplash.com/photo-1580618672591-eb180b1a973f?q=80&w=500",
-                ),
-              ]),
+                List<Widget> productRows = [];
+                for (int i = 0; i < controller.productList.length; i += 2) {
+                  List<Widget> rowItems = [];
+                  rowItems.add(_buildProductCard(controller.productList[i]));
+                  if (i + 1 < controller.productList.length) {
+                    rowItems.add(_buildProductCard(controller.productList[i + 1]));
+                  }
+                  productRows.add(_buildHorizontalList(rowItems));
+                  productRows.add(SizedBox(height: 20.h));
+                }
+                return Column(children: productRows);
+              }),
 
               _buildPopularNearYouSection(),
-
-              SizedBox(height: 20.h),
-
-              _buildHorizontalList([
-                _popularCard(
-                  "First Booking: 20% OFF",
-                  "100",
-                  "5 km away",
-                  "4.9 ( 125 )",
-                  "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=500",
-                ),
-                _popularCard(
-                  "Weekend Special",
-                  "100",
-                  "5 km away",
-                  "4.9 ( 125 )",
-                  "https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?q=80&w=500",
-                ),
-              ]),
-
-              SizedBox(height: 20.h),
-
-              _buildHorizontalList([
-                _popularCard(
-                  "Box Braids",
-                  "100",
-                  "5 km away",
-                  "4.9 ( 125 )",
-                  "https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=500",
-                ),
-                _popularCard(
-                  "Lace Wig Install",
-                  "100",
-                  "5 km away",
-                  "4.9 ( 125 )",
-                  "https://images.unsplash.com/photo-1582095133179-bfd08e2fc6b3?q=80&w=500",
-                ),
-              ]),
-
               SizedBox(height: 50.h),
             ],
           ),
@@ -149,6 +98,28 @@ class CustomerProductsScreen extends StatelessWidget {
 
   // --- Helper Methods ---
 
+
+  Widget _buildProductCard(CustomerProduct product) {
+
+    final imageUrl = product.images.isNotEmpty ? product.images.first : '';
+    final fullImageUrl = "${ApiConstants.baseImageUrl}$imageUrl";
+
+    return _popularCard(
+      product.name,
+      product.price.toString(),
+      "7 km away", // You can calculate distance later
+      product.rating.toString(),
+      product.images.isNotEmpty
+          ? fullImageUrl
+          : "https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=500",
+      onTap: () {
+        Get.toNamed(
+          RouteConstants.productDetailsScreen,
+          arguments: product, // Passing the whole object is better
+        );
+      },
+    );
+  }
 
   Widget _buildPopularNearYouSection() {
     return SingleChildScrollView(
@@ -371,40 +342,30 @@ class CustomerProductsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSpecialtiesList() {
-    int selectedIndex = 0;
+  Widget _buildSpecialtiesList(CategoryController catCtrl, SubCategoryController subCtrl) {
+    return Obx(() {
+      if (catCtrl.isLoading.value) return const LinearProgressIndicator();
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          _specialtyCard(
-            "Hair Care",
-            "https://cdn-icons-png.flaticon.com/512/1940/1940922.png",
-            selectedIndex == 0,
-                () => /* Update State */ {},
-          ),
-          _specialtyCard(
-            "Make Up",
-            "https://cdn-icons-png.flaticon.com/512/1940/1940922.png",
-            selectedIndex == 1,
-                () => {},
-          ),
-          _specialtyCard(
-            "Nail Care",
-            "https://cdn-icons-png.flaticon.com/512/1940/1940922.png",
-            selectedIndex == 2,
-                () => {},
-          ),
-          _specialtyCard(
-            "Skin Care",
-            "https://cdn-icons-png.flaticon.com/512/1940/1940922.png",
-            selectedIndex == 3,
-                () => {},
-          ),
-        ],
-      ),
-    );
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: catCtrl.categories.map((category) {
+            // Check if this category is currently selected in the subcategory controller
+            bool isSelected = subCtrl.selectedCategoryId == category.id;
+
+            return _specialtyCard(
+              category.name,
+              "${ApiConstants.baseImageUrl}${category.image}",
+              isSelected,
+                  () {
+                // When tapped, fetch subcategories for this specific category
+                subCtrl.fetchSubCategories(categoryId: category.id);
+              },
+            );
+          }).toList(),
+        ),
+      );
+    });
   }
 
   // 2. Updated Card Method
@@ -537,76 +498,68 @@ class CustomerProductsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSubCategoryList() {
-    // You can manage this with a state variable just like the specialties
-    int selectedSubIndex = 0;
+  Widget _buildSubCategoryList(SubCategoryController subCtrl) {
+    return Obx(() {
+      if (subCtrl.isLoading.value) {
+        return const Center(child: CircularProgressIndicator());
+      }
 
-    final categories = [
-      {"name": "Braids", "img": AppAssets.subCategory},
-      {"name": "Faux Locs", "img": AppAssets.subCategory},
-      {"name": "Kids", "img": AppAssets.subCategory},
-      {"name": "Wig Install", "img": AppAssets.subCategory},
-    ];
+      if (subCtrl.subCategories.isEmpty) {
+        return const SizedBox.shrink(); // Hide if no subcategories found
+      }
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      physics: const BouncingScrollPhysics(),
-      child: Row(
-        children: List.generate(categories.length, (index) {
-          final isSelected = selectedSubIndex == index;
-          final cat = categories[index];
-
-          return Padding(
-            padding: EdgeInsets.only(right: 15.w, left: index == 0 ? 5.w : 0),
-            child: Column(
-              children: [
-                // The Rounded Container
-                Container(
-                  width: 85.w,
-                  height: 85.w,
-                  decoration: BoxDecoration(
-                    // Use the pale yellow for selected, white for unselected
-                    color: isSelected ? const Color(0xFFF1F0B2) : Colors.white,
-                    borderRadius: BorderRadius.circular(25.r),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha:0.08),
-                        blurRadius: 12,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20.r),
-                    child: Padding(
-                      padding: EdgeInsets.all(
-                        8.r,
-                      ), // Padding for the image inside the card
-                      child: CustomNetworkImage(
-                        imageUrl: cat["img"]!,
-                        height:
-                        75.h, // Slightly smaller than container for padding
-                        width: 75.w,
-                        borderRadius: BorderRadius.circular(18.r),
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        child: Row(
+          children: subCtrl.subCategories.map((sub) {
+            return Padding(
+              padding: EdgeInsets.only(right: 15.w),
+              child: Column(
+                children: [
+                  Container(
+                    width: 85.w,
+                    height: 85.w,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(25.r),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.08),
+                          blurRadius: 12,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20.r),
+                      child: Padding(
+                        padding: EdgeInsets.all(8.r),
+                        child: CustomNetworkImage(
+                          imageUrl: "${ApiConstants.baseImageUrl}${sub.image}",
+                          height: 75.h,
+                          width: 75.w,
+                          borderRadius: BorderRadius.circular(18.r),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                // The Label
-                CustomText(
-                  text: cat["name"]!,
-                  fontSize: 13.sp,
-                  top: 10.h,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black,
-                ),
-              ],
-            ),
-          );
-        }),
-      ),
-    );
+                  CustomText(
+                    text: sub.name,
+                    fontSize: 13.sp,
+                    top: 10.h,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black,
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+        ),
+      );
+    });
   }
+
 
   Widget _popularCard(
       String name,

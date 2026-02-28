@@ -28,6 +28,8 @@ class ApiConstants {
   static const String promoCode = "promo-codes";
 
   //customer
+  static const String customerProducts = "products";
+
 
 
   //beauticians

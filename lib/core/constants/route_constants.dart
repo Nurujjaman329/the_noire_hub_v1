@@ -38,6 +38,7 @@ class RouteConstants {
   static const String servicePopularNearYou = '/servicePopularNearYou';
   static const String dealsPromos = '/dealsPromos';
   static const String dealsPromosHistory = '/dealsPromosHistory';
+  static const String customerProducts = '/customerProducts';
 
 
   // vendor

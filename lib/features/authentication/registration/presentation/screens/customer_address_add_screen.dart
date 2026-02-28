@@ -50,19 +50,7 @@ class CustomerAddressAddScreen extends GetView<RegistrationController> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  SizedBox(
-                    width: 90.w,
-                    child: CustomDropdown<String>(
-                      isBoxStyle: true,
-                      labelText: "Country",
-                      value: "+1", // You can link this to controller.selectedCountryCode
-                      items: const ["+1", "+44", "+880", "+234"],
-                      itemAsString: (val) => val,
-                      onChanged: (val) {
-                        // controller.selectedCountryCode.value = val!;
-                      },
-                    ),
-                  ),
+
                   SizedBox(width: 15.w),
                   Expanded(
                     child: CustomTextField(

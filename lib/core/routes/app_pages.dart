@@ -60,6 +60,8 @@ import '../../features/customer/customerAppointmentScreen/presentation/screen/cu
 import '../../features/customer/customerBookingList/presentation/screen/customer_bookings_list.dart';
 import '../../features/customer/customerConfirmBookings/presentation/customer_confirm_bookings.dart';
 import '../../features/customer/customerOrderScreen/presentation/screen/customer_orders_screen.dart';
+import '../../features/customer/customerProducts/presentation/bindings/customer_products_bindings.dart';
+import '../../features/customer/customerProducts/presentation/customer_products_screen.dart';
 import '../../features/customer/customerServiceProductDetails/presentation/customer_service_product_details_screen.dart';
 import '../../features/customer/customerServices/presentation/customer_service_screen.dart';
 import '../../features/customer/dealsPromos/presentation/service_deals_promos_screen.dart';
@@ -428,6 +430,13 @@ class AppPages {
       name: RouteConstants.beauticiansStoreScreen,
       page: () => const BeauticianStoreScreen(),
       binding: BeauticianStoreServiceBindings(),
+      transition: Transition.cupertino,
+    ),
+
+    GetPage(
+      name: RouteConstants.customerProducts,
+      page: () => const CustomerProductsScreen(),
+      binding: CustomerProductsBindings(),
       transition: Transition.cupertino,
     ),
   ];
