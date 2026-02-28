@@ -15,14 +15,16 @@ class CustomerProductsController extends GetxController {
   int currentPage = 1;
   bool hasMore = true;
 
-  // Use an observable string for the search to trigger debounce
+  // --- Search & Filter State ---
   var searchQuery = "".obs;
+  var selectedCategoryId = "".obs;    // 👈 Added
+  var selectedSubCategoryId = "".obs; // 👈 Added
 
   @override
   void onInit() {
     super.onInit();
 
-    // Now debounce listens to the observable 'searchQuery'
+    // Debounce for search only
     debounce(searchQuery, (_) {
       fetchProducts();
     }, time: const Duration(milliseconds: 500));
@@ -30,8 +32,22 @@ class CustomerProductsController extends GetxController {
     fetchProducts();
   }
 
+  // --- Action Methods ---
+
   void onSearchChanged(String value) {
-    searchQuery.value = value; // This triggers the debounce
+    searchQuery.value = value;
+  }
+
+  void filterByCategory(String id) {
+    // Toggle logic: if clicking the same one, clear it.
+    selectedCategoryId.value = (selectedCategoryId.value == id) ? "" : id;
+    selectedSubCategoryId.value = ""; // Reset sub when category changes
+    fetchProducts();
+  }
+
+  void filterBySubCategory(String id) {
+    selectedSubCategoryId.value = (selectedSubCategoryId.value == id) ? "" : id;
+    fetchProducts();
   }
 
   void clearSearch() {
@@ -39,6 +55,8 @@ class CustomerProductsController extends GetxController {
     searchQuery.value = "";
     fetchProducts();
   }
+
+  // --- API Calls ---
 
   Future<void> fetchProducts() async {
     isLoading.value = true;
@@ -50,7 +68,9 @@ class CustomerProductsController extends GetxController {
         latitude: CacheService.lat != 0.0 ? CacheService.lat : null,
         longitude: CacheService.lon != 0.0 ? CacheService.lon : null,
         maxDistance: 10,
-        name: searchQuery.value, // Use the observable value
+        name: searchQuery.value,
+        category: selectedCategoryId.value,    // 👈 Added
+        subcategory: selectedSubCategoryId.value, // 👈 Added
       );
 
       final results = response.data?.attributes?.results ?? [];
@@ -75,7 +95,9 @@ class CustomerProductsController extends GetxController {
         latitude: CacheService.lat != 0.0 ? CacheService.lat : null,
         longitude: CacheService.lon != 0.0 ? CacheService.lon : null,
         maxDistance: 10,
-        // name: currentSearch, // 👈 Maintain search during pagination
+        name: searchQuery.value, // 👈 Keep search
+        category: selectedCategoryId.value, // 👈 Keep category
+        subcategory: selectedSubCategoryId.value, // 👈 Keep subcategory
       );
 
       final newResults = response.data?.attributes?.results ?? [];
@@ -88,5 +110,4 @@ class CustomerProductsController extends GetxController {
       currentPage--;
     }
   }
-
 }

@@ -18,9 +18,10 @@ class CustomerProductsService {
     double? longitude,
     int? maxDistance,
     String? name,
+    String? category,    // 👈 Added
+    String? subcategory, // 👈 Added
   }) async {
     try {
-      // 1. Prepare Parameters
       final Map<String, dynamic> queryParams = {
         'page': page,
         'limit': limit,
@@ -29,31 +30,22 @@ class CustomerProductsService {
       if (latitude != null) queryParams['latitude'] = latitude;
       if (longitude != null) queryParams['longitude'] = longitude;
       if (maxDistance != null) queryParams['maxDistance'] = maxDistance;
-      if (name != null && name.isNotEmpty) queryParams['name'] = name;
 
-      // 2. Debug Log before request
-      debugPrint('--- 🛒 [CustomerProducts Request] ---');
-      debugPrint('📍 Endpoint: ${ApiConstants.customerProducts}');
-      debugPrint('📦 Params: $queryParams');
-      if (name != null) debugPrint('🔍 Searching for: "$name"');
-      debugPrint('--------------------------------------');
+      // Only add to params if string is not empty
+      if (name != null && name.isNotEmpty) queryParams['name'] = name;
+      if (category != null && category.isNotEmpty) queryParams['category'] = category;
+      if (subcategory != null && subcategory.isNotEmpty) queryParams['subcategory'] = subcategory;
+
+      debugPrint('📦 Request Params: $queryParams');
 
       final response = await _apiClient.get(
         ApiConstants.customerProducts,
         queryParameters: queryParams,
       );
 
-      // 3. Optional: Debug successful response count
-      final model = CustomerProductsResponseModel.fromJson(response.data);
-      debugPrint('✅ [Store Success]: Found ${model.data?.attributes?.results.length ?? 0} products');
-
-      return model;
-    } on AppException catch (e) {
-      debugPrint('❌ [Store AppException]: ${e.message}');
-      rethrow;
+      return CustomerProductsResponseModel.fromJson(response.data);
     } catch (e) {
-      debugPrint('🆘 [Store Unknown Exception]: $e');
-      throw UnknownException(e.toString());
+      rethrow;
     }
   }
 }

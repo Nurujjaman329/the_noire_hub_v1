@@ -57,27 +57,36 @@ class CustomerProductsScreen extends StatelessWidget {
               ),
               SizedBox(height: 15.h),
 
-              // Reactive Specialties (Categories)
-              _buildSpecialtiesList(categoryController, subCategoryController),
+              // Updated Specialties (Categories)
+              _buildSpecialtiesList(categoryController, subCategoryController, controller),
 
               SizedBox(height: 20.h),
-              // Filter chips (Currently static as per your request)
               _buildFilterChips(),
-
               SizedBox(height: 20.h),
 
-              // Reactive SubCategories
-              _buildSubCategoryList(subCategoryController),
+              // Updated SubCategories
+              _buildSubCategoryList(subCategoryController, controller),
 
               SizedBox(height: 30.h),
 
               // --- DYNAMIC PRODUCT SECTION ---
               Obx(() {
                 if (controller.isLoading.value && controller.productList.isEmpty) {
-                  return const Center(child: CircularProgressIndicator(color: Color(0xFF1D3826)));
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 40),
+                      child: CircularProgressIndicator(color: Color(0xFF1D3826)),
+                    ),
+                  );
                 }
+
                 if (controller.productList.isEmpty) {
-                  return const Center(child: CustomText(text: "No products found"));
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 40),
+                      child: CustomText(text: "No products found matching filters"),
+                    ),
+                  );
                 }
 
                 List<Widget> productRows = [];
@@ -392,7 +401,11 @@ class CustomerProductsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSpecialtiesList(CategoryController catCtrl, SubCategoryController subCtrl) {
+  Widget _buildSpecialtiesList(
+      CategoryController catCtrl,
+      SubCategoryController subCtrl,
+      CustomerProductsController productCtrl
+      ) {
     return Obx(() {
       if (catCtrl.isLoading.value) return const LinearProgressIndicator();
 
@@ -400,16 +413,18 @@ class CustomerProductsScreen extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         child: Row(
           children: catCtrl.categories.map((category) {
-            // Check if this category is currently selected in the subcategory controller
-            bool isSelected = subCtrl.selectedCategoryId == category.id;
+            // Check selection from ProductController for persistent filtering UI
+            bool isSelected = productCtrl.selectedCategoryId.value == category.id;
 
             return _specialtyCard(
               category.name,
               "${ApiConstants.baseImageUrl}${category.image}",
               isSelected,
                   () {
-                // When tapped, fetch subcategories for this specific category
+                // 1. Fetch subcategories for the UI
                 subCtrl.fetchSubCategories(categoryId: category.id);
+                // 2. Filter the product list
+                productCtrl.filterByCategory(category.id);
               },
             );
           }).toList(),
@@ -499,10 +514,10 @@ class CustomerProductsScreen extends StatelessWidget {
           SizedBox(width: 10.w),
           _filterChip("Offers", Icons.local_offer_outlined),
           SizedBox(width: 10.w),
-          _filterChip("Home Service", Icons.home_repair_service_outlined),
-          SizedBox(width: 10.w),
-          _filterChip("Favourites", Icons.favorite_outline_rounded),
-          SizedBox(width: 20.w),
+          // _filterChip("Home Service", Icons.home_repair_service_outlined),
+          // SizedBox(width: 10.w),
+          // _filterChip("Favourites", Icons.favorite_outline_rounded),
+          // SizedBox(width: 20.w),
         ],
       ),
     );
@@ -548,60 +563,66 @@ class CustomerProductsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSubCategoryList(SubCategoryController subCtrl) {
+  Widget _buildSubCategoryList(
+      SubCategoryController subCtrl,
+      CustomerProductsController productCtrl
+      ) {
     return Obx(() {
-      if (subCtrl.isLoading.value) {
-        return const Center(child: CircularProgressIndicator());
-      }
-
-      if (subCtrl.subCategories.isEmpty) {
-        return const SizedBox.shrink(); // Hide if no subcategories found
-      }
+      if (subCtrl.isLoading.value) return const Center(child: CircularProgressIndicator());
+      if (subCtrl.subCategories.isEmpty) return const SizedBox.shrink();
 
       return SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
         child: Row(
           children: subCtrl.subCategories.map((sub) {
-            return Padding(
-              padding: EdgeInsets.only(right: 15.w),
-              child: Column(
-                children: [
-                  Container(
-                    width: 85.w,
-                    height: 85.w,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(25.r),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.08),
-                          blurRadius: 12,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(20.r),
-                      child: Padding(
-                        padding: EdgeInsets.all(8.r),
-                        child: CustomNetworkImage(
-                          imageUrl: "${ApiConstants.baseImageUrl}${sub.image}",
-                          height: 75.h,
-                          width: 75.w,
-                          borderRadius: BorderRadius.circular(18.r),
+            bool isSelected = productCtrl.selectedSubCategoryId.value == sub.id;
+
+            return GestureDetector(
+              onTap: () => productCtrl.filterBySubCategory(sub.id),
+              child: Padding(
+                padding: EdgeInsets.only(right: 15.w),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 85.w,
+                      height: 85.w,
+                      decoration: BoxDecoration(
+                        // Color change based on selection
+                        color: isSelected ? const Color(0xFF1D3826) : Colors.white,
+                        borderRadius: BorderRadius.circular(25.r),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.08),
+                            blurRadius: 12,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20.r),
+                        child: Padding(
+                          padding: EdgeInsets.all(8.r),
+                          child: CustomNetworkImage(
+                            imageUrl: "${ApiConstants.baseImageUrl}${sub.image}",
+                            height: 75.h,
+                            width: 75.w,
+                            // Tint icon if selected
+                            color: isSelected ? Colors.white : null,
+                            borderRadius: BorderRadius.circular(18.r),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  CustomText(
-                    text: sub.name,
-                    fontSize: 13.sp,
-                    top: 10.h,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black,
-                  ),
-                ],
+                    CustomText(
+                      text: sub.name,
+                      fontSize: 13.sp,
+                      top: 10.h,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                      color: isSelected ? const Color(0xFF1D3826) : Colors.black,
+                    ),
+                  ],
+                ),
               ),
             );
           }).toList(),
@@ -609,7 +630,6 @@ class CustomerProductsScreen extends StatelessWidget {
       );
     });
   }
-
 
   Widget _popularCard(
       String name,
