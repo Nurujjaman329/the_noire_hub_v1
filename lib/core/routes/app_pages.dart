@@ -7,6 +7,7 @@ import 'package:the_noire_hub_v1/features/beautician/beauticianAddService/presen
 import 'package:the_noire_hub_v1/features/beautician/serviceDetailsScreen/presentation/bindings/service_details_bindings.dart';
 import 'package:the_noire_hub_v1/features/common/businessDocument/presentation/bindings/business_documents_bindings.dart';
 import 'package:the_noire_hub_v1/features/common/changePassword/presentation/bindings/change_password_bindings.dart';
+import 'package:the_noire_hub_v1/features/customer/customerServices/presentation/bindings/customer_service_bindings.dart';
 import 'package:the_noire_hub_v1/features/vendor/orderFullFillment/presentation/bindings/order_full_fillment_bindings.dart';
 import 'package:the_noire_hub_v1/features/vendor/vendorAddProduct/presentation/screen/vendor_add_product_screen.dart';
 import 'package:the_noire_hub_v1/features/vendor/vendorStoreScreen/presentation/binding/vendor_product_binding.dart';
@@ -128,6 +129,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.customerServices,
       page: () => const CustomerServiceScreen(),
+      binding: CustomerServiceBindings(),
       transition: Transition.cupertino,
     ),
     GetPage(

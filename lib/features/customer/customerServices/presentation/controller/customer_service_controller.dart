@@ -1,16 +1,17 @@
 import 'package:get/get.dart';
+import 'package:the_noire_hub_v1/features/customer/customerServices/data/customer_services_response_model.dart';
 import '../../../../../core/services/cache_service.dart';
-import '../../data/customer_products_response_model.dart';
-import '../../data/customer_products_service.dart';
 import 'package:flutter/material.dart';
 
-class CustomerProductsController extends GetxController {
-  final CustomerProductsService _service;
-  CustomerProductsController(this._service);
+import '../../data/customer_service_book_service.dart';
+
+class CustomerServiceController extends GetxController {
+  final CustomerServiceBookService _service;
+  CustomerServiceController(this._service);
 
   final searchController = TextEditingController();
   var isLoading = false.obs;
-  var productList = <CustomerProduct>[].obs;
+  var serviceList = <CustomerService>[].obs;
 
   int currentPage = 1;
   bool hasMore = true;
@@ -27,17 +28,16 @@ class CustomerProductsController extends GetxController {
   var hasOffer = false.obs;
   var ratingValue = 1.0.obs;
 
-
   @override
   void onInit() {
     super.onInit();
 
     // Debounce for search only
     debounce(searchQuery, (_) {
-      fetchProducts();
+      fetchService();
     }, time: const Duration(milliseconds: 500));
 
-    fetchProducts();
+    fetchService();
   }
 
   // --- Action Methods ---
@@ -50,28 +50,28 @@ class CustomerProductsController extends GetxController {
     // Toggle logic: if clicking the same one, clear it.
     selectedCategoryId.value = (selectedCategoryId.value == id) ? "" : id;
     selectedSubCategoryId.value = ""; // Reset sub when category changes
-    fetchProducts();
+    fetchService();
   }
 
   void filterBySubCategory(String id) {
     selectedSubCategoryId.value = (selectedSubCategoryId.value == id) ? "" : id;
-    fetchProducts();
+    fetchService();
   }
 
   void clearSearch() {
     searchController.clear();
     searchQuery.value = "";
-    fetchProducts();
+    fetchService();
   }
 
   // --- API Calls ---
 
-  Future<void> fetchProducts() async {
+  Future<void> fetchService() async {
     isLoading.value = true;
     currentPage = 1;
 
     try {
-      final response = await _service.getCustomerProducts(
+      final response = await _service.getCustomerService(
         page: currentPage,
         latitude: CacheService.lat != 0.0 ? CacheService.lat : null,
         longitude: CacheService.lon != 0.0 ? CacheService.lon : null,
@@ -86,7 +86,7 @@ class CustomerProductsController extends GetxController {
         hasOffer: hasOffer.value ? true : null,
       );
 
-      productList.assignAll(response.data?.attributes?.results ?? []);
+      serviceList.assignAll(response.data?.attributes?.results ?? []);
       hasMore = currentPage < (response.data?.attributes?.totalPages ?? 1);
     } catch (e) {
       Get.snackbar("Error", e.toString());
@@ -94,7 +94,9 @@ class CustomerProductsController extends GetxController {
       isLoading.value = false;
     }
   }
-// Inside CustomerProductsController
+
+
+// Inside CustomerServiceController
   Future<void> loadMore() async {
     if (isLoading.value || !hasMore) return;
     currentPage++;
@@ -102,7 +104,7 @@ class CustomerProductsController extends GetxController {
     // during pagination (optional: use a bottom loading indicator)
 
     try {
-      final response = await _service.getCustomerProducts(
+      final response = await _service.getCustomerService(
         page: currentPage,
         latitude: CacheService.lat != 0.0 ? CacheService.lat : null,
         longitude: CacheService.lon != 0.0 ? CacheService.lon : null,
@@ -118,7 +120,7 @@ class CustomerProductsController extends GetxController {
 
       final newResults = response.data?.attributes?.results ?? [];
       if (newResults.isNotEmpty) {
-        productList.addAll(newResults);
+        serviceList.addAll(newResults);
       } else {
         hasMore = false;
       }
@@ -131,13 +133,13 @@ class CustomerProductsController extends GetxController {
 
   void clearRating() {
     selectedRating.value = 0.0;
-    fetchProducts();
+    fetchService();
   }
 
   void clearPrice() {
     minPrice.value = 0.0;
     maxPrice.value = 0.0;
-    fetchProducts();
+    fetchService();
   }
 
   var priceRange = const RangeValues(1, 50000).obs;
@@ -151,11 +153,11 @@ class CustomerProductsController extends GetxController {
 // but you can reset it to default here if needed.
   void resetDistance() {
     selectedDistance.value = 0; // Clear the filter
-    fetchProducts();
+    fetchService();
   }
 
   void toggleOffer() {
     hasOffer.value = !hasOffer.value;
-    fetchProducts();
+    fetchService();
   }
 }

@@ -1,39 +1,39 @@
-class CustomerProductsResponseModel {
+class CustomerServicesResponseModel {
   int code;
   String message;
-  CustomerProductData? data;
+  CustomerServiceData? data;
 
-  CustomerProductsResponseModel({
+  CustomerServicesResponseModel({
     this.code = 0,
     this.message = '',
     this.data,
   });
 
-  CustomerProductsResponseModel.fromJson(Map<String, dynamic> json)
+  CustomerServicesResponseModel.fromJson(Map<String, dynamic> json)
       : code = json['code'] ?? 0,
         message = json['message'] ?? '',
-        data = json['data'] != null ? CustomerProductData.fromJson(json['data']) : null;
+        data = json['data'] != null ? CustomerServiceData.fromJson(json['data']) : null;
 }
 
-class CustomerProductData {
-  CustomerProductAttributes? attributes;
+class CustomerServiceData {
+  CustomerServiceAttributes? attributes;
 
-  CustomerProductData({this.attributes});
+  CustomerServiceData({this.attributes});
 
-  CustomerProductData.fromJson(Map<String, dynamic> json)
+  CustomerServiceData.fromJson(Map<String, dynamic> json)
       : attributes = json['attributes'] != null
-      ? CustomerProductAttributes.fromJson(json['attributes'])
+      ? CustomerServiceAttributes.fromJson(json['attributes'])
       : null;
 }
 
-class CustomerProductAttributes {
-  List<CustomerProduct> results;
+class CustomerServiceAttributes {
+  List<CustomerService> results;
   int page;
   int limit;
   int totalPages;
   int totalResults;
 
-  CustomerProductAttributes({
+  CustomerServiceAttributes({
     this.results = const [],
     this.page = 1,
     this.limit = 10,
@@ -41,15 +41,15 @@ class CustomerProductAttributes {
     this.totalResults = 0,
   });
 
-  CustomerProductAttributes.fromJson(Map<String, dynamic> json)
-      : results = (json['results'] as List?)?.map((v) => CustomerProduct.fromJson(v)).toList() ?? [],
+  CustomerServiceAttributes.fromJson(Map<String, dynamic> json)
+      : results = (json['results'] as List?)?.map((v) => CustomerService.fromJson(v)).toList() ?? [],
         page = json['page'] ?? 1,
         limit = json['limit'] ?? 10,
         totalPages = json['totalPages'] ?? 0,
         totalResults = json['totalResults'] ?? 0;
 }
 
-class CustomerProduct {
+class CustomerService {
   String id;
   String name;
   num price;
@@ -71,7 +71,7 @@ class CustomerProduct {
   bool isActive;
   String createdAt;
 
-  CustomerProduct({
+  CustomerService({
     this.id = '',
     this.name = '',
     this.price = 0,
@@ -94,8 +94,8 @@ class CustomerProduct {
     this.createdAt = '',
   });
 
-  factory CustomerProduct.fromJson(Map<String, dynamic> json) {
-    return CustomerProduct(
+  factory CustomerService.fromJson(Map<String, dynamic> json) {
+    return CustomerService(
       id: json['_id'] ?? '',
       name: json['name'] ?? '',
       price: json['price'] ?? 0,

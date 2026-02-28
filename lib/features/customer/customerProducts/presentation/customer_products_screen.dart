@@ -117,29 +117,14 @@ class CustomerProductsScreen extends StatelessWidget {
     final imageUrl = product.images.isNotEmpty ? product.images.first : '';
     final fullImageUrl = "${ApiConstants.baseImageUrl}$imageUrl";
 
-    // --- CALCULATE DISTANCE ---
-    String distanceText = "Distance unknown";
-
-    // CacheService.lat/lon are user coordinates
-    // product.location.coordinates[1] is Latitude, [0] is Longitude (GeoJSON standard)
-    if (CacheService.lat != 0.0 && product.location.coordinates.length >= 2) {
-      double distanceInMeters = Geolocator.distanceBetween(
-        CacheService.lat,
-        CacheService.lon,
-        product.location.coordinates[1], // Latitude
-        product.location.coordinates[0], // Longitude
-      );
-
-      double distanceInKm = distanceInMeters / 1000;
-
-      // Format to 1 decimal place (e.g., 2.5 km) or whole number if preferred
-      distanceText = "${distanceInKm.toStringAsFixed(1)} km away";
-    }
+    // --- GET DISTANCE DIRECTLY FROM MODEL ---
+    // Using toStringAsFixed(1) to handle decimals like 2.3 or 7.0
+    String distanceText = "${product.distance.toStringAsFixed(1)} km away";
 
     return _popularCard(
       product.name,
       product.price.toString(),
-      distanceText, // Use the dynamic text here
+      distanceText, // Direct use of the distance from your model
       product.rating.toString(),
       product.images.isNotEmpty
           ? fullImageUrl
@@ -152,7 +137,6 @@ class CustomerProductsScreen extends StatelessWidget {
       },
     );
   }
-
 
   Widget _buildPopularNearYouSection() {
     return SingleChildScrollView(
@@ -534,9 +518,11 @@ class CustomerProductsScreen extends StatelessWidget {
           ),
           SizedBox(width: 10.w),
           _filterChip(
-            "${controller.selectedDistance.value} km",
+            controller.selectedDistance.value > 0
+                ? "${controller.selectedDistance.value} km"
+                : "Distance",
             Icons.location_on_outlined,
-            isActive: controller.selectedDistance.value != 10,
+            isActive: controller.selectedDistance.value > 0,
             onTap: () => _showDistancePicker(controller),
             onClear: () => controller.resetDistance(),
           ),

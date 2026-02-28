@@ -1,8 +1,10 @@
 import 'package:get/get.dart';
+import 'package:the_noire_hub_v1/features/customer/customerServices/data/customer_service_book_service.dart';
 import '../../features/beautician/beauticanStoreScreen/data/beautician_store_service.dart';
 import '../../features/beautician/beauticanStoreScreen/presentation/controller/beautician_store_service_controller.dart';
 import '../../features/customer/customerProducts/data/customer_products_service.dart';
 import '../../features/customer/customerProducts/presentation/controller/customer_products_controller.dart';
+import '../../features/customer/customerServices/presentation/controller/customer_service_controller.dart';
 import '../api/api_client.dart';
 import '../../features/authentication/login/data/login_service.dart';
 import '../../features/authentication/login/presentation/controller/login_controller.dart';
@@ -42,6 +44,11 @@ class InitialBinding extends Bindings {
     // Customer Products
     Get.lazyPut<CustomerProductsService>(() => CustomerProductsService(Get.find<ApiClient>()));
     Get.lazyPut<CustomerProductsController>(() => CustomerProductsController(Get.find<CustomerProductsService>()));
+
+
+    // Customer Services
+    Get.lazyPut<CustomerServiceBookService>(() => CustomerServiceBookService(Get.find<ApiClient>()));
+    Get.lazyPut<CustomerServiceController>(() => CustomerServiceController(Get.find<CustomerServiceBookService>()));
 
   }
 }
