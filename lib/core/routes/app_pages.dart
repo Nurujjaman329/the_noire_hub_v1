@@ -85,6 +85,7 @@ import '../../features/vendor/vendorOrderScreen/presentation/screens/vendor_orde
 import '../../features/vendor/vendorProductDetailsScreen/presentation/bindings/vendor_product_details_bindings.dart';
 import '../../features/vendor/vendorProductDetailsScreen/presentation/vendor_product_details_screen.dart';
 import '../../features/vendor/vendorStoreScreen/presentation/screens/vendor_store_screen.dart';
+import '../bindings/initialBindings.dart';
 
 class AppPages {
   static const initial = RouteConstants.splash;
@@ -132,6 +133,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.customerMainContainer,
       page: () => const CustomerMainContainer(),
+      binding: InitialBinding(),
       transition: Transition.cupertino,
     ),
     GetPage(

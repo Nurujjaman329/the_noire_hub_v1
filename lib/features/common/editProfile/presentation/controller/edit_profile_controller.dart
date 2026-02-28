@@ -116,16 +116,14 @@ class EditProfileController extends GetxController with MapSearchMixin {
       );
 
       final updatedUser = response.user;
-
-      // --- 1. PREPARE ADDRESS STRING ---
+      double? newLat;
+      double? newLon;
       String? combinedAddress;
+
       if (updatedUser.addresses.isNotEmpty) {
-        final addr = updatedUser.addresses.firstWhere(
-              (a) => a.isDefault,
-          orElse: () => updatedUser.addresses.first,
-        );
-        // Using your pipe separator logic for the CacheService getter
-        combinedAddress = "${addr.city}|${addr.country}";
+        final addr = updatedUser.addresses.firstWhere((a) => a.isDefault, orElse: () => updatedUser.addresses.first);
+        newLon = addr.location.coordinates[0];
+        newLat = addr.location.coordinates[1];
       }
 
       // --- 2. SYNC CACHE SERVICE ---
@@ -138,7 +136,9 @@ class EditProfileController extends GetxController with MapSearchMixin {
         phone: updatedUser.phoneNumber,
         bio: updatedUser.bio,
         image: updatedUser.image,
-        address: combinedAddress, // ✅ Now saving the address too!
+        address: combinedAddress,
+        lat: newLat,
+        lon: newLon,
       );
 
       // --- 3. SYNC OTHER CONTROLLERS ---

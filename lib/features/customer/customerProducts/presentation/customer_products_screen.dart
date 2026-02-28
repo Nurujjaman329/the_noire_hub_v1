@@ -1,12 +1,15 @@
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:the_noire_hub_v1/core/constants/api_constants.dart';
 import 'package:the_noire_hub_v1/features/customer/customerProducts/data/customer_products_response_model.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/route_constants.dart';
+import '../../../../core/services/cache_service.dart';
 import '../../../../core/widgets/custom_network_image.dart';
 import '../../../../core/widgets/custom_text.dart';
 import '../../../common/category/presentation/controller/category_controller.dart';
@@ -28,6 +31,9 @@ class CustomerProductsScreen extends StatelessWidget {
       categoryController.loadCategories();
     }
 
+    final image = CacheService.userImage;
+    final fullImageUrl = image.isNotEmpty ? "${ApiConstants.baseImageUrl}$image" : '';
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -38,7 +44,7 @@ class CustomerProductsScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: 10.h),
-              _buildHeader(),
+              _buildHeader(fullImageUrl),
               SizedBox(height: 20.h),
               _buildSearchField(),
               SizedBox(height: 25.h),
@@ -98,16 +104,33 @@ class CustomerProductsScreen extends StatelessWidget {
 
   // --- Helper Methods ---
 
-
   Widget _buildProductCard(CustomerProduct product) {
-
     final imageUrl = product.images.isNotEmpty ? product.images.first : '';
     final fullImageUrl = "${ApiConstants.baseImageUrl}$imageUrl";
+
+    // --- CALCULATE DISTANCE ---
+    String distanceText = "Distance unknown";
+
+    // CacheService.lat/lon are user coordinates
+    // product.location.coordinates[1] is Latitude, [0] is Longitude (GeoJSON standard)
+    if (CacheService.lat != 0.0 && product.location.coordinates.length >= 2) {
+      double distanceInMeters = Geolocator.distanceBetween(
+        CacheService.lat,
+        CacheService.lon,
+        product.location.coordinates[1], // Latitude
+        product.location.coordinates[0], // Longitude
+      );
+
+      double distanceInKm = distanceInMeters / 1000;
+
+      // Format to 1 decimal place (e.g., 2.5 km) or whole number if preferred
+      distanceText = "${distanceInKm.toStringAsFixed(1)} km away";
+    }
 
     return _popularCard(
       product.name,
       product.price.toString(),
-      "7 km away", // You can calculate distance later
+      distanceText, // Use the dynamic text here
       product.rating.toString(),
       product.images.isNotEmpty
           ? fullImageUrl
@@ -115,11 +138,12 @@ class CustomerProductsScreen extends StatelessWidget {
       onTap: () {
         Get.toNamed(
           RouteConstants.productDetailsScreen,
-          arguments: product, // Passing the whole object is better
+          arguments: product,
         );
       },
     );
   }
+
 
   Widget _buildPopularNearYouSection() {
     return SingleChildScrollView(
@@ -268,7 +292,7 @@ class CustomerProductsScreen extends StatelessWidget {
 
 
 
-  Widget _buildHeader() {
+  Widget _buildHeader(String imageUrl) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -294,49 +318,75 @@ class CustomerProductsScreen extends StatelessWidget {
         ),
         Row(
           children: [
-            CustomText(text: "72 Poplar Ave NW", fontSize: 12.sp, color: AppColors.textHint),
-            Icon(Icons.keyboard_arrow_down, size: 18.sp, color: AppColors.textHint),
+            CustomText(text: CacheService.formattedLocation, fontSize: 12.sp, color: AppColors.textHint),
           ],
         ),
 
         GestureDetector(
-          onTap: (){
-            Get.toNamed(RouteConstants.profileScreen);
-          },
-          child: CircleAvatar(
-            child: CustomNetworkImage(
-              imageUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200",
-              height: 100.h,
-              width: 100.w,
-              borderRadius: BorderRadius.circular(50.r),
+          onTap: () => Get.toNamed(RouteConstants.profileScreen),
+          child: Container(
+            height: 44.r,
+            width: 44.r,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFF1D3826).withValues(alpha: 0.1),
+            ),
+            child: ClipOval(
+              child: imageUrl.isNotEmpty // Use the parameter here
+                  ? CachedNetworkImage(
+                imageUrl: imageUrl,
+                fit: BoxFit.cover,
+                placeholder: (context, url) => const Center(
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                errorWidget: (context, url, error) => Icon(
+                  Icons.person,
+                  size: 25.sp,
+                  color: const Color(0xFF1D3826),
+                ),
+              )
+                  : Icon(Icons.person, size: 25.sp, color: const Color(0xFF1D3826)),
             ),
           ),
-        ),
+        )
       ],
     );
   }
 
   Widget _buildSearchField() {
+    final controller = Get.find<CustomerProductsController>();
+
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 15.w),
       height: 50.h,
       decoration: BoxDecoration(
-        color: Color(0XFFF1F0B2),
-        // color: AppColors.primaryContainer,
+        color: const Color(0XFFF1F0B2),
         borderRadius: BorderRadius.circular(25.r),
       ),
       child: Row(
         children: [
           Expanded(
             child: TextField(
+              controller: controller.searchController, // Link the controller
+              onChanged: controller.onSearchChanged,    // Trigger search logic
+              style: TextStyle(fontSize: 14.sp, color: Colors.black),
               decoration: InputDecoration(
                 hintText: "Search services, products and stylists",
-                hintStyle: TextStyle(fontSize: 12.sp, color: Color(0XFF000000)),
+                hintStyle: TextStyle(fontSize: 12.sp, color: const Color(0XFF000000).withOpacity(0.5)),
                 border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.symmetric(vertical: 12.h),
               ),
             ),
           ),
-          Icon(Icons.search, color: Color(0XFF000000), size: 22.sp),
+          // Dynamic suffix icon: Show 'X' to clear, otherwise show Search icon
+          Obx(() => controller.searchQuery.value.isNotEmpty
+              ? GestureDetector(
+            onTap: controller.clearSearch,
+            child: Icon(Icons.close, color: Colors.black, size: 20.sp),
+          )
+              : Icon(Icons.search, color: const Color(0XFF000000), size: 22.sp),
+          ),
         ],
       ),
     );

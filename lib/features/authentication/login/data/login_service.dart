@@ -20,15 +20,23 @@ class LoginService {
       final loginResponse = LoginResponseModel.fromJson(response.data);
       final attr = loginResponse.data.attributes;
       final user = attr.user;
+      double? latitude;
+      double? longitude;
 
       String? combinedAddress;
+
       if (user.addresses.isNotEmpty) {
         final addr = user.addresses.firstWhere(
                 (a) => a.isDefault,
             orElse: () => user.addresses.first
         );
-        // We use a separator like '|' to make splitting easy later
         combinedAddress = "${addr.city}|${addr.country}";
+
+        // coordinates are usually [longitude, latitude] in GeoJSON
+        if (addr.location.coordinates.length >= 2) {
+          longitude = addr.location.coordinates[0];
+          latitude = addr.location.coordinates[1];
+        }
       }
 
       // Save specific fields to cache
@@ -40,6 +48,8 @@ class LoginService {
         image: attr.user.image,
         fullName : attr.user.fullName,
         address: combinedAddress,
+        lat: latitude,
+        lon: longitude,
       );
 
       return loginResponse;

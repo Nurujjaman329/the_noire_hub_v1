@@ -24,21 +24,42 @@ class OtpVerificationService {
 
       final verificationResponse = OtpVerificationResponseModel.fromJson(response.data);
 
-      // Only save session if it's not a password reset flow
       if (flowType != "forgot_password") {
         final attributes = verificationResponse.data.attributes;
+        final user = attributes.user;
 
-        // --- Simplified Saving logic ---
-        // No more manual mapping or Future.wait lists.
-        // We just save the essentials to CacheService.
+        // --- 1. Extract Address & Coordinates ---
+        String? combinedAddress;
+        double? latitude;
+        double? longitude;
 
+        if (user.addresses != null && user.addresses!.isNotEmpty) {
+          final addr = user.addresses!.firstWhere(
+                (a) => a.isDefault,
+            orElse: () => user.addresses!.first,
+          );
+
+          combinedAddress = "${addr.city}|${addr.country}";
+
+          if (addr.location.coordinates.length >= 2) {
+            // Standard GeoJSON: [longitude, latitude]
+            longitude = addr.location.coordinates[0];
+            latitude = addr.location.coordinates[1];
+          }
+        }
+
+        // --- 2. Save everything to CacheService ---
         await CacheService.saveSession(
           token: attributes.tokens.access.token,
-          userId: attributes.user.id,
-          role: attributes.user.role,
-          businessName: attributes.user.businessName,
+          userId: user.id,
+          role: user.role,
+          businessName: user.businessName,
+          fullName: user.fullName,
+          image: user.image,
+          address: combinedAddress,
+          lat: latitude,  // ✅ Added Lat
+          lon: longitude, // ✅ Added Lon
         );
-
       }
 
       return verificationResponse;

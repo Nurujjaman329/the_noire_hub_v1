@@ -1,9 +1,12 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import '../../../../core/constants/api_constants.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/route_constants.dart';
+import '../../../../core/services/cache_service.dart';
 import '../../../../core/widgets/custom_network_image.dart';
 import '../../../../core/widgets/custom_text.dart';
 
@@ -12,6 +15,11 @@ class CustomerServiceScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    final image = CacheService.userImage;
+    final fullImageUrl = image.isNotEmpty ? ApiConstants.baseImageUrl + image : '';
+
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -22,7 +30,7 @@ class CustomerServiceScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SizedBox(height: 10.h),
-              _buildHeader(),
+              _buildHeader(fullImageUrl),
               SizedBox(height: 20.h),
               _buildSearchField(),
               SizedBox(height: 25.h),
@@ -293,7 +301,7 @@ class CustomerServiceScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(String imageUrl) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -311,38 +319,45 @@ class CustomerServiceScreen extends StatelessWidget {
               ),
             ),
 
-            CustomText(text: "Beauty", fontWeight: FontWeight.bold),
+            CustomText(
+              text: "Beauty",
+              fontWeight: FontWeight.bold,
+            ),
           ],
         ),
         Row(
           children: [
-            CustomText(
-              text: "72 Poplar Ave NW",
-              fontSize: 12.sp,
-              color: AppColors.textHint,
-            ),
-            Icon(
-              Icons.keyboard_arrow_down,
-              size: 18.sp,
-              color: AppColors.textHint,
-            ),
+            CustomText(text: CacheService.formattedLocation, fontSize: 12.sp, color: AppColors.textHint),
           ],
         ),
 
         GestureDetector(
-          onTap: () {
-            Get.toNamed(RouteConstants.profileScreen);
-          },
-          child: CircleAvatar(
-            child: CustomNetworkImage(
-              imageUrl:
-                  "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200",
-              height: 100.h,
-              width: 100.w,
-              borderRadius: BorderRadius.circular(50.r),
+          onTap: () => Get.toNamed(RouteConstants.profileScreen),
+          child: Container(
+            height: 44.r,
+            width: 44.r,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFF1D3826).withValues(alpha: 0.1),
+            ),
+            child: ClipOval(
+              child: imageUrl.isNotEmpty // Use the parameter here
+                  ? CachedNetworkImage(
+                imageUrl: imageUrl,
+                fit: BoxFit.cover,
+                placeholder: (context, url) => const Center(
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                errorWidget: (context, url, error) => Icon(
+                  Icons.person,
+                  size: 25.sp,
+                  color: const Color(0xFF1D3826),
+                ),
+              )
+                  : Icon(Icons.person, size: 25.sp, color: const Color(0xFF1D3826)),
             ),
           ),
-        ),
+        )
       ],
     );
   }

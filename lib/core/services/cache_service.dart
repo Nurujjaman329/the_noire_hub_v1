@@ -19,8 +19,13 @@ class CacheService {
   static const String _phoneKey = 'user_phone';
   static const String _bioKey = 'user_bio';
   static const String _addressKey = 'user_address';
+  static const String _latKey = 'user_lat';
+  static const String _lonKey = 'user_lon';
 
   // --- Getters ---
+
+  static double get lat => _prefs?.getDouble(_latKey) ?? 0.0;
+  static double get lon => _prefs?.getDouble(_lonKey) ?? 0.0;
 
   static String get address {
     final value = _prefs?.getString(_addressKey) ?? '';
@@ -110,6 +115,8 @@ class CacheService {
     String? phone,
     String? bio,
     String? address,
+    double? lat,
+    double? lon,
   }) async {
     debugPrint('💾 Saving session...');
     await _prefs?.setString(_tokenKey, token);
@@ -144,6 +151,15 @@ class CacheService {
     if (address != null) {
       await _prefs?.setString(_addressKey, address);
       debugPrint('💾 address saved: $address');
+    }
+
+    if (lat != null) {
+      await _prefs?.setDouble(_latKey, lat);
+      debugPrint('💾 lat saved: $lat');
+    }
+    if (lon != null) {
+      await _prefs?.setDouble(_lonKey, lon);
+      debugPrint('💾 lon saved: $lon');
     }
 
   }
