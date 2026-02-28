@@ -500,68 +500,248 @@ class CustomerProductsScreen extends StatelessWidget {
   }
 
   Widget _buildFilterChips() {
+    final controller = Get.find<CustomerProductsController>();
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       physics: const BouncingScrollPhysics(),
-      // Removing horizontal padding from the Row since it's handled by the parent
-      child: Row(
+      child: Obx(() => Row(
         children: [
-          _filterChip("Rating", Icons.star_border),
+          _filterChip(
+            controller.selectedRating.value > 0 ? "${controller.selectedRating.value.toInt()}★" : "Rating",
+            Icons.star_border,
+            isActive: controller.selectedRating.value > 0,
+            onTap: () => _showRatingPicker(controller),
+            onClear: () => controller.clearRating(),
+          ),
           SizedBox(width: 10.w),
-          _filterChip("Price", Icons.attach_money),
+          _filterChip(
+            controller.maxPrice.value > 0
+                ? "\$${controller.minPrice.value.toInt()}-\$${controller.maxPrice.value.toInt()}"
+                : "Price",
+            Icons.attach_money,
+            isActive: controller.maxPrice.value > 0,
+            onTap: () => _showPriceRangePicker(controller),
+            onClear: () {
+              controller.clearPrice();
+              controller.priceRange.value = const RangeValues(1, 50000);
+            },
+          ),
           SizedBox(width: 10.w),
-          _filterChip("Distance", Icons.location_on_outlined),
+          _filterChip(
+            "${controller.selectedDistance.value} km",
+            Icons.location_on_outlined,
+            isActive: controller.selectedDistance.value != 10,
+            onTap: () => _showDistancePicker(controller),
+            onClear: () => controller.resetDistance(),
+          ),
           SizedBox(width: 10.w),
-          _filterChip("Offers", Icons.local_offer_outlined),
-          SizedBox(width: 10.w),
-          // _filterChip("Home Service", Icons.home_repair_service_outlined),
-          // SizedBox(width: 10.w),
-          // _filterChip("Favourites", Icons.favorite_outline_rounded),
-          // SizedBox(width: 20.w),
+          // Updated Offers Chip
+          _filterChip(
+            "HasOffer", // Renamed label
+            Icons.local_offer_outlined,
+            isActive: controller.hasOffer.value,
+            showArrow: false, // Removed dropdown arrow
+            onTap: () => controller.toggleOffer(),
+            onClear: () => controller.toggleOffer(),
+          ),
         ],
+      )),
+    );
+  }
+
+  void _showRatingPicker(CustomerProductsController controller) {
+    _showStyledBottomSheet(
+      title: "Select Minimum Rating",
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [5, 4, 3, 2, 1].map((star) => ListTile(
+          leading: const Icon(Icons.star, color: Colors.amber),
+          title: CustomText(text: "$star Stars & Up"),
+          trailing: controller.selectedRating.value == star.toDouble()
+              ? const Icon(Icons.check, color: Color(0xFF1D3826)) : null,
+          onTap: () {
+            controller.selectedRating.value = star.toDouble();
+            controller.fetchProducts();
+            Get.back();
+          },
+        )).toList(),
       ),
     );
   }
 
-  Widget _filterChip(String label, IconData icon, {bool isActive = false}) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-      decoration: BoxDecoration(
-        // Change color based on selection state
-        color: Color(0XFFB5B475),
-        // color: isActive ? AppColors.navigationIndicator : AppColors.chipInactive,
-        borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(
-          color: isActive ? AppColors.primary : Colors.transparent,
-          width: 1,
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            size: 16.sp,
-            color: Color(0XFF000000),
-            // color: isActive ? AppColors.white : AppColors.iconOnSurface
-          ),
-          SizedBox(width: 4.w),
-          CustomText(
-            text: label,
-            fontSize: 12.sp,
-            fontWeight: FontWeight.w500,
-            color: Color(0XFF000000),
-            // color: isActive ? AppColors.white : AppColors.textPrimary,
-          ),
-          Icon(
-            Icons.keyboard_arrow_down,
-            size: 16.sp,
-            color: Color(0XFF000000),
-            // color: isActive ? AppColors.white : AppColors.iconOnSurface,
-          ),
-        ],
+  void _showDistancePicker(CustomerProductsController controller) {
+    _showStyledBottomSheet(
+      title: "Search Radius",
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [5, 10, 15, 20, 50].map((km) => ListTile(
+          leading: const Icon(Icons.location_on, color: Color(0xFF1D3826)),
+          title: CustomText(text: "Within $km km"),
+          trailing: controller.selectedDistance.value == km
+              ? const Icon(Icons.check, color: Color(0xFF1D3826)) : null,
+          onTap: () {
+            controller.selectedDistance.value = km;
+            controller.fetchProducts();
+            Get.back();
+          },
+        )).toList(),
       ),
     );
   }
+
+// Helper to keep BottomSheets consistent
+  void _showStyledBottomSheet({required String title, required Widget child}) {
+    Get.bottomSheet(
+      Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(25.r)),
+        ),
+        padding: EdgeInsets.all(20.r),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // The drag handle
+            Container(
+              width: 40.w,
+              height: 4.h,
+              margin: EdgeInsets.only(bottom: 15.h), // Fixed here
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            CustomText(text: title, fontSize: 18.sp, fontWeight: FontWeight.bold),
+            SizedBox(height: 10.h),
+            child,
+          ],
+        ),
+      ),
+      isScrollControlled: true,
+    );
+  }
+
+  void _showPriceRangePicker(CustomerProductsController controller) {
+    _showStyledBottomSheet(
+      title: "Select Price Range",
+      child: Obx(() => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 10.w),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                CustomText(
+                  text: "\$${controller.priceRange.value.start.toInt()}",
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16.sp,
+                ),
+                CustomText(
+                  text: "\$${controller.priceRange.value.end.toInt()}",
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16.sp,
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 10.h),
+          SliderTheme(
+            data: SliderTheme.of(Get.context!).copyWith(
+              activeTrackColor: const Color(0xFF1D3826),
+              inactiveTrackColor: const Color(0xFF1D3826).withOpacity(0.1),
+              thumbColor: const Color(0xFF1D3826),
+              overlayColor: const Color(0xFF1D3826).withOpacity(0.2),
+              rangeThumbShape: const RoundRangeSliderThumbShape(enabledThumbRadius: 10),
+            ),
+            child: RangeSlider(
+              values: controller.priceRange.value,
+              min: 1,
+              max: 50000,
+              divisions: 500, // Moves in increments of 100
+              labels: RangeLabels(
+                controller.priceRange.value.start.round().toString(),
+                controller.priceRange.value.end.round().toString(),
+              ),
+              onChanged: (RangeValues values) {
+                controller.priceRange.value = values;
+              },
+            ),
+          ),
+          SizedBox(height: 20.h),
+          // Apply Button
+          ElevatedButton(
+            onPressed: () {
+              controller.updatePriceRange(controller.priceRange.value);
+              controller.fetchProducts();
+              Get.back();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF1D3826),
+              minimumSize: Size(double.infinity, 50.h),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25.r)),
+            ),
+            child: const CustomText(text: "Apply Filter", color: Colors.white),
+          ),
+          SizedBox(height: 10.h),
+        ],
+      )),
+    );
+  }
+
+  Widget _filterChip(
+      String label,
+      IconData icon, {
+        required VoidCallback onTap,
+        VoidCallback? onClear,
+        bool isActive = false,
+        bool showArrow = true, // Added this parameter
+      }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+        decoration: BoxDecoration(
+          color: isActive ? const Color(0xFF1D3826) : const Color(0XFFB5B475),
+          borderRadius: BorderRadius.circular(20.r),
+          border: Border.all(
+            color: isActive ? const Color(0xFF1D3826) : Colors.transparent,
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 16.sp,
+              color: isActive ? const Color(0xFFF1F0B2) : Colors.black,
+            ),
+            SizedBox(width: 4.w),
+            CustomText(
+              text: label,
+              fontSize: 12.sp,
+              fontWeight: FontWeight.w500,
+              color: isActive ? const Color(0xFFF1F0B2) : Colors.black,
+            ),
+            // Logic: If active, show 'X'. If not active, show arrow only if showArrow is true.
+            if (isActive && onClear != null) ...[
+              SizedBox(width: 4.w),
+              GestureDetector(
+                onTap: onClear,
+                child: Icon(Icons.close, size: 16.sp, color: const Color(0xFFF1F0B2)),
+              ),
+            ] else if (showArrow) ...[
+              SizedBox(width: 4.w),
+              Icon(Icons.keyboard_arrow_down, size: 16.sp, color: Colors.black),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
 
   Widget _buildSubCategoryList(
       SubCategoryController subCtrl,

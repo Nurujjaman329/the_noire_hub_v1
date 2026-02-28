@@ -361,6 +361,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.servicePopularNearYou,
       page: () => const ServicePopularNearYouScreen(),
+      binding: CustomerProductsBindings(),
       transition: Transition.cupertino,
     ),
     GetPage(

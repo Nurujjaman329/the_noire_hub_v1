@@ -20,6 +20,12 @@ class CustomerProductsController extends GetxController {
   var selectedCategoryId = "".obs;    // 👈 Added
   var selectedSubCategoryId = "".obs; // 👈 Added
 
+  var selectedDistance = 10.obs; // Default 10km
+  var selectedRating = 0.0.obs;
+  var minPrice = 0.0.obs;
+  var maxPrice = 0.0.obs;
+  var hasOffer = false.obs;
+
   @override
   void onInit() {
     super.onInit();
@@ -67,17 +73,19 @@ class CustomerProductsController extends GetxController {
         page: currentPage,
         latitude: CacheService.lat != 0.0 ? CacheService.lat : null,
         longitude: CacheService.lon != 0.0 ? CacheService.lon : null,
-        maxDistance: 10,
         name: searchQuery.value,
-        category: selectedCategoryId.value,    // 👈 Added
-        subcategory: selectedSubCategoryId.value, // 👈 Added
+        category: selectedCategoryId.value,
+        subcategory: selectedSubCategoryId.value,
+        // --- Pass Filter States ---
+        maxDistance: selectedDistance.value,
+        minRating: selectedRating.value > 0 ? selectedRating.value : null,
+        minPrice: minPrice.value > 0 ? minPrice.value : null,
+        maxPrice: maxPrice.value > 0 ? maxPrice.value : null,
+        hasOffer: hasOffer.value ? true : null,
       );
 
-      final results = response.data?.attributes?.results ?? [];
-      productList.assignAll(results);
-
-      int totalPages = response.data?.attributes?.totalPages ?? 1;
-      hasMore = currentPage < totalPages;
+      productList.assignAll(response.data?.attributes?.results ?? []);
+      hasMore = currentPage < (response.data?.attributes?.totalPages ?? 1);
     } catch (e) {
       Get.snackbar("Error", e.toString());
     } finally {
@@ -85,19 +93,26 @@ class CustomerProductsController extends GetxController {
     }
   }
 
+// Inside CustomerProductsController
   Future<void> loadMore() async {
     if (isLoading.value || !hasMore) return;
     currentPage++;
+    // We don't set isLoading to true here to avoid showing the big center spinner
+    // during pagination (optional: use a bottom loading indicator)
 
     try {
       final response = await _service.getCustomerProducts(
         page: currentPage,
         latitude: CacheService.lat != 0.0 ? CacheService.lat : null,
         longitude: CacheService.lon != 0.0 ? CacheService.lon : null,
-        maxDistance: 10,
-        name: searchQuery.value, // 👈 Keep search
-        category: selectedCategoryId.value, // 👈 Keep category
-        subcategory: selectedSubCategoryId.value, // 👈 Keep subcategory
+        name: searchQuery.value,
+        category: selectedCategoryId.value,
+        subcategory: selectedSubCategoryId.value,
+        maxDistance: selectedDistance.value, // Keep the 10km or current selection
+        minRating: selectedRating.value > 0 ? selectedRating.value : null,
+        minPrice: minPrice.value > 0 ? minPrice.value : null,
+        maxPrice: maxPrice.value > 0 ? maxPrice.value : null,
+        hasOffer: hasOffer.value ? true : null,
       );
 
       final newResults = response.data?.attributes?.results ?? [];
@@ -108,6 +123,38 @@ class CustomerProductsController extends GetxController {
       }
     } catch (e) {
       currentPage--;
+      debugPrint("Pagination Error: $e");
     }
+  }
+
+
+  void clearRating() {
+    selectedRating.value = 0.0;
+    fetchProducts();
+  }
+
+  void clearPrice() {
+    minPrice.value = 0.0;
+    maxPrice.value = 0.0;
+    fetchProducts();
+  }
+
+  var priceRange = const RangeValues(1, 50000).obs;
+
+  void updatePriceRange(RangeValues values) {
+    priceRange.value = values;
+    minPrice.value = values.start;
+    maxPrice.value = values.end;
+  }
+
+// but you can reset it to default here if needed.
+  void resetDistance() {
+    selectedDistance.value = 10;
+    fetchProducts();
+  }
+
+  void toggleOffer() {
+    hasOffer.value = !hasOffer.value;
+    fetchProducts();
   }
 }
