@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 
 class RegistrationService {
   final ApiClient _apiClient;
+
   RegistrationService(this._apiClient);
 
   // --- USER REGISTRATION (JSON) ---
@@ -23,7 +24,7 @@ class RegistrationService {
       "fullName": fullName,
       "email": email,
       "password": password,
-      "phoneNumber":phoneNumber,
+      "phoneNumber": phoneNumber,
       "role": "user",
       "addresses": addresses.map((e) => e.toJson()).toList(),
     };
@@ -36,6 +37,7 @@ class RegistrationService {
 
   // --- VENDOR REGISTRATION (FormData) ---
   Future<Response> registerVendor({
+    required String role,
     required String fullName,
     required String email,
     required String password,
@@ -46,40 +48,29 @@ class RegistrationService {
     required List<SelectedCategoryRequest> selectedCategories,
     required File shopImage,
   }) async {
-
-    // 1. Prepare data
     final addressJson = jsonEncode(addresses.map((e) => e.toJson()).toList());
-    final categoryJson = jsonEncode(selectedCategories.map((e) => e.toJson()).toList());
+    final categoryJson = jsonEncode(
+        selectedCategories.map((e) => e.toJson()).toList());
 
-    // 2. Create FormData
     FormData formData = FormData.fromMap({
       "fullName": fullName,
       "email": email,
       "password": password,
-      "role": "vendor",
+      "role": role, // Using the parameter passed from controller
       "businessName": businessName,
-      "phoneNumber" : phoneNumber,
+      "phoneNumber": phoneNumber,
       "bio": bio,
-      "addresses": addressJson,           // Send as Stringified JSON
-      "selectedCategories": categoryJson, // Send as Stringified JSON
+      "addresses": addressJson,
+      "selectedCategories": categoryJson,
       "shopImage": await MultipartFile.fromFile(
         shopImage.path,
-        filename: shopImage.path.split('/').last,
+        filename: shopImage.path
+            .split('/')
+            .last,
       ),
     });
 
-    // 3. Debug Printing FormData
-    // Note: FormData cannot be printed directly as JSON, so we print fields manually
-    debugPrint('📂 [Vendor Registration Form Fields]:');
-    debugPrint('fullName: $fullName');
-    debugPrint('email: $email');
-    debugPrint('role: vendor');
-    debugPrint('businessName: $businessName');
-    debugPrint('📂 [Encoded Vendor Form Fields]:');
-    debugPrint('addresses: $addressJson');
-    debugPrint('categories: $categoryJson');
-    debugPrint('imagePath: ${shopImage.path}');
-
-    return await _apiClient.postFormData(ApiConstants.registration, data: formData);
+    return await _apiClient.postFormData(
+        ApiConstants.registration, data: formData);
   }
 }
