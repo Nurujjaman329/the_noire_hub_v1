@@ -80,14 +80,60 @@ class CustomerProductsScreen extends StatelessWidget {
                   );
                 }
 
+
                 if (controller.productList.isEmpty) {
-                  return const Center(
+                  return Center(
                     child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 40),
-                      child: CustomText(text: "No products found matching filters"),
+                      padding: EdgeInsets.symmetric(vertical: 60.h),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          // Using your CustomNetworkImage for the empty state asset
+                          CustomNetworkImage(
+                            imageUrl: AppAssets.empty, // Your asset path
+                            height: 200.h,
+                            width: 200.w,
+                            fit: BoxFit.contain,
+                            backgroundColor: Colors.transparent,
+                          ),
+
+                          SizedBox(height: 20.h),
+                          const CustomText(
+                            text: "No products found",
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black54,
+                          ),
+                          SizedBox(height: 10.h),
+                          const CustomText(
+                            text: "Try adjusting your distance or price range",
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
+
+                          SizedBox(height: 20.h),
+                          // Button to reset all filters
+                          TextButton(
+                            onPressed: () {
+                              controller.clearSearch();
+                              controller.clearPrice();
+                              controller.clearRating();
+                              controller.resetDistance();
+                              // Reset the slider value in UI if necessary
+                              controller.priceRange.value = const RangeValues(1, 50000);
+                            },
+                            child: const CustomText(
+                              text: "Clear All Filters",
+                              color: Color(0xFF1D3826),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 }
+
 
                 List<Widget> productRows = [];
                 for (int i = 0; i < controller.productList.length; i += 2) {
