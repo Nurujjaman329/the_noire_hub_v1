@@ -33,7 +33,7 @@ class DashboardScreen extends StatelessWidget {
         : "Ada’s Body Shop";
 
     final image = CacheService.userImage;
-    final fullImageUrl = image.isNotEmpty ? ApiConstants.baseImageUrl + image : null;
+    final fullImageUrl = image.isNotEmpty ? ApiConstants.baseImageUrl + image : '';
 
     return Scaffold(
       key: _scaffoldKey,
@@ -224,15 +224,11 @@ class DashboardScreen extends StatelessWidget {
               ),
               SizedBox(width: 5.w),
               CustomText(
-                text: "Toronto, ON",
+                text: CacheService.formattedLocation,
                 fontSize: 16.sp,
                 fontWeight: FontWeight.bold,
               ),
-              Icon(
-                Icons.keyboard_arrow_down,
-                size: 18.sp,
-                color: AppColors.textPrimary,
-              ),
+
             ],
           ),
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import '../../../../core/constants/api_constants.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/route_constants.dart';
 import '../../../../core/services/cache_service.dart';
@@ -17,7 +18,8 @@ class ProfileScreen extends StatelessWidget {
     // 1. Get simple strings directly from static CacheService
     final String role = CacheService.role.toLowerCase();
     final String fullName = CacheService.userFullName.isNotEmpty ? CacheService.userFullName : "User Name";
-    final String profileImg = CacheService.userImage;
+    final String image = CacheService.userImage;
+    final profileImg = image.isNotEmpty ? ApiConstants.baseImageUrl + image : '';
 
     // 2. Pure logic without model overhead
     final bool isCustomer = role == 'user' || role == 'customer';
@@ -75,9 +77,7 @@ class ProfileScreen extends StatelessWidget {
           Positioned(
             top: 0,
             child: CustomNetworkImage(
-              imageUrl: profileImg.isNotEmpty
-                  ? profileImg
-                  : "https://ui-avatars.com/api/?name=$fullName&background=random",
+              imageUrl: profileImg,
               height: 120.h,
               width: 120.w,
               boxShape: BoxShape.circle,

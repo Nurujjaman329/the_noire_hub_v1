@@ -174,12 +174,7 @@ class LoginScreen extends GetView<LoginController> {
               activeColor: const Color(0XFF1D3826),
               onChanged: (val) => controller.rememberMe.value = val!,
             )),
-            CustomText(
-              text: "Remember Me",
-              fontSize: 12.sp,
-              color: Colors.black,
-              left: 8.w,
-            ),
+
           ],
         ),
         GestureDetector(

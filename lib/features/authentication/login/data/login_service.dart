@@ -19,6 +19,17 @@ class LoginService {
 
       final loginResponse = LoginResponseModel.fromJson(response.data);
       final attr = loginResponse.data.attributes;
+      final user = attr.user;
+
+      String? combinedAddress;
+      if (user.addresses.isNotEmpty) {
+        final addr = user.addresses.firstWhere(
+                (a) => a.isDefault,
+            orElse: () => user.addresses.first
+        );
+        // We use a separator like '|' to make splitting easy later
+        combinedAddress = "${addr.city}|${addr.country}";
+      }
 
       // Save specific fields to cache
       await CacheService.saveSession(
@@ -28,6 +39,7 @@ class LoginService {
         businessName: attr.user.businessName,
         image: attr.user.image,
         fullName : attr.user.fullName,
+        address: combinedAddress,
       );
 
       return loginResponse;
