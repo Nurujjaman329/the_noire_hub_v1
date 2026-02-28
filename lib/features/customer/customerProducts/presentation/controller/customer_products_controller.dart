@@ -25,6 +25,7 @@ class CustomerProductsController extends GetxController {
   var minPrice = 0.0.obs;
   var maxPrice = 0.0.obs;
   var hasOffer = false.obs;
+  var ratingValue = 1.0.obs;
 
   @override
   void onInit() {

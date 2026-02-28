@@ -508,11 +508,16 @@ class CustomerProductsScreen extends StatelessWidget {
       child: Obx(() => Row(
         children: [
           _filterChip(
-            controller.selectedRating.value > 0 ? "${controller.selectedRating.value.toInt()}★" : "Rating",
+            controller.selectedRating.value > 0
+                ? "${controller.selectedRating.value.toInt()}★"
+                : "Rating",
             Icons.star_border,
             isActive: controller.selectedRating.value > 0,
             onTap: () => _showRatingPicker(controller),
-            onClear: () => controller.clearRating(),
+            onClear: () {
+              controller.selectedRating.value = 0.0;
+              controller.fetchProducts();
+            },
           ),
           SizedBox(width: 10.w),
           _filterChip(
@@ -551,22 +556,67 @@ class CustomerProductsScreen extends StatelessWidget {
   }
 
   void _showRatingPicker(CustomerProductsController controller) {
+    // Sync the slider starting point with the current active rating
+    controller.ratingValue.value = controller.selectedRating.value > 0
+        ? controller.selectedRating.value
+        : 1.0;
+
     _showStyledBottomSheet(
-      title: "Select Minimum Rating",
-      child: Column(
+      title: "Minimum Rating",
+      child: Obx(() => Column(
         mainAxisSize: MainAxisSize.min,
-        children: [5, 4, 3, 2, 1].map((star) => ListTile(
-          leading: const Icon(Icons.star, color: Colors.amber),
-          title: CustomText(text: "$star Stars & Up"),
-          trailing: controller.selectedRating.value == star.toDouble()
-              ? const Icon(Icons.check, color: Color(0xFF1D3826)) : null,
-          onTap: () {
-            controller.selectedRating.value = star.toDouble();
-            controller.fetchProducts();
-            Get.back();
-          },
-        )).toList(),
-      ),
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CustomText(
+                text: controller.ratingValue.value.toStringAsFixed(1),
+                fontSize: 24.sp,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF1D3826),
+              ),
+              Icon(Icons.star, color: Colors.amber, size: 28.sp),
+              CustomText(text: " & Up", fontSize: 16.sp),
+            ],
+          ),
+          SizedBox(height: 10.h),
+          SliderTheme(
+            data: SliderTheme.of(Get.context!).copyWith(
+              activeTrackColor: const Color(0xFF1D3826),
+              inactiveTrackColor: const Color(0xFF1D3826).withOpacity(0.1),
+              thumbColor: const Color(0xFF1D3826),
+              overlayColor: const Color(0xFF1D3826).withOpacity(0.2),
+              valueIndicatorColor: const Color(0xFF1D3826),
+              valueIndicatorTextStyle: const TextStyle(color: Colors.white),
+            ),
+            child: Slider(
+              value: controller.ratingValue.value,
+              min: 1.0,
+              max: 5.0,
+              divisions: 4, // Steps: 1, 2, 3, 4, 5
+              label: controller.ratingValue.value.toInt().toString(),
+              onChanged: (double value) {
+                controller.ratingValue.value = value;
+              },
+            ),
+          ),
+          SizedBox(height: 20.h),
+          ElevatedButton(
+            onPressed: () {
+              controller.selectedRating.value = controller.ratingValue.value;
+              controller.fetchProducts();
+              Get.back();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF1D3826),
+              minimumSize: Size(double.infinity, 50.h),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25.r)),
+            ),
+            child: const CustomText(text: "Apply Rating", color: Colors.white),
+          ),
+          SizedBox(height: 10.h),
+        ],
+      )),
     );
   }
 
