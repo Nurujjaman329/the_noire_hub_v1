@@ -5,7 +5,6 @@ import 'package:the_noire_hub_v1/features/customer/customerBookingList/presentat
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/route_constants.dart';
 import '../../../../../core/widgets/custom_text.dart';
-import '../../data/customer_booking_list_response_model.dart';
 import '../controller/customer_booking_list_controller.dart';
 
 

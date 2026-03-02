@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 
 import '../../../data/customer_booking_list_response_model.dart';
 
+
 class BookingCard extends StatelessWidget {
   final BookingDoc booking;
   final String tabStatus;
@@ -25,70 +26,196 @@ class BookingCard extends StatelessWidget {
         ? DateFormat('dd/MM/yyyy').format(booking.appointmentDate!)
         : "N/A";
 
-    return Container(
-      margin: EdgeInsets.only(bottom: 20.h),
-      padding: EdgeInsets.only(bottom: 15.h),
-      decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: Color(0xFFF5F5F5), width: 1),
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(50.r),
-            child: CustomNetworkImage(
-              imageUrl: booking.service?.image ?? "",
-              height: 70.h,
-              width: 70.w,
-            ),
+    return GestureDetector(
+      onTap: () => _showBookingDetails(context, formattedDate),
+      child: Container(
+        margin: EdgeInsets.only(bottom: 20.h),
+        padding: EdgeInsets.only(bottom: 15.h),
+        decoration: const BoxDecoration(
+          color: Colors.transparent, // Ensures full card is tappable
+          border: Border(
+            bottom: BorderSide(color: Color(0xFFF5F5F5), width: 1),
           ),
-          SizedBox(width: 15.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: CustomText(
-                        text: booking.service?.name ?? "Service",
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(50.r),
+              child: CustomNetworkImage(
+                imageUrl: booking.service?.image ?? "",
+                height: 70.h,
+                width: 70.w,
+              ),
+            ),
+            SizedBox(width: 15.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: CustomText(
+                          text: booking.service?.name ?? "Service",
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.bold,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      CustomText(
+                          text: formattedDate,
+                          fontSize: 12.sp,
+                          color: Colors.black.withOpacity(0.7)),
+                    ],
+                  ),
+                  SizedBox(height: 4.h),
+                  CustomText(
+                      text: "Time: ${booking.appointmentTime}",
+                      fontSize: 10.sp,
+                      color: Colors.black.withOpacity(0.7)),
+                  SizedBox(height: 8.h),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CustomText(
+                        text: "\$${booking.totalAmount.toStringAsFixed(2)}",
                         fontSize: 14.sp,
                         fontWeight: FontWeight.bold,
-                        overflow: TextOverflow.ellipsis,
+                        color: const Color(0xFF3F592B).withOpacity(0.8),
                       ),
-                    ),
-                    CustomText(
-                        text: formattedDate,
-                        fontSize: 12.sp,
-                        color: Colors.black.withOpacity(0.7)
-                    ),
-                  ],
-                ),
-                SizedBox(height: 4.h),
-                CustomText(
-                    text: "Time: ${booking.appointmentTime}",
-                    fontSize: 10.sp,
-                    color: Colors.black.withOpacity(0.7)
-                ),
-                SizedBox(height: 8.h),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    CustomText(
-                      text: "\$${booking.totalAmount.toStringAsFixed(2)}",
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF3F592B).withOpacity(0.8),
-                    ),
-                    _buildActionButton(context),
-                  ],
-                ),
-              ],
+                      _buildActionButton(context),
+                    ],
+                  ),
+                ],
+              ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // --- DETAILS MODAL ---
+  void _showBookingDetails(BuildContext context, String date) {
+    Get.bottomSheet(
+      Container(
+        padding: EdgeInsets.all(20.w),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(30.r)),
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Center(
+                child: Container(
+                  width: 40.w,
+                  height: 4.h,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(10.r),
+                  ),
+                ),
+              ),
+              SizedBox(height: 20.h),
+              Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12.r),
+                    child: CustomNetworkImage(
+                      imageUrl: booking.service?.image ?? "",
+                      height: 80.h,
+                      width: 80.w,
+                    ),
+                  ),
+                  SizedBox(width: 15.w),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomText(
+                          text: booking.service?.name ?? "Booking Details",
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        SizedBox(height: 5.h),
+                        _statusBadge(tabStatus, const Color(0xFF2D3E2F),
+                            const Color(0xFFC4C99A).withOpacity(0.4)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 25.h),
+              _detailRow("Booking ID", "#${booking.id.substring(booking.id.length - 8)}"),
+              _detailRow("Date", date),
+              _detailRow("Time", booking.appointmentTime),
+              _detailRow("Payment", booking.paymentStatus.toUpperCase()),
+
+              if (booking.bookingItems.isNotEmpty) ...[
+                Divider(height: 30.h, color: Colors.grey[100]),
+                CustomText(text: "Services Included:", fontWeight: FontWeight.bold, fontSize: 14.sp),
+                SizedBox(height: 10.h),
+                ...booking.bookingItems.map((item) => Padding(
+                  padding: EdgeInsets.only(bottom: 8.h),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CustomText(text: "• ${item.variantName ?? 'Service Item'}", fontSize: 13.sp),
+                      CustomText(text: "\$${item.price.toStringAsFixed(2)}", fontSize: 13.sp),
+                    ],
+                  ),
+                )),
+              ],
+
+              Divider(height: 30.h, color: Colors.grey[200]),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  CustomText(text: "Total Amount", fontSize: 16.sp, fontWeight: FontWeight.bold),
+                  CustomText(
+                    text: "\$${booking.totalAmount.toStringAsFixed(2)}",
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF3F592B),
+                  ),
+                ],
+              ),
+              SizedBox(height: 30.h),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2D3E2F),
+                    padding: EdgeInsets.symmetric(vertical: 15.h),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25.r)),
+                  ),
+                  onPressed: () => Get.back(),
+                  child: CustomText(text: "Close", color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+              ),
+              SizedBox(height: 15.h),
+            ],
           ),
+        ),
+      ),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+    );
+  }
+
+  Widget _detailRow(String label, String value) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 12.h),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          CustomText(text: label, fontSize: 14.sp, color: Colors.grey[600]),
+          CustomText(text: value, fontSize: 14.sp, fontWeight: FontWeight.w600),
         ],
       ),
     );
