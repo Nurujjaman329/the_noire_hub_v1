@@ -595,6 +595,17 @@ class CustomerServiceScreen extends StatelessWidget {
             onTap: () => controller.toggleOffer(),
             onClear: () => controller.toggleOffer(),
           ),
+
+          SizedBox(width: 10.w),
+          // NEW: Home Service Chip
+          _filterChip(
+            "Home Service",
+            Icons.home_repair_service_outlined,
+            isActive: controller.homeService.value,
+            showArrow: false,
+            onTap: () => controller.toggleHomeService(),
+            onClear: () => controller.toggleHomeService(),
+          ),
         ],
       )),
     );
@@ -788,49 +799,49 @@ class CustomerServiceScreen extends StatelessWidget {
   Widget _filterChip(
       String label,
       IconData icon, {
-        required VoidCallback onTap,
-        VoidCallback? onClear,
         bool isActive = false,
-        bool showArrow = true, // Added this parameter
+        bool showArrow = true,
+        required VoidCallback onTap,
+        required VoidCallback onClear,
       }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
         decoration: BoxDecoration(
+          // Use primary color if active, otherwise white
           color: isActive ? const Color(0xFF1D3826) : const Color(0XFFB5B475),
           borderRadius: BorderRadius.circular(20.r),
           border: Border.all(
-            color: isActive ? const Color(0xFF1D3826) : Colors.transparent,
-            width: 1,
+            color: isActive ? const Color(0xFF1D3826) : Colors.grey.shade300,
           ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              icon,
-              size: 16.sp,
-              color: isActive ? const Color(0xFFF1F0B2) : Colors.black,
+                icon,
+                size: 16.sp,
+                color: isActive ? Colors.white : Colors.black87
             ),
-            SizedBox(width: 4.w),
+            SizedBox(width: 6.w),
             CustomText(
               text: label,
               fontSize: 12.sp,
-              fontWeight: FontWeight.w500,
-              color: isActive ? const Color(0xFFF1F0B2) : Colors.black,
+              color: isActive ? Colors.white : Colors.black87,
+              fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
             ),
-            // Logic: If active, show 'X'. If not active, show arrow only if showArrow is true.
-            if (isActive && onClear != null) ...[
+            if (showArrow && !isActive) ...[
               SizedBox(width: 4.w),
+              Icon(Icons.keyboard_arrow_down, size: 16.sp, color: Colors.black54),
+            ],
+            if (isActive) ...[
+              SizedBox(width: 6.w),
               GestureDetector(
                 onTap: onClear,
-                child: Icon(Icons.close, size: 16.sp, color: const Color(0xFFF1F0B2)),
+                child: Icon(Icons.close, size: 14.sp, color: Colors.white),
               ),
-            ] else if (showArrow) ...[
-              SizedBox(width: 4.w),
-              Icon(Icons.keyboard_arrow_down, size: 16.sp, color: Colors.black),
-            ],
+            ]
           ],
         ),
       ),

@@ -22,6 +22,7 @@ class CustomerServiceBookService {
     double? minPrice,
     double? maxPrice,
     bool? hasOffer,
+    bool? homeService,
   }) async {
     final Map<String, dynamic> queryParams = {
       'page': page,
@@ -38,7 +39,7 @@ class CustomerServiceBookService {
     if (minPrice != null) queryParams['minPrice'] = minPrice;
     if (maxPrice != null) queryParams['maxPrice'] = maxPrice;
     if (hasOffer != null) queryParams['hasOffer'] = hasOffer;
-
+    if (homeService != null) queryParams['homeService'] = homeService;
     // --- DEBUG PRINT: REQUEST ---
     debugPrint('🚀 [GET] Request to: ${ApiConstants.customerServices}');
     debugPrint('Params: $queryParams');

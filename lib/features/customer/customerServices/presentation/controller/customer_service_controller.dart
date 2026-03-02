@@ -26,6 +26,7 @@ class CustomerServiceController extends GetxController {
   var minPrice = 0.0.obs;
   var maxPrice = 0.0.obs;
   var hasOffer = false.obs;
+  var homeService = false.obs;
   var ratingValue = 1.0.obs;
 
   @override
@@ -84,6 +85,7 @@ class CustomerServiceController extends GetxController {
         minPrice: minPrice.value > 0 ? minPrice.value : null,
         maxPrice: maxPrice.value > 0 ? maxPrice.value : null,
         hasOffer: hasOffer.value ? true : null,
+        homeService: homeService.value ? true : null,
       );
 
       serviceList.assignAll(response.data?.attributes?.results ?? []);
@@ -116,6 +118,7 @@ class CustomerServiceController extends GetxController {
         minPrice: minPrice.value > 0 ? minPrice.value : null,
         maxPrice: maxPrice.value > 0 ? maxPrice.value : null,
         hasOffer: hasOffer.value ? true : null,
+        homeService: homeService.value ? true : null,
       );
 
       final newResults = response.data?.attributes?.results ?? [];
@@ -158,6 +161,10 @@ class CustomerServiceController extends GetxController {
 
   void toggleOffer() {
     hasOffer.value = !hasOffer.value;
+    fetchService();
+  }
+  void toggleHomeService() {
+    homeService.value = !homeService.value;
     fetchService();
   }
 }
