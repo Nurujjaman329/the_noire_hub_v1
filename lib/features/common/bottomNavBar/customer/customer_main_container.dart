@@ -11,8 +11,20 @@ class CustomerMainContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // final RxInt currentIndex = (Get.arguments?['initialTab'] ?? 0).obs;
-    final currentIndex = RxInt(Get.arguments?['initialTab'] ?? 0);
+    // 1. Get the arguments safely
+    final args = Get.arguments;
+    int initialTab = 0;
+
+    // 2. Check if arguments is actually a Map before accessing 'initialTab'
+    if (args is Map<String, dynamic> || args is Map) {
+      initialTab = args['initialTab'] ?? 0;
+    } else if (args is int) {
+      // Handle cases where only an integer is passed
+      initialTab = args;
+    }
+
+    final currentIndex = RxInt(initialTab);
+
     final List<Widget> pages = [
       const CustomerServiceScreen(),
       const CustomerProductsScreen(),

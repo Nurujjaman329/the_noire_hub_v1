@@ -1,5 +1,6 @@
 import '../../../../core/api/api_client.dart';
 import '../../../../core/constants/api_constants.dart';
+import '../../productDetailsScreen/data/product_details_response_model.dart';
 import 'customer_products_response_model.dart';
 import 'package:flutter/material.dart';
 
@@ -60,4 +61,22 @@ class CustomerProductsService {
       rethrow;
     }
   }
+
+  Future<ProductDetailsResponseModel> getProductDetails(String productId) async {
+    final String url = "${ApiConstants.customerProducts}/$productId";
+
+    debugPrint('🚀 [GET] Request to: $url');
+
+    try {
+      final response = await _apiClient.get(url);
+
+      debugPrint('✅ [GET] Success: $url');
+      return ProductDetailsResponseModel.fromJson(response.data);
+    } catch (e) {
+      debugPrint('❌ [GET] Error at: $url');
+      rethrow;
+    }
+  }
+
+
 }

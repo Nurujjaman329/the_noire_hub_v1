@@ -1,420 +1,350 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../../core/constants/api_constants.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/route_constants.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/widgets/custom_network_image.dart';
 import '../../../../core/widgets/custom_text.dart';
+import '../data/product_details_response_model.dart';
+import 'controller/product_details_controller.dart';
 
 
-class ProductDetailScreen extends StatefulWidget {
+class ProductDetailScreen extends GetView<ProductDetailsController> {
   const ProductDetailScreen({super.key});
 
   @override
-  State<ProductDetailScreen> createState() => _ProductDetailScreenState();
-}
-
-class _ProductDetailScreenState extends State<ProductDetailScreen> {
-  int quantity = 1;
-  bool isExpanded = false;
-
-  // New State Variables for Variants
-  String selectedSize = "M"; // Default selection
-  String selectedColor = "Green";
-  double currentPrice = 0.00;
-
-  // Example Data Structure - In a real app, this comes from your backend
-  final List<String> availableSizes = ["S", "M", "L", "XL"];
-  final List<Map<String, dynamic>> colorVariants = [
-    {"name": "Green", "color": Color(0xFF000000), "price": 25.00},
-    {"name": "Blue", "color": Colors.blueGrey, "price": 28.00},
-    {"name": "Cream", "color": Color(0xFFF5F5DC), "price": 22.00},
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    // Initialize price from the default variant or passed arguments
-    currentPrice = 25.00;
-  }
-
-  @override
   Widget build(BuildContext context) {
-
-    final Map<String, dynamic> data = Get.arguments ?? {
-      'title': "Product Detail",
-      'price': "0.00",
-      'image': "",
-    };
-
     return Scaffold(
       backgroundColor: AppColors.white,
       appBar: CustomAppBar(
         title: "Product Details",
         showBackButton: true,
-
-        actions: [
-          Padding(
-            padding: EdgeInsets.only(right: 15.w),
-            child: GestureDetector(
-              onTap: () {
-                Get.offAllNamed(
-                  RouteConstants.customerMainContainer,
-                  arguments: {'initialTab': 3},
-                );
-              },
-              child: Stack(
-                alignment: Alignment.topRight,
-                children: [
-                  Container(
-                    padding: EdgeInsets.all(8.r),
-                    child: Icon(
-                      Icons.shopping_cart_outlined,
-                      color: AppColors.textPrimary,
-                      size: 24.sp,
-                    ),
-                  ),
-                  Positioned(
-                    right: 4.w,
-                    top: 4.h,
-                    child: Container(
-                      padding: EdgeInsets.all(4.r),
-                      decoration: const BoxDecoration(
-                        color: AppColors.secondaryVariant,
-                        shape: BoxShape.circle,
-                      ),
-                      constraints: BoxConstraints(
-                        minWidth: 16.w,
-                        minHeight: 16.w,
-                      ),
-                      child: Center(
-                        child: CustomText(
-                          text: "1",
-                          color: Colors.white,
-                          fontSize: 10.sp,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
+        actions: [_buildCartIcon()],
       ),
-      bottomNavigationBar: Container(
-        height: 100.h,
-        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
-        color: AppColors.white,
-        child: _buildFloatingAddToCart(),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 1. Image Section with Indicators
-            Stack(
-              children: [
-                CustomNetworkImage(
-                  imageUrl: data['image'],
-                  height: 350.h,
-                  width: double.infinity,
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(30.r),
-                    bottomRight: Radius.circular(30.r),
-                  ),
-                ),
-                Positioned(
-                  bottom: 15.h,
-                  left: 0,
-                  right: 0,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(5, (index) => _buildDotIndicator(index == 0)),
-                  ),
-                )
-              ],
-            ),
+      bottomNavigationBar: Obx(() {
+        if (controller.isLoading.value || controller.product.value == null) {
+          return const SizedBox.shrink();
+        }
+        return Container(
+          height: 100.h,
+          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
+          color: AppColors.white,
+          child: _buildFloatingAddToCart(),
+        );
+      }),
+      body: Obx(() {
+        if (controller.isLoading.value) {
+          return const Center(child: CircularProgressIndicator(color: AppColors.primaryDark));
+        }
 
-            Padding(
-              padding: EdgeInsets.all(20.r),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      CustomText(
-                          text: "Skie Homemade Care Products | 2-10 Days Delivery",
-                          fontSize: 10.sp,
-                          color: AppColors.geryColor
-                      ),
-                      GestureDetector(
-                          onTap: () {},
-                          child: CustomText(
-                              text: "View Store",
-                              fontSize: 10.sp,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0XFF3F592B)
-                          )
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 10.h),
-                  CustomText(text: data['title'], fontSize: 24.sp, fontWeight: FontWeight.bold, textAlign: TextAlign.start),
-                  SizedBox(height: 15.h),
+        final p = controller.product.value;
+        if (p == null) {
+          return const Center(child: CustomText(text: "Product not found"));
+        }
 
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      CustomText(
-                        text: "\$${currentPrice.toStringAsFixed(2)}",
-                        fontSize: 22.sp,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primaryDark,
-                      ),
-                      _buildRatingBadge(),
-                    ],
-                  ),
+        return SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 1. Image Carousel Section (Updated with Base URL)
+              _buildImageSection(p),
 
-                  SizedBox(height: 25.h),
-
-                  // --- SIZE SELECTION ---
-                  CustomText(text: "Select Size", fontSize: 14.sp, fontWeight: FontWeight.bold),
-                  SizedBox(height: 12.h),
-                  Row(
-                    children: availableSizes.map((size) => _buildSizeOption(size)).toList(),
-                  ),
-
-                  SizedBox(height: 25.h),
-
-                  // --- COLOR SELECTION ---
-                  CustomText(text: "Color: $selectedColor", fontSize: 14.sp, fontWeight: FontWeight.bold),
-                  SizedBox(height: 12.h),
-                  Row(
-                    children: colorVariants.map((variant) => _buildColorOption(variant)).toList(),
-                  ),
-
-                  // Row(
-                  //   children: [
-                  //     _buildVariationImage(data['image'], true),
-                  //     _buildVariationImage("https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?q=80&w=200", false),
-                  //     _buildVariationImage("https://images.unsplash.com/photo-1590159346183-406b75bc912d?q=80&w=200", false),
-                  //   ],
-                  // ),
-
-                  SizedBox(height: 25.h),
-                  CustomText(text: "Description", fontSize: 14.sp, fontWeight: FontWeight.bold),
-                  SizedBox(height: 10.h),
-                  CustomText(
-                    text: "Moisture Retainment, Hair Growth Stimulation, All natural ingredients, NDA Approved, Petroleum free. This product is formulated by Skie Homemade Care.",
-                    fontSize: 12.sp,
-                    color: AppColors.textPrimary,
-                    textAlign: TextAlign.start,
-                  ),
-
-                  SizedBox(height: 20.h),
-
-
-                  if (isExpanded) ...[
+              Padding(
+                padding: EdgeInsets.all(20.r),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildStoreHeader(p),
                     SizedBox(height: 10.h),
-                    Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.all(15.r),
-                      decoration: BoxDecoration(
-                        color: AppColors.surfaceVariant,
-                        borderRadius: BorderRadius.circular(15.r),
-                      ),
-                      child: CustomText(
-                        text: "• 100% Organic Ingredients\n• No Artificial Fragrances\n• Cruelty-Free and Vegan",
-                        fontSize: 12.sp,
-                        textAlign: TextAlign.start,
-                        color: AppColors.textPrimary,
-                      ),
+                    CustomText(
+                      text: p.name,
+                      fontSize: 22.sp,
+                      fontWeight: FontWeight.bold,
+                      textAlign: TextAlign.start,
                     ),
-                  ],
+                    SizedBox(height: 15.h),
 
-                  SizedBox(height: 30.h),
-                  CustomText(text: "Similar Products From Skie", fontSize: 14.sp, fontWeight: FontWeight.bold),
-                  SizedBox(height: 15.h),
-
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
+                    // Price and Rating
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _buildProductCard("Naturals Argan Shampoo", "13.00", "https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?q=80&w=200"),
-                        _buildProductCard("Skie Coconut & Peach Pomade", "15.00", "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?q=80&w=200"),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CustomText(
+                              text: "\$${controller.currentPrice.toStringAsFixed(2)}",
+                              fontSize: 22.sp,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primaryDark,
+                            ),
+                            if (p.originalPrice > controller.currentPrice)
+                              Text(
+                                "\$${p.originalPrice}",
+                                style: TextStyle(
+                                  decoration: TextDecoration.lineThrough,
+                                  color: Colors.grey,
+                                  fontSize: 14.sp,
+                                ),
+                              ),
+                          ],
+                        ),
+                        _buildRatingBadge(p.rating, p.totalReviews),
                       ],
                     ),
-                  ),
-                ],
+
+                    // 2. Dynamic Variant Selection
+                    if (p.variants.isNotEmpty) ...[
+                      SizedBox(height: 25.h),
+                      CustomText(
+                          text: "Available Options",
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.bold
+                      ),
+                      SizedBox(height: 12.h),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: p.variants.map((v) => _buildVariantChip(v)).toList(),
+                        ),
+                      ),
+                    ],
+
+                    SizedBox(height: 25.h),
+                    CustomText(text: "Description", fontSize: 14.sp, fontWeight: FontWeight.bold),
+                    SizedBox(height: 10.h),
+                    CustomText(
+                      text: p.description,
+                      fontSize: 12.sp,
+                      color: AppColors.textPrimary,
+                      textAlign: TextAlign.start,
+                    ),
+
+                    SizedBox(height: 20.h),
+                    _buildStockIndicator(p.stock),
+
+                    SizedBox(height: 30.h),
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
+            ],
+          ),
+        );
+      }),
     );
   }
 
   // --- HELPER WIDGETS ---
 
+  Widget _buildImageSection(DetailsProductAttributes p) {
+    return Stack(
+      children: [
+        SizedBox(
+          height: 350.h,
+          child: PageView.builder(
+            onPageChanged: controller.changeImage,
+            itemCount: p.images.length,
+            itemBuilder: (context, index) {
+              // Constructing full image URL
+              final fullImageUrl = "${ApiConstants.baseImageUrl}${p.images[index]}";
+
+              return CustomNetworkImage(
+                imageUrl: fullImageUrl,
+                height: 350.h,
+                width: double.infinity,
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(30.r),
+                  bottomRight: Radius.circular(30.r),
+                ),
+              );
+            },
+          ),
+        ),
+        Positioned(
+          bottom: 15.h,
+          left: 0,
+          right: 0,
+          child: Obx(() => Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(
+              p.images.length,
+                  (index) => _buildDotIndicator(controller.selectedImageIndex.value == index),
+            ),
+          )),
+        )
+      ],
+    );
+  }
+
+  Widget _buildVariantChip(DetailsVariant v) {
+    return Obx(() {
+      bool isSelected = controller.selectedVariantId.value == v.id;
+
+      return GestureDetector(
+        onTap: () => controller.selectVariant(v.id),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          margin: EdgeInsets.only(right: 12.w),
+          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.primaryDark : AppColors.white,
+            borderRadius: BorderRadius.circular(10.r),
+            border: Border.all(
+              color: isSelected ? AppColors.primaryDark : Colors.grey.shade300,
+              width: 1.5,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Show color indicator if color is present
+              if (v.colorCode.isNotEmpty) ...[
+                Container(
+                  width: 14.w,
+                  height: 14.w,
+                  decoration: BoxDecoration(
+                    color: v.colorValue,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 1),
+                  ),
+                ),
+                SizedBox(width: 8.w),
+              ],
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    text: "${v.weight.value} ${v.weight.unit}",
+                    color: isSelected ? AppColors.white : AppColors.textPrimary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12.sp,
+                  ),
+                  CustomText(
+                    text: "\$${v.price}",
+                    color: isSelected ? AppColors.white.withOpacity(0.7) : AppColors.geryColor,
+                    fontSize: 10.sp,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    });
+  }
+
   Widget _buildFloatingAddToCart() {
-    return GestureDetector(
-        onTap: () {
-          // Navigate to CustomerMainContainer with initial tab index = 3 (Cart)
-          Get.offAllNamed(
-            RouteConstants.customerMainContainer,
-            arguments: {'initialTab': 3},
-          );
-        },
-      child: Container(
-        decoration: BoxDecoration(
-          color: const Color(0XFF1D3826),
-          borderRadius: BorderRadius.circular(15.r),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            IconButton(
-                icon: const Icon(Icons.remove, color: AppColors.white),
-                onPressed: () {
-                  if (quantity > 1) setState(() => quantity--);
-                }
-            ),
-            CustomText(
-                text: "Add To Cart | $quantity",
-                color: AppColors.white,
-                fontSize: 18.sp,
-                fontWeight: FontWeight.bold
-            ),
-            IconButton(
-                icon: const Icon(Icons.add, color: AppColors.white),
-                onPressed: () => setState(() => quantity++)
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-
-  Widget _buildDotIndicator(bool isActive) {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 3.w),
-      height: 6.h,
-      width: 6.w,
       decoration: BoxDecoration(
-        color: isActive ? AppColors.textPrimary : AppColors.dividerVariant,
-        shape: BoxShape.circle,
+        color: const Color(0XFF1D3826),
+        borderRadius: BorderRadius.circular(15.r),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.remove, color: AppColors.white),
+            onPressed: controller.decrementQty,
+          ),
+          Obx(() => CustomText(
+            text: "Add To Cart | ${controller.quantity.value}",
+            color: AppColors.white,
+            fontSize: 16.sp,
+            fontWeight: FontWeight.bold,
+          )),
+          IconButton(
+            icon: const Icon(Icons.add, color: AppColors.white),
+            onPressed: controller.incrementQty,
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildRatingBadge() {
+  Widget _buildStoreHeader(DetailsProductAttributes p) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        CustomText(
+          text: "${p.vendor.businessName} | ${p.category.name}",
+          fontSize: 10.sp,
+          color: AppColors.geryColor,
+        ),
+        const CustomText(
+          text: "View Store",
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+          color: Color(0XFF3F592B),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRatingBadge(num rating, int reviews) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
       decoration: BoxDecoration(
-          color: AppColors.primary,
-          borderRadius: BorderRadius.circular(20.r)
+        color: AppColors.primary,
+        borderRadius: BorderRadius.circular(20.r),
       ),
       child: Row(
         children: [
           Icon(Icons.star, size: 14.sp, color: AppColors.textPrimary),
           SizedBox(width: 4.w),
-          CustomText(text: "4.8 | 100+", fontSize: 12.sp, fontWeight: FontWeight.bold),
+          CustomText(text: "$rating | $reviews+", fontSize: 12.sp, fontWeight: FontWeight.bold),
         ],
       ),
     );
   }
 
-
-
-  Widget _buildProductCard(String title, String price, String imgUrl) {
+  Widget _buildStockIndicator(int stock) {
     return Container(
-      width: 140.w,
-      margin: EdgeInsets.only(right: 15.w),
       padding: EdgeInsets.all(12.r),
       decoration: BoxDecoration(
-          color: AppColors.surfaceVariant,
-          borderRadius: BorderRadius.circular(25.r)
+        color: stock > 0 ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(10.r),
       ),
-      child: Column(
+      child: Row(
         children: [
-          CustomNetworkImage(
-              imageUrl: imgUrl,
-              height: 90.h,
-              width: 100.w,
-              borderRadius: BorderRadius.circular(15.r)
+          Icon(
+            stock > 0 ? Icons.check_circle : Icons.do_not_disturb_on,
+            color: stock > 0 ? Colors.green : Colors.red,
+            size: 16.sp,
           ),
-          SizedBox(height: 10.h),
-          CustomText(text: title, fontSize: 10.sp, fontWeight: FontWeight.bold, maxLines: 2),
-          SizedBox(height: 5.h),
-          Row(
-            children: [
-              CustomText(text: "\$$price", fontSize: 12.sp, fontWeight: FontWeight.bold),
-              const Spacer(),
-              Container(
-                padding: EdgeInsets.all(4.r),
-                decoration: const BoxDecoration(
-                    color: AppColors.primaryDark,
-                    shape: BoxShape.circle
-                ),
-                child: Icon(Icons.arrow_forward_ios, color: AppColors.white, size: 8.sp),
-              )
-            ],
-          )
+          SizedBox(width: 8.w),
+          CustomText(
+            text: stock > 0 ? "In Stock ($stock items)" : "Out of Stock",
+            color: stock > 0 ? Colors.green : Colors.red,
+            fontSize: 12.sp,
+          ),
         ],
       ),
     );
   }
 
-
-  Widget _buildSizeOption(String size) {
-    bool isSelected = selectedSize == size;
-    return GestureDetector(
-      onTap: () => setState(() => selectedSize = size),
-      child: Container(
-        margin: EdgeInsets.only(right: 12.w),
-        padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 10.h),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primaryDark : AppColors.white,
-          borderRadius: BorderRadius.circular(10.r),
-          border: Border.all(color: isSelected ? AppColors.primaryDark : AppColors.geryColor.withValues(alpha:0.3)),
-        ),
-        child: CustomText(
-          text: size,
-          color: isSelected ? AppColors.white : AppColors.textPrimary,
-          fontWeight: FontWeight.bold,
-        ),
+  Widget _buildDotIndicator(bool isActive) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      margin: EdgeInsets.symmetric(horizontal: 3.w),
+      height: 6.h,
+      width: isActive ? 18.w : 6.w,
+      decoration: BoxDecoration(
+        color: isActive ? AppColors.textPrimary : AppColors.dividerVariant,
+        borderRadius: BorderRadius.circular(3.r),
       ),
     );
   }
 
-  Widget _buildColorOption(Map<String, dynamic> variant) {
-    bool isSelected = selectedColor == variant['name'];
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          selectedColor = variant['name'];
-          currentPrice = variant['price']; // Vendor logic: change price based on color
-        });
-      },
-      child: Container(
-        margin: EdgeInsets.only(right: 15.w),
-        padding: EdgeInsets.all(3.r),
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: isSelected ? AppColors.primaryDark : Colors.transparent,
-            width: 2,
-          ),
+  Widget _buildCartIcon() {
+    return Padding(
+      padding: EdgeInsets.only(right: 15.w),
+      child: GestureDetector(
+        onTap: () => Get.offAllNamed(
+            RouteConstants.customerMainContainer,
+            arguments: {'initialTab': 3}
         ),
-        child: CircleAvatar(
-          radius: 18.r,
-          backgroundColor: variant['color'],
-        ),
+        child: Icon(Icons.shopping_cart_outlined, color: AppColors.textPrimary, size: 24.sp),
       ),
     );
   }
