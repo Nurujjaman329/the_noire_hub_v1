@@ -2,6 +2,7 @@ import '../../../../core/api/api_client.dart';
 import '../../../../core/constants/api_constants.dart';
 import 'package:flutter/material.dart';
 
+import '../../serviceBookingScreen/data/service_booking_details_response_model.dart';
 import 'customer_services_response_model.dart';
 
 class CustomerServiceBookService {
@@ -32,8 +33,10 @@ class CustomerServiceBookService {
     if (latitude != null) queryParams['latitude'] = latitude;
     if (longitude != null) queryParams['longitude'] = longitude;
     if (name != null && name.isNotEmpty) queryParams['name'] = name;
-    if (category != null && category.isNotEmpty) queryParams['category'] = category;
-    if (subcategory != null && subcategory.isNotEmpty) queryParams['subcategory'] = subcategory;
+    if (category != null && category.isNotEmpty)
+      queryParams['category'] = category;
+    if (subcategory != null && subcategory.isNotEmpty)
+      queryParams['subcategory'] = subcategory;
     if (maxDistance != null) queryParams['maxDistance'] = maxDistance;
     if (minRating != null) queryParams['minRating'] = minRating;
     if (minPrice != null) queryParams['minPrice'] = minPrice;
@@ -59,6 +62,24 @@ class CustomerServiceBookService {
       // --- DEBUG PRINT: ERROR ---
       debugPrint('❌ [GET] Error at: ${ApiConstants.customerServices}');
       debugPrint('Error Details: $e');
+      rethrow;
+    }
+  }
+
+  Future<ServiceBookingDetailsResponseModel> getServiceDetails(
+      String serviceId) async {
+    debugPrint(
+        '🚀 [GET] Request to: ${ApiConstants.customerServices}/$serviceId');
+
+    try {
+      final response = await _apiClient.get(
+        "${ApiConstants.customerServices}/$serviceId",
+      );
+
+      debugPrint('✅ [GET] Success Details: ${response.data}');
+      return ServiceBookingDetailsResponseModel.fromJson(response.data);
+    } catch (e) {
+      debugPrint('❌ [GET] Error at Details: $e');
       rethrow;
     }
   }

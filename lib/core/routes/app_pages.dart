@@ -74,6 +74,7 @@ import '../../features/customer/multiVendorCartScreen/presentation/screen/multi_
 import '../../features/customer/orderSuccessScreen/order_success_screen.dart';
 import '../../features/customer/popularNearYou/presentation/service_popular_near_you_screen.dart';
 import '../../features/customer/productDetailsScreen/presentation/product_details_screen.dart';
+import '../../features/customer/serviceBookingScreen/presentation/bindings/service_booking_details_bindings.dart';
 import '../../features/customer/serviceBookingScreen/presentation/screen/service_booking_screen.dart';
 import '../../features/customer/vendorStoreList/presentation/screens/vendor_store_list_screen.dart';
 import '../../features/vendor/editProductDetails/presentation/edit_product_details_screen.dart';
@@ -152,6 +153,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.customerServiceBookingScreen,
       page: () => const ServiceBookingScreen(),
+      binding: ServiceBookingDetailsBindings(),
       transition: Transition.cupertino,
     ),
     GetPage(

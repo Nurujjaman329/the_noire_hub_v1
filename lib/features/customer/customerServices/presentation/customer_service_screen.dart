@@ -189,7 +189,7 @@ class CustomerServiceScreen extends StatelessWidget {
           : "https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=500",
       onTap: () {
         Get.toNamed(
-          RouteConstants.serviceDetailsScreen,
+          RouteConstants.customerServiceBookingScreen,
           arguments: service,
         );
       },
@@ -928,7 +928,7 @@ class CustomerServiceScreen extends StatelessWidget {
     return GestureDetector(
       onTap: onTap ?? () {
         Get.toNamed(
-          RouteConstants.serviceDetailsScreen, // Ensure this matches your route name
+          RouteConstants.customerServiceBookingScreen, // Ensure this matches your route name
           arguments: {
             'title': name,
             'price': price,
