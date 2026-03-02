@@ -5,22 +5,26 @@ import '../../../../../../core/widgets/custom_network_image.dart';
 import '../../../../../../core/widgets/custom_text.dart';
 import 'package:get/get.dart';
 
+import 'package:intl/intl.dart';
+
+import '../../../data/customer_booking_list_response_model.dart';
+
 class BookingCard extends StatelessWidget {
-  final String studioName;
-  final String serviceName;
-  final String date;
-  final String status; // "Pending", "In Progress", "Complete", "Canceled"
+  final BookingDoc booking;
+  final String tabStatus;
 
   const BookingCard({
     super.key,
-    required this.studioName,
-    required this.serviceName,
-    required this.date,
-    required this.status,
+    required this.booking,
+    required this.tabStatus,
   });
 
   @override
   Widget build(BuildContext context) {
+    String formattedDate = booking.appointmentDate != null
+        ? DateFormat('dd/MM/yyyy').format(booking.appointmentDate!)
+        : "N/A";
+
     return Container(
       margin: EdgeInsets.only(bottom: 20.h),
       padding: EdgeInsets.only(bottom: 15.h),
@@ -35,7 +39,7 @@ class BookingCard extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(50.r),
             child: CustomNetworkImage(
-              imageUrl: "https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=200",
+              imageUrl: booking.service?.image ?? "",
               height: 70.h,
               width: 70.w,
             ),
@@ -48,29 +52,36 @@ class BookingCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    CustomText(text: studioName, fontSize: 14.sp, fontWeight: FontWeight.bold),
+                    Expanded(
+                      child: CustomText(
+                        text: booking.service?.name ?? "Service",
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.bold,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
                     CustomText(
-                        text: "05/10/2020",
+                        text: formattedDate,
                         fontSize: 12.sp,
-                        color: const Color(0xFF000000).withValues(alpha:0.7)
+                        color: Colors.black.withOpacity(0.7)
                     ),
                   ],
                 ),
                 SizedBox(height: 4.h),
                 CustomText(
-                    text: serviceName,
+                    text: "Time: ${booking.appointmentTime}",
                     fontSize: 10.sp,
-                    color: const Color(0xFF000000).withValues(alpha:0.7)
+                    color: Colors.black.withOpacity(0.7)
                 ),
                 SizedBox(height: 8.h),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     CustomText(
-                      text: "\$175.89",
+                      text: "\$${booking.totalAmount.toStringAsFixed(2)}",
                       fontSize: 14.sp,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF3F592B).withValues(alpha:0.8),
+                      color: const Color(0xFF3F592B).withOpacity(0.8),
                     ),
                     _buildActionButton(context),
                   ],
@@ -84,54 +95,33 @@ class BookingCard extends StatelessWidget {
   }
 
   Widget _buildActionButton(BuildContext context) {
-    switch (status) {
+    switch (tabStatus) {
       case "Pending":
         return GestureDetector(
           onTap: () => _showActionDialog(context, "Cancel Booking", "Are you sure you want to cancel?"),
-          child: _statusBadge("Cancel", const Color(0xFFFF0000), const Color(0xFFFF0000).withValues(alpha:0.25)),
+          child: _statusBadge("Cancel", const Color(0xFFFF0000), const Color(0xFFFF0000).withOpacity(0.1)),
         );
       case "In Progress":
-        return Row(
-          mainAxisSize: MainAxisSize.min, // Keeps buttons together
-          crossAxisAlignment: CrossAxisAlignment.center, // Aligns them vertically
-          children: [
-            // Cancel Button
-            GestureDetector(
-              onTap: () => _showActionDialog(context, "Cancel Booking", "Are you sure you want to cancel this in-progress service?"),
-              child: _statusBadge("Cancel", const Color(0xFFFF0000), const Color(0xFFFF0000).withValues(alpha:0.1)),
-            ),
-            SizedBox(width: 8.w),
-            // Complete Button
-            GestureDetector(
-              onTap: () => _showActionDialog(context, "Mark as Complete", "Is the service finished?"),
-              child: _statusBadge("Complete", const Color(0xFF3F592B), const Color(0xFFCADA9F)),
-            ),
-          ],
-        );
+        return _statusBadge("Processing", const Color(0xFF3F592B), const Color(0xFFCADA9F).withOpacity(0.3));
       case "Complete":
         return GestureDetector(
-          onTap: () => Get.toNamed(RouteConstants.rateServiceScreen),
+          onTap: () => Get.toNamed(RouteConstants.rateServiceScreen, arguments: booking.id),
           child: _statusBadge("Review", const Color(0xFF2D3E2F), const Color(0xFFC4C99A)),
         );
       case "Canceled":
-        return Padding(
-          padding: EdgeInsets.symmetric(vertical: 6.h), // Align with badge height
-          child: CustomText(
-            text: "Canceled",
-            fontSize: 12.sp,
-            fontWeight: FontWeight.bold,
-            color: Colors.red,
-          ),
+        return CustomText(
+          text: "Canceled",
+          fontSize: 12.sp,
+          fontWeight: FontWeight.bold,
+          color: Colors.red,
         );
       default:
         return const SizedBox.shrink();
     }
   }
 
-  // Slightly refined badge for better fit in a Row
   Widget _statusBadge(String label, Color textColor, Color bgColor) {
     return Container(
-      // Reduced horizontal padding slightly (from 16 to 12) to fit two buttons better
       padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
       decoration: BoxDecoration(
         color: bgColor,
@@ -139,7 +129,7 @@ class BookingCard extends StatelessWidget {
       ),
       child: CustomText(
         text: label,
-        fontSize: 11.sp, // Slightly smaller font for better fit
+        fontSize: 11.sp,
         fontWeight: FontWeight.w600,
         color: textColor,
       ),
@@ -156,7 +146,7 @@ class BookingCard extends StatelessWidget {
       buttonColor: const Color(0xFF3F592B),
       onConfirm: () {
         Get.back();
-        // Add logic to update status here
+        // Trigger cancel API call here via listController if needed
       },
     );
   }

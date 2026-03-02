@@ -59,6 +59,7 @@ import '../../features/customer/bookingSuccess/presentation/customer_booking_suc
 import '../../features/customer/cart/presentation/screen/cart_screen.dart';
 import '../../features/customer/checkOut/presentation/screen/check_out_screen.dart';
 import '../../features/customer/customerAppointmentScreen/presentation/screen/customer_appoinment_screen.dart';
+import '../../features/customer/customerBookingList/presentation/bindings/customer_booking_list_bindings.dart';
 import '../../features/customer/customerBookingList/presentation/screen/customer_bookings_list.dart';
 import '../../features/customer/customerConfirmBookings/presentation/customer_confirm_bookings.dart';
 import '../../features/customer/customerOrderScreen/presentation/screen/customer_orders_screen.dart';
@@ -174,6 +175,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.customerBookingsList,
       page: () => const CustomerBookingsList(),
+      binding: CustomerBookingListBindings(),
       transition: Transition.cupertino,
     ),
     GetPage(
