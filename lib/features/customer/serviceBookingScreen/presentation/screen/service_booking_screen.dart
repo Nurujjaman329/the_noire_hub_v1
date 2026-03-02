@@ -45,7 +45,6 @@ class ServiceBookingScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Pass both original price and discounted price for the "Cut" effect
                     _buildHeader(
                         imageUrl,
                         title,
@@ -56,25 +55,21 @@ class ServiceBookingScreen extends StatelessWidget {
 
                     const Divider(thickness: 3, color: Color(0xFFC4C99A)),
 
-                    // DYNAMIC VARIANTS
+                    // DYNAMIC MULTI-SELECT VARIANTS
                     ...attr.variants.map((variant) {
                       return _buildListSelectionSection(
+                        variant.id,
                         variant.variantName,
                         variant.description,
-                        variant.subVariants.map((sv) => {
-                          "id": sv.id,
-                          "name": sv.name,
-                          "price": "+\$${sv.price}",
-                        }).toList(),
-                        controller.selectedSubVariantId.value,
-                            (val) => controller.selectSubVariant(val ?? ""), // Changed val! to val ?? ""
+                        variant.subVariants,
+                        controller,
                       );
                     }),
 
                     // CALENDAR SECTION
                     _buildCalendarSection(attr.availableDates),
 
-                    // WORKING HOURS SECTION (With TimePicker Validation)
+                    // WORKING HOURS SECTION
                     _buildTimePickerSection(attr.workingHours),
 
                     SizedBox(height: 30.h),
@@ -131,7 +126,6 @@ class ServiceBookingScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Original Price (Slashed/Cut)
                   Text(
                     "\$${originalPrice.toStringAsFixed(2)}",
                     style: TextStyle(
@@ -141,7 +135,6 @@ class ServiceBookingScreen extends StatelessWidget {
                     ),
                   ),
                   SizedBox(width: 10.w),
-                  // Offer Price (Bold)
                   CustomText(
                     text: "\$${offerPrice.toStringAsFixed(2)}",
                     fontSize: 20.sp,
@@ -160,11 +153,11 @@ class ServiceBookingScreen extends StatelessWidget {
   }
 
   Widget _buildListSelectionSection(
+      String variantId,
       String title,
       String sub,
-      List<Map<String, String>> options,
-      String currentId,
-      Function(String?) onChanged
+      List<SubVariant> options,
+      ServiceBookingDetailsController controller,
       ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -187,30 +180,29 @@ class ServiceBookingScreen extends StatelessWidget {
         const Divider(height: 1, thickness: 1, color: Color(0xFFF1F4D3)),
         Column(
           children: options.map((opt) {
-            // Check if this specific radio is the one selected
-            bool isSelected = currentId == opt['id'];
+            bool isSelected = controller.isSubVariantSelected(opt.id);
 
             return Column(
               children: [
-                RadioListTile<String>(
-                  value: opt['id']!,
-                  groupValue: currentId,
-                  onChanged: onChanged, // Value will be null if clicked while already selected
-                  activeColor: const Color(0xFF2D3E2F),
-                  toggleable: true, // MUST be true for deselection to work
-                  controlAffinity: ListTileControlAffinity.trailing,
+                ListTile(
+                  onTap: () => controller.toggleSubVariant(variantId, opt.id),
+                  contentPadding: EdgeInsets.symmetric(horizontal: 25.w),
                   title: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       CustomText(
-                        text: opt['name']!,
+                        text: opt.name,
                         fontSize: 14.sp,
                         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                         color: isSelected ? const Color(0xFF2D3E2F) : Colors.black,
                       ),
-                      if (opt['price'] != null)
-                        CustomText(text: opt['price']!, fontSize: 12.sp, color: Colors.grey),
+                      CustomText(text: "+\$${opt.price}", fontSize: 12.sp, color: Colors.grey),
                     ],
+                  ),
+                  trailing: Icon(
+                    isSelected ? Icons.check_box : Icons.check_box_outline_blank,
+                    color: isSelected ? const Color(0xFF2D3E2F) : Colors.grey,
+                    size: 24.sp,
                   ),
                 ),
                 const Divider(height: 1, thickness: 1, color: Color(0xFFF1F4D3)),
@@ -224,8 +216,6 @@ class ServiceBookingScreen extends StatelessWidget {
 
   Widget _buildCalendarSection(List<String> apiDates) {
     final controller = Get.find<ServiceBookingDetailsController>();
-
-    // 1. Parse API strings to DateTime objects
     final List<DateTime> availableDateTimes = apiDates.map((d) => DateTime.parse(d)).toList();
 
     return Padding(
@@ -247,7 +237,6 @@ class ServiceBookingScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Shows the month of the first available date or the selected date
                     CustomText(
                         text: controller.selectedDate.value != null
                             ? "${_getMonthName(controller.selectedDate.value!.month)} ${controller.selectedDate.value!.year}"
@@ -261,12 +250,9 @@ class ServiceBookingScreen extends StatelessWidget {
                   ],
                 ),
                 SizedBox(height: 15.h),
-
-                // 2. Optimized GridView for selection
                 GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  // We only show up to 31 days.
                   itemCount: 31,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 7,
@@ -275,44 +261,29 @@ class ServiceBookingScreen extends StatelessWidget {
                   ),
                   itemBuilder: (context, index) {
                     int dayNumber = index + 1;
-
-                    // 3. Find if this specific day is in the API list
-                    // Note: This logic assumes all available dates are within the same month
-                    // or you are displaying the current month's availability.
                     DateTime? matchingDate;
                     try {
-                      matchingDate = availableDateTimes.firstWhere(
-                            (dt) => dt.day == dayNumber,
-                      );
-                    } catch (_) {
-                      matchingDate = null;
-                    }
+                      matchingDate = availableDateTimes.firstWhere((dt) => dt.day == dayNumber);
+                    } catch (_) { matchingDate = null; }
 
                     bool isAvailable = matchingDate != null;
-                    bool isSelected = controller.selectedDate.value?.day == dayNumber &&
-                        controller.selectedDate.value?.month == matchingDate?.month;
+                    bool isSelected = controller.selectedDate.value?.day == dayNumber;
 
                     return GestureDetector(
-                      onTap: isAvailable
-                          ? () => controller.updateDate(matchingDate!)
-                          : null,
+                      onTap: isAvailable ? () => controller.updateDate(matchingDate!) : null,
                       child: Container(
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: isSelected
                               ? const Color(0xFF2D3E2F)
                               : (isAvailable ? const Color(0xFFC4C99A).withOpacity(0.3) : Colors.transparent),
-                          border: isAvailable
-                              ? Border.all(color: const Color(0xFF2D3E2F), width: 0.5)
-                              : null,
+                          border: isAvailable ? Border.all(color: const Color(0xFF2D3E2F), width: 0.5) : null,
                         ),
                         alignment: Alignment.center,
                         child: CustomText(
                           text: dayNumber.toString(),
                           fontSize: 12.sp,
-                          color: isSelected
-                              ? Colors.white
-                              : (isAvailable ? Colors.black : Colors.grey[300]),
+                          color: isSelected ? Colors.white : (isAvailable ? Colors.black : Colors.grey[300]),
                           fontWeight: isSelected || isAvailable ? FontWeight.bold : FontWeight.normal,
                         ),
                       ),
@@ -326,7 +297,6 @@ class ServiceBookingScreen extends StatelessWidget {
       ),
     );
   }
-
 
   Widget _buildTimePickerSection(WorkingHoursDetails? hours) {
     final controller = Get.find<ServiceBookingDetailsController>();
@@ -347,15 +317,11 @@ class ServiceBookingScreen extends StatelessWidget {
                 initialTime: TimeOfDay.now(),
               );
               if (picked != null) {
-                // Validate if selected time is inside working hours
                 if (controller.isTimeWithinRange(picked, hours)) {
                   controller.updateTime(picked.format(Get.context!));
                 } else {
-                  Get.snackbar(
-                      "Closed",
-                      "Please select between ${hours.startTime} and ${hours.endTime}",
-                      backgroundColor: Colors.redAccent, colorText: Colors.white
-                  );
+                  Get.snackbar("Closed", "Please select between ${hours.startTime} and ${hours.endTime}",
+                      backgroundColor: Colors.redAccent, colorText: Colors.white);
                 }
               }
             },
@@ -393,33 +359,50 @@ class ServiceBookingScreen extends StatelessWidget {
 
   Widget _buildBottomButton(ServiceBookingDetailsController controller) {
     return Container(
-        padding: EdgeInsets.fromLTRB(25.w, 10.h, 25.w, 35.h),
-        color: Colors.white,
-        child: Obx(() {
-          // Determine the label based on selection
-          String label = controller.selectedSubVariantId.value.isEmpty
-              ? "Book"
-              : "Book Variant";
-          return CustomButton(
-            text: "$label | \$${controller.currentPrice.toStringAsFixed(2)}",
-            onTap: () {
-          if (controller.selectedDate.value == null || controller.selectedTime.value.isEmpty) {
-            Get.snackbar("Required", "Please select a date and time");
-            return;
-          }
-          Get.toNamed(RouteConstants.customerConfirmBookings, arguments: {
-            'serviceId': controller.serviceAttributes.value?.id,
-            'title': controller.serviceAttributes.value?.name,
-            'subVariantId': controller.selectedSubVariantId.value,
-            'date': controller.selectedDate.value.toString(),
-            'time': controller.selectedTime.value,
-            'price': controller.currentPrice,
-          });
-        },
-        textColor: const Color(0XFFF1F0B2),
-        fontSize: 16.sp,
-          );
-        }),
+      padding: EdgeInsets.fromLTRB(25.w, 10.h, 25.w, 35.h),
+      color: Colors.white,
+      child: Obx(() {
+        bool hasVariants = controller.selectedBookingItems.isNotEmpty;
+
+        return CustomButton(
+          text: "Book | \$${controller.currentPrice.toStringAsFixed(2)}",
+          onTap: () {
+            if (controller.selectedDate.value == null || controller.selectedTime.value.isEmpty) {
+              Get.snackbar("Required", "Please select a date and time",
+                  backgroundColor: Colors.orange, colorText: Colors.white);
+              return;
+            }
+
+            List<Map<String, dynamic>> displayItems = [];
+            for (var bookingItem in controller.selectedBookingItems) {
+              var variant = controller.serviceAttributes.value!.variants
+                  .firstWhere((v) => v.id == bookingItem['variantId']);
+              for (var subId in (bookingItem['subVariantIds'] as List)) {
+                var subVariant = variant.subVariants.firstWhere((sv) => sv.id == subId);
+                displayItems.add({
+                  'name': "${variant.variantName}: ${subVariant.name}",
+                  'price': subVariant.price.toDouble(),
+                });
+              }
+            }
+
+            Get.toNamed(RouteConstants.customerConfirmBookings, arguments: {
+              'serviceId': controller.serviceAttributes.value?.id,
+              'title': controller.serviceAttributes.value?.name,
+              'img': "${ApiConstants.baseImageUrl}${controller.serviceAttributes.value?.images.first}",
+              'bookingItems': controller.selectedBookingItems,
+              'displayItems': displayItems,
+              // If variants are chosen, the "Main Price" row in confirmation should be 0 or Hidden
+              'basePrice': hasVariants ? 0.0 : controller.serviceAttributes.value?.discountedPrice,
+              'date': controller.selectedDate.value.toString().split(' ')[0],
+              'time': controller.selectedTime.value,
+              'price': controller.currentPrice,
+            });
+          },
+          textColor: const Color(0XFFF1F0B2),
+          fontSize: 16.sp,
+        );
+      }),
     );
   }
 

@@ -20,12 +20,10 @@ class CustomerServiceScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 1. Initialize all required controllers
     final controller = Get.find<CustomerServiceController>();
     final categoryController = Get.find<CategoryController>();
     final subCategoryController = Get.find<SubCategoryController>();
 
-    // Initial data fetch if not already loaded
     if (categoryController.categories.isEmpty) {
       categoryController.loadCategories();
     }
@@ -36,123 +34,147 @@ class CustomerServiceScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: EdgeInsets.symmetric(horizontal: 20.w),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 10.h),
-              _buildHeader(fullImageUrl),
-              SizedBox(height: 20.h),
-              _buildSearchField(),
-              SizedBox(height: 25.h),
+        // NotificationListener detects scroll without needing a ScrollController
+        child: NotificationListener<ScrollNotification>(
+          onNotification: (ScrollNotification scrollInfo) {
+            if (scrollInfo.metrics.pixels >= scrollInfo.metrics.maxScrollExtent - 200) {
+              controller.loadMore();
+            }
+            return true;
+          },
+          child: RefreshIndicator(
+            onRefresh: () => controller.fetchService(),
+            color: const Color(0xFF1D3826),
+            child: SingleChildScrollView(
+              // Changed to AlwaysScrollable so RefreshIndicator always works
+              physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 10.h),
+                  _buildHeader(fullImageUrl),
+                  SizedBox(height: 20.h),
+                  _buildSearchField(),
+                  SizedBox(height: 25.h),
 
-              const CustomText(
-                text: "Our Specialties",
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0XFF000000),
+                  const CustomText(
+                    text: "Our Specialties",
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0XFF000000),
+                  ),
+                  SizedBox(height: 15.h),
+
+                  _buildSpecialtiesList(categoryController, subCategoryController, controller),
+
+                  SizedBox(height: 20.h),
+                  _buildFilterChips(),
+                  SizedBox(height: 20.h),
+
+                  _buildSubCategoryList(subCategoryController, controller),
+
+                  SizedBox(height: 30.h),
+
+                  // --- DYNAMIC Service SECTION ---
+                  Obx(() {
+                    if (controller.isLoading.value && controller.serviceList.isEmpty) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 40),
+                          child: CircularProgressIndicator(color: Color(0xFF1D3826)),
+                        ),
+                      );
+                    }
+
+                    if (controller.serviceList.isEmpty) {
+                      return _buildEmptyState(controller); // Extracted for cleanliness
+                    }
+
+                    List<Widget> serviceRows = [];
+                    for (int i = 0; i < controller.serviceList.length; i += 2) {
+                      List<Widget> rowItems = [];
+                      rowItems.add(_buildServiceCard(controller.serviceList[i]));
+                      if (i + 1 < controller.serviceList.length) {
+                        rowItems.add(_buildServiceCard(controller.serviceList[i + 1]));
+                      }
+                      serviceRows.add(_buildHorizontalList(rowItems));
+                      serviceRows.add(SizedBox(height: 20.h));
+                    }
+
+                    // Add a small loader at the bottom when fetching more pages
+                    return Column(
+                      children: [
+                        ...serviceRows,
+                        if (controller.isMoreLoading.value)
+                          Padding(
+                            padding: EdgeInsets.only(bottom: 20.h),
+                            child: const CircularProgressIndicator(color: Color(0xFF1D3826)),
+                          ),
+                      ],
+                    );
+                  }),
+
+                  _buildPopularNearYouSection(),
+                  SizedBox(height: 50.h),
+                ],
               ),
-              SizedBox(height: 15.h),
-
-              // Updated Specialties (Categories)
-              _buildSpecialtiesList(categoryController, subCategoryController, controller),
-
-              SizedBox(height: 20.h),
-              _buildFilterChips(),
-              SizedBox(height: 20.h),
-
-              // Updated SubCategories
-              _buildSubCategoryList(subCategoryController, controller),
-
-              SizedBox(height: 30.h),
-
-              // --- DYNAMIC Service SECTION ---
-              Obx(() {
-                if (controller.isLoading.value && controller.serviceList.isEmpty) {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 40),
-                      child: CircularProgressIndicator(color: Color(0xFF1D3826)),
-                    ),
-                  );
-                }
-
-                if (controller.serviceList.isEmpty) {
-                  return Center(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 60.h),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // Using your CustomNetworkImage for the empty state asset
-                          CustomNetworkImage(
-                            imageUrl: AppAssets.empty, // Your asset path
-                            height: 200.h,
-                            width: 200.w,
-                            fit: BoxFit.contain,
-                            backgroundColor: Colors.transparent,
-                          ),
-
-                          SizedBox(height: 20.h),
-                          const CustomText(
-                            text: "No stylists found",
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black54,
-                          ),
-                          SizedBox(height: 10.h),
-                          const CustomText(
-                            text: "Try adjusting your distance or price range",
-                            fontSize: 12,
-                            color: Colors.grey,
-                          ),
-
-                          SizedBox(height: 20.h),
-                          // Button to reset all filters
-                          TextButton(
-                            onPressed: () {
-                              controller.clearSearch();
-                              controller.clearPrice();
-                              controller.clearRating();
-                              controller.resetDistance();
-                              // Reset the slider value in UI if necessary
-                              controller.priceRange.value = const RangeValues(1, 50000);
-                            },
-                            child: const CustomText(
-                              text: "Clear All Filters",
-                              color: Color(0xFF1D3826),
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                }
-
-                List<Widget> serviceRows = [];
-                for (int i = 0; i < controller.serviceList.length; i += 2) {
-                  List<Widget> rowItems = [];
-                  rowItems.add(_buildServiceCard(controller.serviceList[i]));
-                  if (i + 1 < controller.serviceList.length) {
-                    rowItems.add(_buildServiceCard(controller.serviceList[i + 1]));
-                  }
-                  serviceRows.add(_buildHorizontalList(rowItems));
-                  serviceRows.add(SizedBox(height: 20.h));
-                }
-                return Column(children: serviceRows);
-              }),
-
-              _buildPopularNearYouSection(),
-              SizedBox(height: 50.h),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
+
+  // Helper for Empty state to keep the build method clean
+  Widget _buildEmptyState(CustomerServiceController controller) {
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 60.h),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CustomNetworkImage(
+              imageUrl: AppAssets.empty,
+              height: 200.h,
+              width: 200.w,
+              fit: BoxFit.contain,
+              backgroundColor: Colors.transparent,
+            ),
+            SizedBox(height: 20.h),
+            const CustomText(
+              text: "No stylists found",
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.black54,
+            ),
+            SizedBox(height: 10.h),
+            const CustomText(
+              text: "Try adjusting your distance or price range",
+              fontSize: 12,
+              color: Colors.grey,
+            ),
+            SizedBox(height: 20.h),
+            TextButton(
+              onPressed: () {
+                controller.clearSearch();
+                controller.clearPrice();
+                controller.clearRating();
+                controller.resetDistance();
+                controller.priceRange.value = const RangeValues(1, 50000);
+              },
+              child: const CustomText(
+                text: "Clear All Filters",
+                color: Color(0xFF1D3826),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
 
   // --- Helper Methods ---
 

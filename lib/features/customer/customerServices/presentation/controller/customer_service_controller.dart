@@ -10,17 +10,21 @@ class CustomerServiceController extends GetxController {
   CustomerServiceController(this._service);
 
   final searchController = TextEditingController();
-  var isLoading = false.obs;
+
+  // --- Observables ---
+  var isLoading = false.obs;          // For initial/filter loading
+  var isMoreLoading = false.obs;      // For pagination loading (bottom spinner)
   var serviceList = <CustomerService>[].obs;
 
+  // --- Pagination State ---
   int currentPage = 1;
-  bool hasMore = true;
+  int totalPages = 1;
+  bool get hasMore => currentPage < totalPages;
 
   // --- Search & Filter State ---
   var searchQuery = "".obs;
-  var selectedCategoryId = "".obs;    // 👈 Added
-  var selectedSubCategoryId = "".obs; // 👈 Added
-
+  var selectedCategoryId = "".obs;
+  var selectedSubCategoryId = "".obs;
   var selectedDistance = 0.obs;
   var selectedRating = 0.0.obs;
   var minPrice = 0.0.obs;
@@ -28,29 +32,29 @@ class CustomerServiceController extends GetxController {
   var hasOffer = false.obs;
   var homeService = false.obs;
   var ratingValue = 1.0.obs;
+  var priceRange = const RangeValues(1, 50000).obs;
 
   @override
   void onInit() {
     super.onInit();
-
-    // Debounce for search only
-    debounce(searchQuery, (_) {
-      fetchService();
-    }, time: const Duration(milliseconds: 500));
-
+    // Debounce for search to avoid API spamming while typing
+    debounce(searchQuery, (_) => fetchService(), time: const Duration(milliseconds: 500));
     fetchService();
   }
 
-  // --- Action Methods ---
+  // --- Search Actions ---
+  void onSearchChanged(String value) => searchQuery.value = value;
 
-  void onSearchChanged(String value) {
-    searchQuery.value = value;
+  void clearSearch() {
+    searchController.clear();
+    searchQuery.value = "";
+    // fetchService is triggered by debounce automatically
   }
 
+  // --- Filter Actions ---
   void filterByCategory(String id) {
-    // Toggle logic: if clicking the same one, clear it.
     selectedCategoryId.value = (selectedCategoryId.value == id) ? "" : id;
-    selectedSubCategoryId.value = ""; // Reset sub when category changes
+    selectedSubCategoryId.value = "";
     fetchService();
   }
 
@@ -59,17 +63,17 @@ class CustomerServiceController extends GetxController {
     fetchService();
   }
 
-  void clearSearch() {
-    searchController.clear();
-    searchQuery.value = "";
-    fetchService();
+  void updatePriceRange(RangeValues values) {
+    priceRange.value = values;
+    minPrice.value = values.start;
+    maxPrice.value = values.end;
   }
 
-  // --- API Calls ---
+  // --- Core API Logic ---
 
   Future<void> fetchService() async {
     isLoading.value = true;
-    currentPage = 1;
+    currentPage = 1; // Reset to first page on new search/filter
 
     try {
       final response = await _service.getCustomerService(
@@ -79,7 +83,6 @@ class CustomerServiceController extends GetxController {
         name: searchQuery.value,
         category: selectedCategoryId.value,
         subcategory: selectedSubCategoryId.value,
-        // Only send maxDistance if it's greater than 0
         maxDistance: selectedDistance.value > 0 ? selectedDistance.value : null,
         minRating: selectedRating.value > 0 ? selectedRating.value : null,
         minPrice: minPrice.value > 0 ? minPrice.value : null,
@@ -88,22 +91,23 @@ class CustomerServiceController extends GetxController {
         homeService: homeService.value ? true : null,
       );
 
-      serviceList.assignAll(response.data?.attributes?.results ?? []);
-      hasMore = currentPage < (response.data?.attributes?.totalPages ?? 1);
+      final attributes = response.data?.attributes;
+      serviceList.assignAll(attributes?.results ?? []);
+      totalPages = attributes?.totalPages ?? 1;
+
     } catch (e) {
-      Get.snackbar("Error", e.toString());
+      debugPrint("Fetch Error: $e");
     } finally {
       isLoading.value = false;
     }
   }
 
-
-// Inside CustomerServiceController
   Future<void> loadMore() async {
-    if (isLoading.value || !hasMore) return;
+    // Guard clause: don't load if already loading or no more pages
+    if (isLoading.value || isMoreLoading.value || !hasMore) return;
+
+    isMoreLoading.value = true;
     currentPage++;
-    // We don't set isLoading to true here to avoid showing the big center spinner
-    // during pagination (optional: use a bottom loading indicator)
 
     try {
       final response = await _service.getCustomerService(
@@ -113,7 +117,7 @@ class CustomerServiceController extends GetxController {
         name: searchQuery.value,
         category: selectedCategoryId.value,
         subcategory: selectedSubCategoryId.value,
-        maxDistance: selectedDistance.value, // Keep the 10km or current selection
+        maxDistance: selectedDistance.value > 0 ? selectedDistance.value : null,
         minRating: selectedRating.value > 0 ? selectedRating.value : null,
         minPrice: minPrice.value > 0 ? minPrice.value : null,
         maxPrice: maxPrice.value > 0 ? maxPrice.value : null,
@@ -124,47 +128,22 @@ class CustomerServiceController extends GetxController {
       final newResults = response.data?.attributes?.results ?? [];
       if (newResults.isNotEmpty) {
         serviceList.addAll(newResults);
-      } else {
-        hasMore = false;
       }
     } catch (e) {
-      currentPage--;
+      currentPage--; // Rollback page on failure
       debugPrint("Pagination Error: $e");
+    } finally {
+      isMoreLoading.value = false;
     }
   }
 
 
-  void clearRating() {
-    selectedRating.value = 0.0;
-    fetchService();
-  }
+  Future<void> onRefresh() async => await fetchService();
 
-  void clearPrice() {
-    minPrice.value = 0.0;
-    maxPrice.value = 0.0;
-    fetchService();
-  }
-
-  var priceRange = const RangeValues(1, 50000).obs;
-
-  void updatePriceRange(RangeValues values) {
-    priceRange.value = values;
-    minPrice.value = values.start;
-    maxPrice.value = values.end;
-  }
-
-// but you can reset it to default here if needed.
-  void resetDistance() {
-    selectedDistance.value = 0; // Clear the filter
-    fetchService();
-  }
-
-  void toggleOffer() {
-    hasOffer.value = !hasOffer.value;
-    fetchService();
-  }
-  void toggleHomeService() {
-    homeService.value = !homeService.value;
-    fetchService();
-  }
+  // --- Clear Helpers ---
+  void clearRating() { selectedRating.value = 0.0; fetchService(); }
+  void clearPrice() { minPrice.value = 0.0; maxPrice.value = 0.0; fetchService(); }
+  void resetDistance() { selectedDistance.value = 0; fetchService(); }
+  void toggleOffer() { hasOffer.value = !hasOffer.value; fetchService(); }
+  void toggleHomeService() { homeService.value = !homeService.value; fetchService(); }
 }

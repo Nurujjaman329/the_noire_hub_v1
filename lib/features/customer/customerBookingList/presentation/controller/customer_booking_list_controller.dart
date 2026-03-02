@@ -13,6 +13,7 @@ class CustomerBookingListController extends GetxController {
   var selectedTab = "Complete".obs;
   var isLoading = false.obs;
   var bookings = <BookingDoc>[].obs;
+  var isCanceling = false.obs;
   var currentPage = 1.obs;
   var totalPages = 1.obs;
 
@@ -66,5 +67,37 @@ class CustomerBookingListController extends GetxController {
     }
   }
 
+
+  Future<void> cancelBooking(String bookingId, String reason) async {
+    isCanceling.value = true;
+    try {
+      final success = await _service.cancelBooking(
+        bookingId: bookingId,
+        reason: reason,
+      );
+
+      if (success) {
+        Get.snackbar(
+            "Success",
+            "Booking cancelled successfully",
+            backgroundColor: const Color(0xFF3F592B).withOpacity(0.7),
+            colorText: Colors.white
+        );
+        // Refresh the current list to reflect changes
+        onRefresh();
+      }
+    } catch (e) {
+      Get.snackbar(
+          "Error",
+          "Failed to cancel booking. Please try again.",
+          backgroundColor: Colors.red.withOpacity(0.7),
+          colorText: Colors.white
+      );
+    } finally {
+      isCanceling.value = false;
+    }
+  }
+
   Future<void> onRefresh() async => await fetchBookings(page: 1);
+
 }

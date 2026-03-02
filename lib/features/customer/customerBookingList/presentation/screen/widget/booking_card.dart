@@ -8,6 +8,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 import '../../../data/customer_booking_list_response_model.dart';
+import '../../controller/customer_booking_list_controller.dart';
 
 
 class BookingCard extends StatelessWidget {
@@ -22,6 +23,7 @@ class BookingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final listController = Get.find<CustomerBookingListController>();
     String formattedDate = booking.appointmentDate != null
         ? DateFormat('dd/MM/yyyy').format(booking.appointmentDate!)
         : "N/A";
@@ -32,7 +34,7 @@ class BookingCard extends StatelessWidget {
         margin: EdgeInsets.only(bottom: 20.h),
         padding: EdgeInsets.only(bottom: 15.h),
         decoration: const BoxDecoration(
-          color: Colors.transparent, // Ensures full card is tappable
+          color: Colors.transparent,
           border: Border(
             bottom: BorderSide(color: Color(0xFFF5F5F5), width: 1),
           ),
@@ -85,7 +87,7 @@ class BookingCard extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                         color: const Color(0xFF3F592B).withOpacity(0.8),
                       ),
-                      _buildActionButton(context),
+                      _buildActionButton(context, listController),
                     ],
                   ),
                 ],
@@ -97,9 +99,109 @@ class BookingCard extends StatelessWidget {
     );
   }
 
+  // --- CANCELLATION DIALOG WITH REASON ---
+  void _showCancelDialog(BuildContext context, CustomerBookingListController controller) {
+    final reasonController = TextEditingController();
+
+    Get.bottomSheet(
+      isScrollControlled: true,
+      Container(
+        padding: EdgeInsets.only(
+            left: 20.w,
+            right: 20.w,
+            top: 20.h,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 20.h
+        ),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(30.r)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40.w,
+                height: 4.h,
+                decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10.r)),
+              ),
+            ),
+            SizedBox(height: 20.h),
+            CustomText(text: "Cancel Booking", fontSize: 18.sp, fontWeight: FontWeight.bold),
+            SizedBox(height: 10.h),
+            CustomText(text: "Please provide a reason for canceling this appointment.", fontSize: 13.sp, color: Colors.grey),
+            SizedBox(height: 20.h),
+
+            TextField(
+              controller: reasonController,
+              maxLines: 3,
+              style: TextStyle(fontSize: 14.sp),
+              decoration: InputDecoration(
+                hintText: "Enter reason here...",
+                hintStyle: TextStyle(fontSize: 13.sp, color: Colors.grey),
+                filled: true,
+                fillColor: const Color(0xFFF5F5F5),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(15.r),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+            SizedBox(height: 25.h),
+
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      padding: EdgeInsets.symmetric(vertical: 15.h),
+                      side: const BorderSide(color: Colors.grey),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25.r)),
+                    ),
+                    onPressed: () => Get.back(),
+                    child: CustomText(text: "Back", color: Colors.black),
+                  ),
+                ),
+                SizedBox(width: 15.w),
+                Expanded(
+                  child: Obx(() => ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFF0000),
+                      padding: EdgeInsets.symmetric(vertical: 15.h),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25.r)),
+                    ),
+                    onPressed: controller.isCanceling.value
+                        ? null
+                        : () {
+                      if (reasonController.text.trim().isEmpty) {
+                        Get.snackbar("Required", "Please enter a reason", snackPosition: SnackPosition.BOTTOM);
+                        return;
+                      }
+                      Get.back(); // Close bottom sheet
+                      controller.cancelBooking(booking.id, reasonController.text.trim());
+                    },
+                    child: controller.isCanceling.value
+                        ? SizedBox(
+                        height: 20.h,
+                        width: 20.h,
+                        child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                    )
+                        : CustomText(text: "Confirm Cancel", color: Colors.white, fontWeight: FontWeight.bold),
+                  )),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   // --- DETAILS MODAL ---
   void _showBookingDetails(BuildContext context, String date) {
     Get.bottomSheet(
+      isScrollControlled: true,
       Container(
         padding: EdgeInsets.all(20.w),
         decoration: BoxDecoration(
@@ -115,10 +217,7 @@ class BookingCard extends StatelessWidget {
                 child: Container(
                   width: 40.w,
                   height: 4.h,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(10.r),
-                  ),
+                  decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10.r)),
                 ),
               ),
               SizedBox(height: 20.h),
@@ -137,14 +236,9 @@ class BookingCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        CustomText(
-                          text: booking.service?.name ?? "Booking Details",
-                          fontSize: 18.sp,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        CustomText(text: booking.service?.name ?? "Booking Details", fontSize: 18.sp, fontWeight: FontWeight.bold),
                         SizedBox(height: 5.h),
-                        _statusBadge(tabStatus, const Color(0xFF2D3E2F),
-                            const Color(0xFFC4C99A).withOpacity(0.4)),
+                        _statusBadge(tabStatus, const Color(0xFF2D3E2F), const Color(0xFFC4C99A).withOpacity(0.4)),
                       ],
                     ),
                   ),
@@ -155,22 +249,6 @@ class BookingCard extends StatelessWidget {
               _detailRow("Date", date),
               _detailRow("Time", booking.appointmentTime),
               _detailRow("Payment", booking.paymentStatus.toUpperCase()),
-
-              if (booking.bookingItems.isNotEmpty) ...[
-                Divider(height: 30.h, color: Colors.grey[100]),
-                CustomText(text: "Services Included:", fontWeight: FontWeight.bold, fontSize: 14.sp),
-                SizedBox(height: 10.h),
-                ...booking.bookingItems.map((item) => Padding(
-                  padding: EdgeInsets.only(bottom: 8.h),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      CustomText(text: "• ${item.variantName ?? 'Service Item'}", fontSize: 13.sp),
-                      CustomText(text: "\$${item.price.toStringAsFixed(2)}", fontSize: 13.sp),
-                    ],
-                  ),
-                )),
-              ],
 
               Divider(height: 30.h, color: Colors.grey[200]),
               Row(
@@ -198,13 +276,10 @@ class BookingCard extends StatelessWidget {
                   child: CustomText(text: "Close", color: Colors.white, fontWeight: FontWeight.bold),
                 ),
               ),
-              SizedBox(height: 15.h),
             ],
           ),
         ),
       ),
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
     );
   }
 
@@ -221,11 +296,11 @@ class BookingCard extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButton(BuildContext context) {
+  Widget _buildActionButton(BuildContext context, CustomerBookingListController controller) {
     switch (tabStatus) {
       case "Pending":
         return GestureDetector(
-          onTap: () => _showActionDialog(context, "Cancel Booking", "Are you sure you want to cancel?"),
+          onTap: () => _showCancelDialog(context, controller),
           child: _statusBadge("Cancel", const Color(0xFFFF0000), const Color(0xFFFF0000).withOpacity(0.1)),
         );
       case "In Progress":
@@ -236,12 +311,7 @@ class BookingCard extends StatelessWidget {
           child: _statusBadge("Review", const Color(0xFF2D3E2F), const Color(0xFFC4C99A)),
         );
       case "Canceled":
-        return CustomText(
-          text: "Canceled",
-          fontSize: 12.sp,
-          fontWeight: FontWeight.bold,
-          color: Colors.red,
-        );
+        return CustomText(text: "Canceled", fontSize: 12.sp, fontWeight: FontWeight.bold, color: Colors.red);
       default:
         return const SizedBox.shrink();
     }
@@ -250,31 +320,8 @@ class BookingCard extends StatelessWidget {
   Widget _statusBadge(String label, Color textColor, Color bgColor) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(20.r),
-      ),
-      child: CustomText(
-        text: label,
-        fontSize: 11.sp,
-        fontWeight: FontWeight.w600,
-        color: textColor,
-      ),
-    );
-  }
-
-  void _showActionDialog(BuildContext context, String title, String content) {
-    Get.defaultDialog(
-      title: title,
-      middleText: content,
-      textConfirm: "Confirm",
-      textCancel: "Back",
-      confirmTextColor: Colors.white,
-      buttonColor: const Color(0xFF3F592B),
-      onConfirm: () {
-        Get.back();
-        // Trigger cancel API call here via listController if needed
-      },
+      decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(20.r)),
+      child: CustomText(text: label, fontSize: 11.sp, fontWeight: FontWeight.w600, color: textColor),
     );
   }
 }

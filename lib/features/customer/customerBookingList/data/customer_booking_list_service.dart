@@ -42,4 +42,36 @@ class CustomerBookingListService {
       rethrow;
     }
   }
+
+  Future<bool> cancelBooking({
+    required String bookingId,
+    required String reason,
+  }) async {
+    final String url = "${ApiConstants.customerBookings}/$bookingId/cancel";
+    final Map<String, dynamic> body = {
+      "cancellationReason": reason,
+    };
+
+    // --- DEBUG PRINT: REQUEST ---
+    debugPrint('🚀 [PATCH] Request to: $url');
+    debugPrint('Request Body: $body');
+
+    try {
+      final response = await _apiClient.postJson(
+        url,
+        data: body,
+      );
+
+      // --- DEBUG PRINT: SUCCESS ---
+      debugPrint('✅ [CANCEL] Success Status: ${response.statusCode}');
+      debugPrint('Response Data: ${response.data}');
+
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      // --- DEBUG PRINT: ERROR ---
+      debugPrint('❌ [CANCEL] Error at: $url');
+      debugPrint('Error Details: $e');
+      rethrow;
+    }
+  }
 }

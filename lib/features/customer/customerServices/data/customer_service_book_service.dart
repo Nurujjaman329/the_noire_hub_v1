@@ -83,4 +83,35 @@ class CustomerServiceBookService {
       rethrow;
     }
   }
+
+
+  Future<dynamic> bookService({
+    required String serviceId,
+    required List<Map<String, dynamic>> bookingItems,
+    required String appointmentDate,
+    required String appointmentTime,
+  }) async {
+    final Map<String, dynamic> body = {
+      "serviceId": serviceId,
+      "bookingItems": bookingItems,
+      "appointmentDate": appointmentDate,
+      "appointmentTime": appointmentTime,
+    };
+
+    debugPrint('🚀 [POST] Request to: ${ApiConstants.customerBookings}');
+    debugPrint('Body: $body');
+
+    try {
+      final response = await _apiClient.postJson(
+        ApiConstants.customerBookings,
+        data: body,
+      );
+
+      debugPrint('✅ [POST] Success Booking: ${response.data}');
+      return response.data;
+    } catch (e) {
+      debugPrint('❌ [POST] Error at Booking: $e');
+      rethrow;
+    }
+  }
 }

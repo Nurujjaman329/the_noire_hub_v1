@@ -94,8 +94,9 @@ class ServiceDetailsAttributes {
       originalPrice: json['originalPrice'] ?? 0,
       discountedPrice: json['discountedPrice'] ?? 0,
       description: json['description'] ?? '',
-      images: (json['images'] as List?)?.cast<String>() ?? [],
-      availableDates: (json['availableDates'] as List?)?.cast<String>() ?? [],
+      // Safer list parsing
+      images: (json['images'] as List?)?.map((item) => item.toString()).toList() ?? [],
+      availableDates: (json['availableDates'] as List?)?.map((item) => item.toString()).toList() ?? [],
       isRecurring: json['isRecurring'] ?? false,
       isActive: json['isActive'] ?? false,
       isDeleted: json['isDeleted'] ?? false,
@@ -201,7 +202,6 @@ class Beautician {
   }
 }
 
-// Reusing your existing helper classes
 class Category {
   String id;
   String name;
@@ -222,7 +222,8 @@ class Location {
   Location({this.type = '', this.coordinates = const []});
   factory Location.fromJson(Map<String, dynamic> json) => Location(
     type: json['type'] ?? '',
-    coordinates: (json['coordinates'] as List?)?.cast<double>() ?? [],
+    // Use .toDouble() to handle cases where the API sends an integer
+    coordinates: (json['coordinates'] as List?)?.map((e) => (e as num).toDouble()).toList() ?? [],
   );
 }
 
@@ -232,6 +233,7 @@ class Discount {
   String type;
   Discount({this.maxAmount, this.value = 0, this.type = ''});
   factory Discount.fromJson(dynamic json) {
+    if (json == null) return Discount();
     if (json is num) return Discount(value: json, type: 'flat');
     if (json is Map<String, dynamic>) {
       return Discount(
