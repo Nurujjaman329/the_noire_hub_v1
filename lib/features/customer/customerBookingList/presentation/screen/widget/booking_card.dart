@@ -328,24 +328,51 @@ class BookingCard extends StatelessWidget {
           onTap: () => _showCancelDialog(context, controller),
           child: _statusBadge("Cancel", const Color(0xFFFF0000), const Color(0xFFFF0000).withOpacity(0.1)),
         );
+
       case "In Progress":
-        return GestureDetector(
-          // 👈 Trigger the alert here
-          onTap: () => _showCompleteDialog(context, controller),
-          child: _statusBadge("Complete", const Color(0xFF3F592B), const Color(0xFFCADA9F).withOpacity(0.3)),
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Cancel Option
+            GestureDetector(
+              onTap: () => _showCancelDialog(context, controller),
+              child: _statusBadge(
+                  "Cancel",
+                  const Color(0xFFFF0000),
+                  const Color(0xFFFF0000).withOpacity(0.1)
+              ),
+            ),
+            SizedBox(width: 8.w), // Space between buttons
+            // Complete Option
+            GestureDetector(
+              onTap: () => _showCompleteDialog(context, controller),
+              child: _statusBadge(
+                  "Complete",
+                  const Color(0xFF3F592B),
+                  const Color(0xFFCADA9F).withOpacity(0.3)
+              ),
+            ),
+          ],
         );
+
       case "Complete":
         return GestureDetector(
           onTap: () => Get.toNamed(RouteConstants.rateServiceScreen, arguments: booking.id),
           child: _statusBadge("Review", const Color(0xFF2D3E2F), const Color(0xFFC4C99A)),
         );
+
       case "Canceled":
-        return CustomText(text: "Canceled", fontSize: 12.sp, fontWeight: FontWeight.bold, color: Colors.red);
+        return CustomText(
+            text: "Canceled",
+            fontSize: 12.sp,
+            fontWeight: FontWeight.bold,
+            color: Colors.red
+        );
+
       default:
         return const SizedBox.shrink();
     }
   }
-
 
   Widget _statusBadge(String label, Color textColor, Color bgColor) {
     return Container(
