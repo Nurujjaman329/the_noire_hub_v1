@@ -24,22 +24,21 @@ class BeauticiansCreateServiceController extends GetxController {
   Future<void> addService(BeauticiansCreateServicePostBody serviceBody) async {
     debugPrint('⚙️ Controller: Initializing addService flow...');
 
-
+    // ✅ Syncing the data with the new workingSlots list
     final finalBody = BeauticiansCreateServicePostBody(
-      images: selectedImages.toList(), // Use the controller's picked images
+      images: selectedImages.toList(),
       categoryId: serviceBody.categoryId,
       subCategoryId: serviceBody.subCategoryId,
       name: serviceBody.name,
       price: serviceBody.price,
       description: serviceBody.description,
       availableDates: serviceBody.availableDates,
-      startTime: serviceBody.startTime,
-      endTime: serviceBody.endTime,
+      workingSlots: serviceBody.workingSlots, // 👈 Updated to list
       homeService: serviceBody.homeService,
       discountType: serviceBody.discountType,
       discountValue: serviceBody.discountValue,
       discountMaxAmount: serviceBody.discountMaxAmount,
-      variants: selectedVariants.toList(), // Also sync variants if they are managed in controller
+      variants: selectedVariants.toList(),
     );
 
     isLoading.value = true;
@@ -48,12 +47,9 @@ class BeauticiansCreateServiceController extends GetxController {
       final success = await _service.createService(finalBody);
 
       if (success) {
-        debugPrint('✅ Controller: Service created successfully. Resetting state.');
-
-        // ✅ Reset state properly
+        debugPrint('✅ Controller: Service created successfully.');
         selectedVariants.clear();
         selectedImages.clear();
-
         Get.back();
         Get.snackbar(
           "Success",
@@ -61,24 +57,14 @@ class BeauticiansCreateServiceController extends GetxController {
           backgroundColor: const Color(0xFF1D3826),
           colorText: Colors.white,
         );
-      } else {
-        debugPrint('⚠️ Controller: Service returned success=false without exception.');
       }
     } on AppException catch (e) {
-      debugPrint('❌ Controller Caught Error: ${e.message}');
-      Get.snackbar(
-        "Error",
-        e.message,
-        backgroundColor: Colors.redAccent,
-        colorText: Colors.white,
-      );
+      Get.snackbar("Error", e.message, backgroundColor: Colors.redAccent, colorText: Colors.white);
     } finally {
       isLoading.value = false;
-      debugPrint('⚙️ Controller: addService flow finished.');
     }
   }
 
-  // 📸 Image picker (Supports multi-select from gallery)
   Future<void> pickImage(ImageSource source) async {
     try {
       if (source == ImageSource.gallery) {

@@ -51,6 +51,8 @@ class _BeauticianAddServiceScreenState extends State<BeauticianAddServiceScreen>
   TimeOfDay startTime = const TimeOfDay(hour: 9, minute: 0);
   TimeOfDay endTime = const TimeOfDay(hour: 18, minute: 0);
 
+  final Set<String> _selectedTimeSlots = {};
+
   @override
   void initState() {
     super.initState();
@@ -72,6 +74,8 @@ class _BeauticianAddServiceScreenState extends State<BeauticianAddServiceScreen>
       return;
     }
 
+
+
     final String name = nameController.text.trim();
     final String priceStr = priceController.text.trim();
     final String discountValStr = discountValueController.text.trim();
@@ -82,6 +86,14 @@ class _BeauticianAddServiceScreenState extends State<BeauticianAddServiceScreen>
           backgroundColor: Colors.redAccent, colorText: Colors.white);
       return;
     }
+
+    if (_selectedTimeSlots.isEmpty) {
+      Get.snackbar("Error", "Please select at least one time slot",
+          backgroundColor: Colors.redAccent, colorText: Colors.white);
+      return;
+    }
+
+
 
     // 2. Complex Discount Validation
     double? discountValue = double.tryParse(discountValStr);
@@ -103,24 +115,57 @@ class _BeauticianAddServiceScreenState extends State<BeauticianAddServiceScreen>
     // 3. Data Preparation
     final List<String> formattedDates = _selectedDates.map((d) => DateFormat('yyyy-MM-dd').format(d)).toList();
 
+
+    final List<WorkingSlot> slotsForApi = _selectedTimeSlots.map((slotString) {
+      // slotString is "09:00 AM - 10:00 AM"
+      final parts = slotString.split(" - ");
+      return WorkingSlot(
+        startTime: _convertTo24Hour(parts[0]), // Becomes "09:00"
+        endTime: _convertTo24Hour(parts[1]),   // Becomes "10:00"
+      );
+    }).where((slot) => slot.startTime != "00:00").toList();
+
+
     final serviceData = BeauticiansCreateServicePostBody(
       images: serviceController.selectedImages.toList(),
       categoryId: selectedCategoryId!,
       subCategoryId: selectedSubCategoryId!,
-      name: name,
+      name: nameController.text.trim(),
       description: descController.text.trim(),
-      price: double.tryParse(priceStr) ?? 0.0,
+      price: double.tryParse(priceController.text) ?? 0.0,
       homeService: isHomeServiceAvailable,
       availableDates: formattedDates,
-      startTime: _formatTime(startTime),
-      endTime: _formatTime(endTime),
-      discountType: hasDiscountValue ? selectedDiscountType : null,
-      discountValue: hasDiscountValue ? discountValue : null,
-      discountMaxAmount: hasMaxDiscount ? maxDiscount : null,
+      workingSlots: slotsForApi,
+      discountType: selectedDiscountType,
+      discountValue: double.tryParse(discountValueController.text),
+      discountMaxAmount: double.tryParse(maxDiscountController.text),
       variants: serviceController.selectedVariants.toList(),
     );
 
     serviceController.addService(serviceData);
+  }
+
+  String _convertTo24Hour(String time12h) {
+    try {
+      // 1. Remove hidden characters and split by space: ["03:00", "PM"]
+      final cleanTime = time12h.replaceAll(RegExp(r'[^\x00-\x7F]+'), ' ').trim();
+      final parts = cleanTime.split(" ");
+      if (parts.length < 2) return "00:00";
+
+      final timeParts = parts[0].split(":"); // ["03", "00"]
+      int hour = int.parse(timeParts[0]);
+      int minute = int.parse(timeParts[1]);
+      String period = parts[1].toUpperCase();
+
+      // 2. Logic to convert to 24h
+      if (period == "PM" && hour != 12) hour += 12;
+      if (period == "AM" && hour == 12) hour = 0;
+
+      return "${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}";
+    } catch (e) {
+      debugPrint("Time Conversion Error: $e");
+      return "00:00";
+    }
   }
 
 
@@ -175,6 +220,9 @@ class _BeauticianAddServiceScreenState extends State<BeauticianAddServiceScreen>
                     ),
                     SizedBox(height: 20.h),
                     _buildTimePickerRow(),
+                    SizedBox(height: 20.h),
+                    _buildLabel("Generated Time Slots"),
+                    _buildGeneratedSlotsGrid(),
 
                     SizedBox(height: 30.h),
 
@@ -196,6 +244,65 @@ class _BeauticianAddServiceScreenState extends State<BeauticianAddServiceScreen>
       ),
     );
   }
+
+  Widget _buildGeneratedSlotsGrid() {
+    final allPossibleSlots = _generateTimeSlots();
+
+    if (allPossibleSlots.isEmpty) {
+      return CustomText(
+          text: "End time must be at least 1 hour after start time",
+          fontSize: 11.sp,
+          color: Colors.redAccent
+      );
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(12.r),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+      ),
+      child: Wrap(
+        spacing: 8.w,
+        runSpacing: 8.h,
+        children: allPossibleSlots.map((slot) {
+          bool isSelected = _selectedTimeSlots.contains(slot);
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                if (isSelected) {
+                  _selectedTimeSlots.remove(slot);
+                } else {
+                  _selectedTimeSlots.add(slot);
+                }
+              });
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+              decoration: BoxDecoration(
+                color: isSelected ? const Color(0xFF1D3826) : Colors.white,
+                borderRadius: BorderRadius.circular(8.r),
+                border: Border.all(
+                  color: const Color(0xFF1D3826),
+                  width: 1,
+                ),
+              ),
+              child: CustomText(
+                  text: slot,
+                  fontSize: 11.sp,
+                  color: isSelected ? Colors.white : const Color(0xFF1D3826),
+                  fontWeight: FontWeight.w500
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
 
   Widget _buildServiceForm() {
     return Column(
@@ -388,7 +495,14 @@ class _BeauticianAddServiceScreenState extends State<BeauticianAddServiceScreen>
             child: child!,
           ),
         );
-        if (picked != null) onPick(picked);
+        if (picked != null) {
+          onPick(picked);
+          // Auto-fill all slots as selected by default when range changes
+          setState(() {
+            _selectedTimeSlots.clear();
+            _selectedTimeSlots.addAll(_generateTimeSlots());
+          });
+        }
       },
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -405,6 +519,45 @@ class _BeauticianAddServiceScreenState extends State<BeauticianAddServiceScreen>
         ],
       ),
     );
+  }
+
+  List<String> _generateTimeSlots() {
+    List<String> slots = [];
+
+    // Convert TimeOfDay to minutes for easier calculation
+    int startMinutes = startTime.hour * 60 + startTime.minute;
+    int endMinutes = endTime.hour * 60 + endTime.minute;
+
+    // If end time is before start time (e.g., 10 PM to 2 AM),
+    // you might want to handle it, but for now we assume same-day.
+    if (endMinutes <= startMinutes) return [];
+
+    int currentMinutes = startMinutes;
+
+    while (currentMinutes + 60 <= endMinutes) {
+      int nextMinutes = currentMinutes + 60;
+
+      String startFormatted = _formatTo12Hour(currentMinutes);
+      String endFormatted = _formatTo12Hour(nextMinutes);
+
+      slots.add("$startFormatted - $endFormatted");
+      currentMinutes = nextMinutes;
+    }
+
+    return slots;
+  }
+
+// Helper to format minutes into "10:00 AM"
+  String _formatTo12Hour(int totalMinutes) {
+    int hour = (totalMinutes ~/ 60);
+    int minute = totalMinutes % 60;
+
+    String period = hour >= 12 ? "PM" : "AM";
+    int displayHour = hour % 12;
+    if (displayHour == 0) displayHour = 12;
+
+    // Use a standard space ' ' instead of relying on DateFormat locales
+    return "${displayHour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')} $period";
   }
 
   Widget _buildPeriodLabel(String text, bool isActive) => CustomText(text: text, fontSize: 10.sp, fontWeight: FontWeight.bold, color: isActive ? const Color(0xFF00E5CC) : Colors.grey.shade400);
