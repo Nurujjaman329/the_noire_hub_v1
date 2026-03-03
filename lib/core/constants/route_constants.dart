@@ -39,6 +39,7 @@ class RouteConstants {
   static const String dealsPromos = '/dealsPromos';
   static const String dealsPromosHistory = '/dealsPromosHistory';
   static const String customerProducts = '/customerProducts';
+  static const String feedbackScreen = '/feedbackScreen';
 
 
   // vendor

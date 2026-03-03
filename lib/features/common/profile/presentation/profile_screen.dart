@@ -227,6 +227,7 @@ class ProfileScreen extends StatelessWidget {
       {"icon": Icons.group_add_outlined, "label": "Invite Friends"},
       {"icon": Icons.local_offer_outlined, "label": "Deals & Promos"},
       {"icon": Icons.local_offer_outlined, "label": "Add Promo Code"},
+      {"icon": Icons.feedback_outlined, "label": "Admin Feedback"},
       {"icon": Icons.help_outline, "label": "Help"},
       {"icon": Icons.visibility_off_outlined, "label": "Terms of Service"},
       {"icon": Icons.info_outline, "label": "About"},
@@ -238,6 +239,7 @@ class ProfileScreen extends StatelessWidget {
       if (item['label'] == "Invite Friends") return isCustomer;
       if (item['label'] == "Deals & Promos") return isCustomer;
       if (item['label'] == "Add Promo Code") return !isCustomer;
+      if (item['label'] == "Admin Feedback") return !isCustomer;
       return true;
     }).toList();
 
@@ -263,6 +265,9 @@ class ProfileScreen extends StatelessWidget {
                 break;
               case "Add Promo Code":
                 Get.toNamed(RouteConstants.addDealsPromos);
+                break;
+              case "Admin Feedback":
+                Get.toNamed(RouteConstants.feedbackScreen);
                 break;
               case "Help":
                 Get.toNamed(RouteConstants.helpScreen);

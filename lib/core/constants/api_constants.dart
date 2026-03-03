@@ -26,6 +26,9 @@ class ApiConstants {
   static const String getBusinessInfo = "business/me";
   static const String categoryUpdate = "users/self/selected-categories";
   static const String promoCode = "promo-codes";
+  static const String feedback = "feedback";
+
+
 
   //customer
   static const String customerProducts = "products";
