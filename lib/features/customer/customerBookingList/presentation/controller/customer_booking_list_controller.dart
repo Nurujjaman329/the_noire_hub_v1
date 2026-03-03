@@ -16,6 +16,7 @@ class CustomerBookingListController extends GetxController {
   var isCanceling = false.obs;
   var currentPage = 1.obs;
   var totalPages = 1.obs;
+  var isUpdatingStatus = false.obs;
 
   @override
   void onInit() {
@@ -95,6 +96,37 @@ class CustomerBookingListController extends GetxController {
       );
     } finally {
       isCanceling.value = false;
+    }
+  }
+
+
+  Future<void> completeBooking(String bookingId) async {
+    isUpdatingStatus.value = true;
+    try {
+      final success = await _service.updateBookingStatus(
+        bookingId: bookingId,
+        status: "completed",
+      );
+
+      if (success) {
+        Get.snackbar(
+          "Success",
+          "Booking marked as completed!",
+          backgroundColor: const Color(0xFF1D3826),
+          colorText: Colors.white,
+        );
+        // Refresh the list to move the item to the "Complete" tab
+        onRefresh();
+      }
+    } catch (e) {
+      Get.snackbar(
+        "Error",
+        "Failed to update status. Please try again.",
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+    } finally {
+      isUpdatingStatus.value = false;
     }
   }
 

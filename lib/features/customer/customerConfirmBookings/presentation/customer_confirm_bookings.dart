@@ -1,17 +1,12 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
-import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/route_constants.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_network_image.dart';
 import '../../../../core/widgets/custom_text.dart';
 import '../../serviceBookingScreen/presentation/controller/service_booking_details_controller.dart';
 
-import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
 
 class CustomerConfirmBookings extends StatelessWidget {
   const CustomerConfirmBookings({super.key});
@@ -127,7 +122,7 @@ class CustomerConfirmBookings extends StatelessWidget {
                       ),
                     ),
 
-                    _buildPaymentMethod(),
+
                     SizedBox(height: 20.h),
                     const Center(
                       child: CustomText(
@@ -238,34 +233,6 @@ class CustomerConfirmBookings extends StatelessWidget {
     );
   }
 
-  Widget _buildPaymentMethod() {
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: 10.h),
-      padding: EdgeInsets.all(15.r),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F4D3).withOpacity(0.3),
-        borderRadius: BorderRadius.circular(20.r),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: EdgeInsets.all(6.r),
-            decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(6.r)),
-            child: Row(
-              children: [
-                CircleAvatar(backgroundColor: Colors.red, radius: 6.r),
-                Transform.translate(offset: Offset(-4.w, 0), child: CircleAvatar(backgroundColor: Colors.orange, radius: 6.r)),
-              ],
-            ),
-          ),
-          SizedBox(width: 15.w),
-          const CustomText(text: "Amina   ....3982", fontSize: 14, fontWeight: FontWeight.bold),
-          const Spacer(),
-          const Icon(Icons.arrow_forward_ios, size: 16),
-        ],
-      ),
-    );
-  }
 
   Widget _buildPayButton(double total, String serviceId, List<dynamic> items, String date, String time) {
     final controller = Get.find<ServiceBookingDetailsController>();

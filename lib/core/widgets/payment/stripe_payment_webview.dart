@@ -43,10 +43,12 @@ class _StripePaymentWebViewState extends State<StripePaymentWebView> {
               );
 
               // Navigate and clear the history so user can't "back" into payment
-              Get.offAllNamed(
-                  RouteConstants.customerMainContainer,
-                  arguments: {'initialTab': 0}
-              );
+              Get.offAllNamed(RouteConstants.customerBookingSuccess,arguments: Get.arguments,);
+
+              // Get.offAllNamed(
+              //     RouteConstants.customerMainContainer,
+              //     arguments: {'initialTab': 0}
+              // );
             }
 
             // --- CANCEL/FAIL CASE ---
@@ -72,11 +74,11 @@ class _StripePaymentWebViewState extends State<StripePaymentWebView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Secure Payment"),
+        title: const Text("Secure Payment",style: TextStyle(color: Colors.white),),
         backgroundColor: const Color(0xFF1D3826),
         // Important: If user closes manually, we treat it as a back action
         leading: IconButton(
-          icon: const Icon(Icons.close),
+          icon: const Icon(Icons.close,color: Colors.white,),
           onPressed: () => Get.back(),
         ),
       ),

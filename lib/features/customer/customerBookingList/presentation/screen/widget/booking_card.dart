@@ -296,6 +296,31 @@ class BookingCard extends StatelessWidget {
     );
   }
 
+
+  void _showCompleteDialog(BuildContext context, CustomerBookingListController controller) {
+    Get.defaultDialog(
+      title: "Complete Service",
+      middleText: "Are you sure you want to mark this service as completed?",
+      titleStyle: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: const Color(0xFF2D3E2F)),
+      middleTextStyle: TextStyle(fontSize: 14.sp),
+      backgroundColor: Colors.white,
+      radius: 20.r,
+      contentPadding: EdgeInsets.all(20.w),
+      // Cancel Button
+      textCancel: "No",
+      cancelTextColor: Colors.black54,
+      onCancel: () => Get.back(),
+      // Confirm Button
+      textConfirm: "Yes, Completed",
+      confirmTextColor: Colors.white,
+      buttonColor: const Color(0xFF3F592B),
+      onConfirm: () {
+        Get.back(); // Close dialog
+        controller.completeBooking(booking.id);
+      },
+    );
+  }
+
   Widget _buildActionButton(BuildContext context, CustomerBookingListController controller) {
     switch (tabStatus) {
       case "Pending":
@@ -304,7 +329,11 @@ class BookingCard extends StatelessWidget {
           child: _statusBadge("Cancel", const Color(0xFFFF0000), const Color(0xFFFF0000).withOpacity(0.1)),
         );
       case "In Progress":
-        return _statusBadge("Processing", const Color(0xFF3F592B), const Color(0xFFCADA9F).withOpacity(0.3));
+        return GestureDetector(
+          // 👈 Trigger the alert here
+          onTap: () => _showCompleteDialog(context, controller),
+          child: _statusBadge("Complete", const Color(0xFF3F592B), const Color(0xFFCADA9F).withOpacity(0.3)),
+        );
       case "Complete":
         return GestureDetector(
           onTap: () => Get.toNamed(RouteConstants.rateServiceScreen, arguments: booking.id),
@@ -316,6 +345,7 @@ class BookingCard extends StatelessWidget {
         return const SizedBox.shrink();
     }
   }
+
 
   Widget _statusBadge(String label, Color textColor, Color bgColor) {
     return Container(

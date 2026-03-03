@@ -74,4 +74,36 @@ class CustomerBookingListService {
       rethrow;
     }
   }
+
+  Future<bool> updateBookingStatus({
+    required String bookingId,
+    required String status,
+  }) async {
+    final String url = "${ApiConstants.customerBookings}/$bookingId/status";
+    final Map<String, dynamic> body = {
+      "status": status,
+    };
+
+    // --- DEBUG PRINT: REQUEST ---
+    debugPrint('🚀 [PATCH] Status Update to: $url');
+    debugPrint('Request Body: $body');
+
+    try {
+      final response = await _apiClient.patch(
+        url,
+        data: body,
+      );
+
+      // --- DEBUG PRINT: SUCCESS ---
+      debugPrint('✅ [STATUS UPDATE] Success Status: ${response.statusCode}');
+      debugPrint('Response Data: ${response.data}');
+
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      // --- DEBUG PRINT: ERROR ---
+      debugPrint('❌ [STATUS UPDATE] Error at: $url');
+      debugPrint('Error Details: $e');
+      rethrow;
+    }
+  }
 }
