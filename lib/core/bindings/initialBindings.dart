@@ -7,6 +7,8 @@ import '../../features/customer/customerBookingList/presentation/controller/cust
 import '../../features/customer/customerProducts/data/customer_products_service.dart';
 import '../../features/customer/customerProducts/presentation/controller/customer_products_controller.dart';
 import '../../features/customer/customerServices/presentation/controller/customer_service_controller.dart';
+import '../../features/customer/multiVendorCartScreen/data/multi_vendor_cart_service.dart';
+import '../../features/customer/multiVendorCartScreen/presentation/controller/multi_vendor_cart_controller.dart';
 import '../api/api_client.dart';
 import '../../features/authentication/login/data/login_service.dart';
 import '../../features/authentication/login/presentation/controller/login_controller.dart';
@@ -55,6 +57,10 @@ class InitialBinding extends Bindings {
     // Customer Booking List
     Get.lazyPut<CustomerBookingListService>(() => CustomerBookingListService(Get.find<ApiClient>()));
     Get.lazyPut<CustomerBookingListController>(() => CustomerBookingListController(Get.find<CustomerBookingListService>()));
+
+    // Customer Cart List
+    Get.lazyPut<MultiVendorCartService>(() => MultiVendorCartService(Get.find<ApiClient>()));
+    Get.lazyPut<MultiVendorCartController>(() => MultiVendorCartController(Get.find<MultiVendorCartService>()));
 
   }
 }

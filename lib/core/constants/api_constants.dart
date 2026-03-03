@@ -28,6 +28,7 @@ class ApiConstants {
   static const String promoCode = "promo-codes";
   static const String feedback = "feedback";
   static const String inviteLink = "invite/link";
+  static const String cart = "cart";
 
 
 

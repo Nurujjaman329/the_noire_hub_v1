@@ -75,6 +75,7 @@ import '../../features/customer/dealsPromos/presentation/service_deals_promos_sc
 import '../../features/customer/dealsPromos/presentation/screens/deals_promos_screen.dart';
 import '../../features/customer/dealsPromosHistory/presentation/deals_promos_history_screen.dart';
 import '../../features/customer/favourite/presentation/favourites_screen.dart';
+import '../../features/customer/multiVendorCartScreen/presentation/bindings/multi_vendor_cart_bindings.dart';
 import '../../features/customer/multiVendorCartScreen/presentation/screen/multi_vendor_cart_screen.dart';
 import '../../features/customer/orderSuccessScreen/order_success_screen.dart';
 import '../../features/customer/popularNearYou/presentation/service_popular_near_you_screen.dart';
@@ -370,6 +371,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.multiVendorCartScreen,
       page: () => const MultiVendorCartScreen(),
+      binding: MultiVendorCartBindings(),
       transition: Transition.cupertino,
     ),
     GetPage(
