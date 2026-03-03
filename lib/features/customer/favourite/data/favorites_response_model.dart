@@ -79,7 +79,7 @@ class FavoriteItem {
 
 class ItemDetails {
   final Weight? weight;
-  final num discount;
+  final num discount; // This will store the actual numeric value (e.g., 50 or 0)
   final GeoLocation? location;
   final String vendor;
   final String subcategory;
@@ -118,26 +118,36 @@ class ItemDetails {
     required this.id,
   });
 
-  factory ItemDetails.fromJson(Map<String, dynamic> json) => ItemDetails(
-    weight: json["weight"] != null ? Weight.fromJson(json["weight"]) : null,
-    discount: json["discount"] ?? 0,
-    location: json["location"] != null ? GeoLocation.fromJson(json["location"]) : null,
-    vendor: json["vendor"] ?? '',
-    subcategory: json["subcategory"] ?? '',
-    category: json["category"] ?? '',
-    name: json["name"] ?? 'Unknown Item',
-    price: json["price"] ?? 0,
-    images: json["images"] != null ? List<String>.from(json["images"].map((x) => x)) : [],
-    description: json["description"] ?? '',
-    rating: json["rating"] ?? 0.0,
-    totalReviews: json["totalReviews"] ?? 0,
-    stock: json["stock"] ?? 0,
-    isActive: json["isActive"] ?? false,
-    isApproved: json["isApproved"] ?? false,
-    variants: json["variants"] != null ? List<dynamic>.from(json["variants"].map((x) => x)) : [],
-    createdAt: json["createdAt"] != null ? DateTime.parse(json["createdAt"]) : null,
-    id: json["id"] ?? '',
-  );
+  factory ItemDetails.fromJson(Map<String, dynamic> json) {
+    // --- FIX FOR DISCOUNT TYPE MISMATCH ---
+    num discountValue = 0;
+    if (json["discount"] is Map) {
+      discountValue = json["discount"]["value"] ?? 0;
+    } else if (json["discount"] is num) {
+      discountValue = json["discount"];
+    }
+
+    return ItemDetails(
+      weight: json["weight"] != null ? Weight.fromJson(json["weight"]) : null,
+      discount: discountValue, // Now safely assigned
+      location: json["location"] != null ? GeoLocation.fromJson(json["location"]) : null,
+      vendor: json["vendor"] ?? json["beautician"] ?? '', // Added beautician check
+      subcategory: json["subcategory"] ?? '',
+      category: json["category"] ?? '',
+      name: json["name"] ?? 'Unknown Item',
+      price: json["price"] ?? 0,
+      images: json["images"] != null ? List<String>.from(json["images"].map((x) => x)) : [],
+      description: json["description"] ?? '',
+      rating: json["rating"] ?? 0.0,
+      totalReviews: json["totalReviews"] ?? 0,
+      stock: json["stock"] ?? 0,
+      isActive: json["isActive"] ?? false,
+      isApproved: json["isApproved"] ?? false,
+      variants: json["variants"] != null ? List<dynamic>.from(json["variants"].map((x) => x)) : [],
+      createdAt: json["createdAt"] != null ? DateTime.parse(json["createdAt"]) : null,
+      id: json["id"] ?? '',
+    );
+  }
 }
 
 class Weight {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../../core/constants/api_constants.dart';
+import '../../../../core/constants/route_constants.dart';
 import '../../../../core/widgets/custom_network_image.dart';
 import '../../../../core/widgets/custom_text.dart';
 import 'controller/favorites_controller.dart';
@@ -81,18 +82,31 @@ class FavoritesScreen extends StatelessWidget {
 
               return _buildStoreItem(
                 name: item?.name ?? "Unknown",
-                // Total reviews used as a proxy for "orders" or activity
                 orders: "${item?.totalReviews ?? 0}",
-                location: "Location info N/A", // API item doesn't have a direct country string
+                location: "Location info N/A",
                 imageUrl: (item?.images.isNotEmpty ?? false)
                     ? "${ApiConstants.baseImageUrl}${item!.images[0]}"
                     : "",
                 onTap: () {
-                  // Navigate based on type
-                  if (targetType == 'Product') {
-                    // Get.toNamed(RouteConstants.productDetails, arguments: item?.id);
+                  // 1. Check if item and id exist
+                  if (item?.id != null && item!.id.isNotEmpty) {
+
+                    // 2. Navigate based on targetType
+                    if (targetType == 'Product') {
+                      debugPrint("🚀 Navigating to Product Details: ${item.id}");
+                      // Passing the ID as a String as expected by your ProductDetailsController
+                      Get.toNamed(RouteConstants.productDetailsScreen, arguments: item.id);
+                    } else {
+                      debugPrint("🚀 Navigating to Service Details: ${item.id}");
+                      // Assuming you have a similar route for services
+                      Get.toNamed(RouteConstants.serviceDetailsScreen, arguments: item.id);
+                    }
                   } else {
-                    // Get.toNamed(RouteConstants.serviceDetails, arguments: item?.id);
+                    Get.snackbar(
+                        "Notice",
+                        "Item details are currently unavailable",
+                        snackPosition: SnackPosition.BOTTOM
+                    );
                   }
                 },
               );
