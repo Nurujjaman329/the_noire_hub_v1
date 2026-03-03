@@ -7,6 +7,7 @@ import 'package:the_noire_hub_v1/features/beautician/beauticianAddService/presen
 import 'package:the_noire_hub_v1/features/beautician/serviceDetailsScreen/presentation/bindings/service_details_bindings.dart';
 import 'package:the_noire_hub_v1/features/common/businessDocument/presentation/bindings/business_documents_bindings.dart';
 import 'package:the_noire_hub_v1/features/common/changePassword/presentation/bindings/change_password_bindings.dart';
+import 'package:the_noire_hub_v1/features/common/inviteFriends/presentation/bindings/invite_friends_bindings.dart';
 import 'package:the_noire_hub_v1/features/customer/customerServices/presentation/bindings/customer_service_bindings.dart';
 import 'package:the_noire_hub_v1/features/customer/favourite/presentation/bindings/favorites_bindings.dart';
 import 'package:the_noire_hub_v1/features/customer/productDetailsScreen/presentation/bindings/product_details_bindings.dart';
@@ -363,6 +364,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.inviteScreens,
       page: () => const InviteFriendsScreen(),
+      binding: InviteFriendsBindings(),
       transition: Transition.cupertino,
     ),
     GetPage(

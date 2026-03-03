@@ -27,6 +27,7 @@ class ApiConstants {
   static const String categoryUpdate = "users/self/selected-categories";
   static const String promoCode = "promo-codes";
   static const String feedback = "feedback";
+  static const String inviteLink = "invite/link";
 
 
 

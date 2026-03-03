@@ -3,40 +3,45 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/widgets/custom_text.dart';
+import 'package:get/get.dart';
+
+import 'controller/invite_friends_controller.dart';
 
 class InviteFriendsScreen extends StatelessWidget {
   const InviteFriendsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Inject the controller
+    final controller = Get.find<InviteController>();
+
     return Scaffold(
       backgroundColor: AppColors.white,
-      appBar: CustomAppBar(title: "Invite Friends",showBackButton: true,),
+      appBar: CustomAppBar(title: "Invite Friends", showBackButton: true),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 20.w,vertical: 20.h),
+          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
-
-              // 2. Main Promo Card
               _buildPromoCard(),
-
               SizedBox(height: 30.h),
 
-              // 3. Action Grid (Copy, Share, Scan)
+              // --- ACTION ROW ---
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _buildActionSquare("Copy Link", Icons.copy_rounded),
-                  _buildActionSquare("Share Link", Icons.send_rounded),
+                  GestureDetector(
+                    onTap: () => controller.copyToClipboard(),
+                    child: _buildActionSquare("Copy Link", Icons.copy_rounded),
+                  ),
+                  GestureDetector(
+                    onTap: () => controller.shareInvite(),
+                    child: _buildActionSquare("Share Link", Icons.send_rounded),
+                  ),
                 ],
               ),
 
               SizedBox(height: 30.h),
-
-              // 4. Details Section
               _buildDetailsSection(),
             ],
           ),
