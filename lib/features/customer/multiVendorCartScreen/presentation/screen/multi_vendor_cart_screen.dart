@@ -6,8 +6,8 @@ import '../../../../../core/constants/route_constants.dart';
 import '../../../../../core/widgets/custom_app_bar.dart';
 import '../../../../../core/widgets/custom_network_image.dart';
 import '../../../../../core/widgets/custom_text.dart';
+import '../../data/multi_vendor_cart_response_model.dart';
 import '../controller/multi_vendor_cart_controller.dart';
-
 
 class MultiVendorCartScreen extends StatelessWidget {
   const MultiVendorCartScreen({super.key});
@@ -50,12 +50,8 @@ class MultiVendorCartScreen extends StatelessWidget {
                 itemCount: vendors.length,
                 itemBuilder: (context, index) {
                   final vendorData = vendors[index];
-                  return _buildVendorGroup(
-                    vendorData.vendor.businessName,
-                    "${vendorData.itemCount} items",
-                    vendorData.subtotal.toStringAsFixed(2),
-                    vendorData.vendor.image,
-                  );
+                  // Pass only the named parameter here
+                  return _buildVendorGroup(vendorData: vendorData);
                 },
               ),
 
@@ -93,14 +89,15 @@ class MultiVendorCartScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildVendorGroup(String name, String items, String price, String imgUrl) {
+  Widget _buildVendorGroup({required CartVendor vendorData}) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 15.h),
       child: Row(
         children: [
           CustomNetworkImage(
-            // Use your base URL here if the API only returns a partial path
-            imageUrl: imgUrl.startsWith('http') ? imgUrl : "https://tonmoy3000.sobhoy.com$imgUrl",
+            imageUrl: vendorData.vendor.image.startsWith('http')
+                ? vendorData.vendor.image
+                : "https://tonmoy3000.sobhoy.com${vendorData.vendor.image}",
             height: 80.h,
             width: 80.w,
             borderRadius: BorderRadius.circular(10.r),
@@ -111,19 +108,19 @@ class MultiVendorCartScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                    text: name,
+                    text: vendorData.vendor.businessName,
                     fontSize: 16.sp,
                     fontWeight: FontWeight.bold,
                     color: const Color(0XFF000000),
                     maxLines: 1
                 ),
                 CustomText(
-                  text: items,
+                  text: "${vendorData.itemCount} items",
                   fontSize: 14.sp,
                   color: const Color(0x80000000),
                 ),
                 CustomText(
-                  text: "\$$price",
+                  text: "\$${vendorData.subtotal.toStringAsFixed(2)}",
                   fontSize: 14.sp,
                   fontWeight: FontWeight.bold,
                   color: const Color(0XFF000000),
@@ -132,7 +129,10 @@ class MultiVendorCartScreen extends StatelessWidget {
             ),
           ),
           GestureDetector(
-            onTap: () => Get.toNamed(RouteConstants.myCartScreen),
+            onTap: () => Get.toNamed(
+                RouteConstants.myCartScreen,
+                arguments: vendorData // Now vendorData is accessible here!
+            ),
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 8.h),
               decoration: BoxDecoration(
@@ -151,7 +151,6 @@ class MultiVendorCartScreen extends StatelessWidget {
       ),
     );
   }
-
 
   Widget _buildSimilarProductCard(String title, String price, String imgUrl) {
     return Container(
