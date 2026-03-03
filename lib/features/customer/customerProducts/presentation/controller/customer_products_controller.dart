@@ -27,16 +27,22 @@ class CustomerProductsController extends GetxController {
   var hasOffer = false.obs;
   var ratingValue = 1.0.obs;
 
+  final ScrollController scrollController = ScrollController();
+  var isMoreLoading = false.obs;
+
 
   @override
   void onInit() {
     super.onInit();
 
-    // Debounce for search only
-    debounce(searchQuery, (_) {
-      fetchProducts();
-    }, time: const Duration(milliseconds: 500));
+    // Setup pagination listener
+    scrollController.addListener(() {
+      if (scrollController.position.pixels == scrollController.position.maxScrollExtent) {
+        loadMore();
+      }
+    });
 
+    debounce(searchQuery, (_) => fetchProducts(), time: const Duration(milliseconds: 500));
     fetchProducts();
   }
 
@@ -94,12 +100,13 @@ class CustomerProductsController extends GetxController {
       isLoading.value = false;
     }
   }
-// Inside CustomerProductsController
+
+
   Future<void> loadMore() async {
-    if (isLoading.value || !hasMore) return;
+    if (isLoading.value || isMoreLoading.value || !hasMore) return;
+
+    isMoreLoading.value = true;
     currentPage++;
-    // We don't set isLoading to true here to avoid showing the big center spinner
-    // during pagination (optional: use a bottom loading indicator)
 
     try {
       final response = await _service.getCustomerProducts(
@@ -109,7 +116,7 @@ class CustomerProductsController extends GetxController {
         name: searchQuery.value,
         category: selectedCategoryId.value,
         subcategory: selectedSubCategoryId.value,
-        maxDistance: selectedDistance.value, // Keep the 10km or current selection
+        maxDistance: selectedDistance.value > 0 ? selectedDistance.value : null,
         minRating: selectedRating.value > 0 ? selectedRating.value : null,
         minPrice: minPrice.value > 0 ? minPrice.value : null,
         maxPrice: maxPrice.value > 0 ? maxPrice.value : null,
@@ -119,12 +126,16 @@ class CustomerProductsController extends GetxController {
       final newResults = response.data?.attributes?.results ?? [];
       if (newResults.isNotEmpty) {
         productList.addAll(newResults);
+        // Update hasMore based on meta data
+        hasMore = currentPage < (response.data?.attributes?.totalPages ?? 1);
       } else {
         hasMore = false;
       }
     } catch (e) {
       currentPage--;
       debugPrint("Pagination Error: $e");
+    } finally {
+      isMoreLoading.value = false;
     }
   }
 
@@ -157,5 +168,11 @@ class CustomerProductsController extends GetxController {
   void toggleOffer() {
     hasOffer.value = !hasOffer.value;
     fetchProducts();
+  }
+
+  @override
+  void onClose() {
+    scrollController.dispose();
+    super.onClose();
   }
 }

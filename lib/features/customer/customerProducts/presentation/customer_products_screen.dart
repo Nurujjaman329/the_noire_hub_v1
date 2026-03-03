@@ -2,7 +2,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:the_noire_hub_v1/core/constants/api_constants.dart';
 import 'package:the_noire_hub_v1/features/customer/customerProducts/data/customer_products_response_model.dart';
@@ -21,12 +20,10 @@ class CustomerProductsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 1. Initialize all required controllers
     final controller = Get.find<CustomerProductsController>();
     final categoryController = Get.find<CategoryController>();
     final subCategoryController = Get.find<SubCategoryController>();
 
-    // Initial data fetch if not already loaded
     if (categoryController.categories.isEmpty) {
       categoryController.loadCategories();
     }
@@ -39,6 +36,8 @@ class CustomerProductsScreen extends StatelessWidget {
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
+          // 1. Attached the controller here
+          controller: controller.scrollController,
           padding: EdgeInsets.symmetric(horizontal: 20.w),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -48,7 +47,6 @@ class CustomerProductsScreen extends StatelessWidget {
               SizedBox(height: 20.h),
               _buildSearchField(),
               SizedBox(height: 25.h),
-
               const CustomText(
                 text: "Our Specialties",
                 fontSize: 18,
@@ -56,17 +54,11 @@ class CustomerProductsScreen extends StatelessWidget {
                 color: Color(0XFF000000),
               ),
               SizedBox(height: 15.h),
-
-              // Updated Specialties (Categories)
               _buildSpecialtiesList(categoryController, subCategoryController, controller),
-
               SizedBox(height: 20.h),
               _buildFilterChips(),
               SizedBox(height: 20.h),
-
-              // Updated SubCategories
               _buildSubCategoryList(subCategoryController, controller),
-
               SizedBox(height: 30.h),
 
               // --- DYNAMIC PRODUCT SECTION ---
@@ -80,61 +72,11 @@ class CustomerProductsScreen extends StatelessWidget {
                   );
                 }
 
-
                 if (controller.productList.isEmpty) {
-                  return Center(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 60.h),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          // Using your CustomNetworkImage for the empty state asset
-                          CustomNetworkImage(
-                            imageUrl: AppAssets.empty, // Your asset path
-                            height: 200.h,
-                            width: 200.w,
-                            fit: BoxFit.contain,
-                            backgroundColor: Colors.transparent,
-                          ),
-
-                          SizedBox(height: 20.h),
-                          const CustomText(
-                            text: "No products found",
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black54,
-                          ),
-                          SizedBox(height: 10.h),
-                          const CustomText(
-                            text: "Try adjusting your distance or price range",
-                            fontSize: 12,
-                            color: Colors.grey,
-                          ),
-
-                          SizedBox(height: 20.h),
-                          // Button to reset all filters
-                          TextButton(
-                            onPressed: () {
-                              controller.clearSearch();
-                              controller.clearPrice();
-                              controller.clearRating();
-                              controller.resetDistance();
-                              // Reset the slider value in UI if necessary
-                              controller.priceRange.value = const RangeValues(1, 50000);
-                            },
-                            child: const CustomText(
-                              text: "Clear All Filters",
-                              color: Color(0xFF1D3826),
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
+                  return _buildEmptyState(controller); // Extracted for cleanliness
                 }
 
-
+                // 2. Build the Grid
                 List<Widget> productRows = [];
                 for (int i = 0; i < controller.productList.length; i += 2) {
                   List<Widget> rowItems = [];
@@ -145,7 +87,37 @@ class CustomerProductsScreen extends StatelessWidget {
                   productRows.add(_buildHorizontalList(rowItems));
                   productRows.add(SizedBox(height: 20.h));
                 }
-                return Column(children: productRows);
+
+                return Column(
+                  children: [
+                    ...productRows,
+
+                    // 3. PAGINATION LOADER INDICATOR
+                    if (controller.isMoreLoading.value)
+                      Padding(
+                        padding: EdgeInsets.symmetric(vertical: 20.h),
+                        child: const Center(
+                          child: CircularProgressIndicator(
+                            color: Color(0xFF1D3826),
+                            strokeWidth: 3,
+                          ),
+                        ),
+                      ),
+
+                    // 4. Optional: Show message when no more products
+                    if (!controller.hasMore && controller.productList.isNotEmpty)
+                      Padding(
+                        padding: EdgeInsets.symmetric(vertical: 20.h),
+                        child: const Center(
+                          child: CustomText(
+                            text: "No more products to show",
+                            color: Colors.grey,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                  ],
+                );
               }),
 
               _buildPopularNearYouSection(),
@@ -158,6 +130,48 @@ class CustomerProductsScreen extends StatelessWidget {
   }
 
   // --- Helper Methods ---
+
+  Widget _buildEmptyState(CustomerProductsController controller) {
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 60.h),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CustomNetworkImage(
+              imageUrl: AppAssets.empty,
+              height: 200.h,
+              width: 200.w,
+              fit: BoxFit.contain,
+              backgroundColor: Colors.transparent,
+            ),
+            SizedBox(height: 20.h),
+            const CustomText(
+              text: "No products found",
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.black54,
+            ),
+            SizedBox(height: 20.h),
+            TextButton(
+              onPressed: () {
+                controller.clearSearch();
+                controller.clearPrice();
+                controller.clearRating();
+                controller.resetDistance();
+                controller.priceRange.value = const RangeValues(1, 50000);
+              },
+              child: const CustomText(
+                text: "Clear All Filters",
+                color: Color(0xFF1D3826),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   Widget _buildProductCard(CustomerProduct product) {
     final imageUrl = product.images.isNotEmpty ? product.images.first : '';
