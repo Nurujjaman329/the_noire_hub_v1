@@ -37,6 +37,7 @@ class ApiConstants {
   static const String customerServices = "services";
   static const String customerBookings = "bookings";
   static const String customerFavorites = "favorites";
+  static const String cartItems = "cart/items";
 
 
 

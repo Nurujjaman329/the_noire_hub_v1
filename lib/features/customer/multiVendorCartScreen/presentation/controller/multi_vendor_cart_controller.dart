@@ -10,6 +10,7 @@ class MultiVendorCartController extends GetxController {
   MultiVendorCartController(this._cartService);
 
   var isLoading = false.obs;
+  var isUpdating = false.obs;
 
   // Using Rxn to handle the initial null state before data is fetched
   final cartAttributes = Rxn<CartAttributes>();
@@ -32,6 +33,24 @@ class MultiVendorCartController extends GetxController {
       debugPrint("❌ CartController Error: $e");
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  // Handle Quantity Change
+  Future<void> updateItemQuantity(String cartItemId, int newQuantity) async {
+    if (newQuantity < 1) return; // Prevent zero/negative quantities
+
+    try {
+      isUpdating.value = true;
+      await _cartService.updateQuantity(cartItemId, newQuantity);
+
+      // Re-fetch cart to get updated grand total and subtotals
+      await getCartDetails();
+    } catch (e) {
+      Get.snackbar("Error", "Could not update quantity");
+      debugPrint("❌ Update Qty Error: $e");
+    } finally {
+      isUpdating.value = false;
     }
   }
 

@@ -2,12 +2,14 @@ import 'package:get/get.dart';
 import '../../../customerProducts/data/customer_products_response_model.dart';
 import '../../../customerProducts/data/customer_products_service.dart';
 import '../../data/product_details_response_model.dart';
+import 'package:flutter/material.dart';
 
 class ProductDetailsController extends GetxController {
   final CustomerProductsService _service;
   ProductDetailsController(this._service);
 
   var isLoading = false.obs;
+  var isCartLoading = false.obs;
 
   // 🟢 Fixed: Use the correct class name from your model
   var product = Rxn<DetailsProductAttributes>();
@@ -54,6 +56,39 @@ class ProductDetailsController extends GetxController {
     }
   }
 
+
+  Future<void> addToCart() async {
+    if (product.value == null) return;
+
+    isCartLoading.value = true;
+    try {
+      // 1. Always include productId and quantity
+      final Map<String, dynamic> cartData = {
+        "productId": product.value!.id,
+        "quantity": quantity.value,
+      };
+
+      // 2. Add variantId ONLY if one is selected
+      if (selectedVariantId.value.isNotEmpty) {
+        cartData["variantId"] = selectedVariantId.value;
+      }
+
+      // Call service with updated map
+      await _service.addToCart(cartData);
+
+      Get.snackbar(
+        "Success",
+        "Item added to cart",
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0XFF1D3826),
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      Get.snackbar("Error", "Failed to add item to cart");
+    } finally {
+      isCartLoading.value = false;
+    }
+  }
   // --- Logic Methods ---
   void changeImage(int index) => selectedImageIndex.value = index;
   void selectVariant(String id) => selectedVariantId.value = id;

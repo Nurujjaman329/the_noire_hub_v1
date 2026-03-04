@@ -105,12 +105,29 @@ class VendorInfo {
   }
 }
 
+class CartVariantWeight {
+  final int value;
+  final String unit;
+
+  CartVariantWeight({required this.value, required this.unit});
+
+  factory CartVariantWeight.fromJson(Map<String, dynamic> json) {
+    return CartVariantWeight(
+      value: json['value'] ?? 0,
+      unit: json['unit'] ?? '',
+    );
+  }
+
+  @override
+  String toString() => "$value $unit";
+}
+
 class CartItem {
   final String cartItemId;
   final CartProduct product;
   final String? variantId;
   final String? variantColor;
-  final String? variantWeight;
+  final CartVariantWeight? variantWeight; // Changed from String?
   final int quantity;
   final double unitPrice;
   final double subtotal;
@@ -132,7 +149,10 @@ class CartItem {
       product: CartProduct.fromJson(json['product'] ?? {}),
       variantId: json['variantId'],
       variantColor: json['variantColor'],
-      variantWeight: json['variantWeight'],
+      // Updated logic to handle the Map/Object
+      variantWeight: json['variantWeight'] != null && json['variantWeight'] is Map<String, dynamic>
+          ? CartVariantWeight.fromJson(json['variantWeight'])
+          : null,
       quantity: json['quantity'] ?? 0,
       unitPrice: (json['unitPrice'] ?? 0).toDouble(),
       subtotal: (json['subtotal'] ?? 0).toDouble(),

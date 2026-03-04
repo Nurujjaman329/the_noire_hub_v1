@@ -253,6 +253,8 @@ class _OrderFulfillmentScreenState extends State<OrderFulfillmentScreen> {
         ),
         SizedBox(height: 4.h),
         CustomText(text: "Select all that apply", fontSize: 11.sp, color: AppColors.geryColor.withValues(alpha:0.6)),
+        CustomText(text: "** You Can Change Business Day & Price **", fontSize: 11.sp, color: AppColors.error),
+
         SizedBox(height: 10.h),
       ],
     );

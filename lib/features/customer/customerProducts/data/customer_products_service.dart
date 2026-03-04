@@ -78,5 +78,31 @@ class CustomerProductsService {
     }
   }
 
+  // Add to Cart
+  Future<void> addToCart(Map<String, dynamic> data) async {
+    const String url = ApiConstants.cartItems;
+
+    // --- DEBUG PRINT: REQUEST ---
+    debugPrint('🚀 [POST] Request to: $url');
+    debugPrint('Payload: $data');
+
+    try {
+      final response = await _apiClient.postJson(
+        url,
+        data: data,
+      );
+
+      // --- DEBUG PRINT: SUCCESS ---
+      debugPrint('✅ [POST] Success: $url');
+      debugPrint('Response Data: ${response.data}');
+
+      return response.data;
+    } catch (e) {
+      // --- DEBUG PRINT: ERROR ---
+      debugPrint('❌ [POST] Error at: $url');
+      debugPrint('Error Details: $e');
+      rethrow;
+    }
+  }
 
 }

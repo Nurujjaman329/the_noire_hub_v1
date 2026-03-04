@@ -24,4 +24,25 @@ class MultiVendorCartService {
       rethrow;
     }
   }
+
+  // New Quantity Update Method
+  Future<void> updateQuantity(String cartItemId, int quantity) async {
+    final String url = "${ApiConstants.cartItems}/$cartItemId";
+    final Map<String, dynamic> body = {"quantity": quantity};
+
+    debugPrint('🚀 [PATCH] Request to: $url');
+    debugPrint('Payload: $body');
+
+    try {
+      final response = await _apiClient.patch(
+        url,
+        data: body,
+      );
+      debugPrint('✅ [PATCH] Success: $url');
+      debugPrint('Response: ${response.data}');
+    } catch (e) {
+      debugPrint('❌ [PATCH] Error at: $url');
+      rethrow;
+    }
+  }
 }

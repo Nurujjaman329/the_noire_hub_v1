@@ -28,9 +28,18 @@ class ProductDetailScreen extends GetView<ProductDetailsController> {
           return const SizedBox.shrink();
         }
         return Container(
-          height: 100.h,
-          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
-          color: AppColors.white,
+          height: 90.h,
+          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 15.h),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, -5),
+              ),
+            ],
+          ),
           child: _buildFloatingAddToCart(),
         );
       }),
@@ -235,30 +244,92 @@ class ProductDetailScreen extends GetView<ProductDetailsController> {
   }
 
   Widget _buildFloatingAddToCart() {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0XFF1D3826),
-        borderRadius: BorderRadius.circular(15.r),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          IconButton(
-            icon: const Icon(Icons.remove, color: AppColors.white),
-            onPressed: controller.decrementQty,
+    return Row(
+      children: [
+        // 1. Quantity Selector
+        Container(
+          height: 54.h,
+          decoration: BoxDecoration(
+            color: Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(color: Colors.grey.shade300),
           ),
-          Obx(() => CustomText(
-            text: "Add To Cart | ${controller.quantity.value}",
-            color: AppColors.white,
-            fontSize: 16.sp,
-            fontWeight: FontWeight.bold,
-          )),
-          IconButton(
-            icon: const Icon(Icons.add, color: AppColors.white),
-            onPressed: controller.incrementQty,
+          child: Row(
+            children: [
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                icon: Icon(Icons.remove, color: AppColors.textPrimary, size: 20.sp),
+                onPressed: controller.decrementQty,
+              ),
+              Obx(() => SizedBox(
+                width: 30.w,
+                child: Center(
+                  child: CustomText(
+                    text: "${controller.quantity.value}",
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16.sp,
+                  ),
+                ),
+              )),
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                icon: Icon(Icons.add, color: AppColors.textPrimary, size: 20.sp),
+                onPressed: controller.incrementQty,
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+        SizedBox(width: 16.w),
+
+        // 2. Add to Cart Button (Wrapped in Obx for loading state)
+        Expanded(
+          child: Obx(() {
+            final bool isLoading = controller.isCartLoading.value;
+
+            return GestureDetector(
+              onTap: isLoading ? null : () => controller.addToCart(),
+              child: Container(
+                height: 54.h,
+                decoration: BoxDecoration(
+                  color: const Color(0XFF1D3826),
+                  borderRadius: BorderRadius.circular(12.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0XFF1D3826).withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: isLoading
+                      ? SizedBox(
+                    height: 20.h,
+                    width: 20.h,
+                    child: const CircularProgressIndicator(
+                      color: AppColors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                      : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.shopping_bag_outlined, color: AppColors.white, size: 20.sp),
+                      SizedBox(width: 10.w),
+                      CustomText(
+                        text: "Add to Cart",
+                        color: AppColors.white,
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }),
+        ),
+      ],
     );
   }
 
