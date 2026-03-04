@@ -10,6 +10,7 @@ class ProductDetailsController extends GetxController {
 
   var isLoading = false.obs;
   var isCartLoading = false.obs;
+  var selectedPromoCode = ''.obs;
 
   // 🟢 Fixed: Use the correct class name from your model
   var product = Rxn<DetailsProductAttributes>();
@@ -90,6 +91,15 @@ class ProductDetailsController extends GetxController {
     }
   }
   // --- Logic Methods ---
+
+  void togglePromoCode(String code) {
+    if (selectedPromoCode.value == code) {
+      selectedPromoCode.value = ''; // Deselect if already selected
+    } else {
+      selectedPromoCode.value = code;
+    }
+  }
+
   void changeImage(int index) => selectedImageIndex.value = index;
   void selectVariant(String id) => selectedVariantId.value = id;
 

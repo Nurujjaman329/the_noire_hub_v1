@@ -20,6 +20,7 @@ class ProductDetailsResponseModel {
   }
 }
 
+
 class ProductDetailsData {
   DetailsProductAttributes? attributes;
 
@@ -57,6 +58,7 @@ class DetailsProductAttributes {
   Category category;
   SubCategory subcategory;
   List<DetailsVariant> variants;
+  List<PromoCode> activePromoCodes; // Added this field
 
   DetailsProductAttributes({
     this.id = '',
@@ -81,6 +83,7 @@ class DetailsProductAttributes {
     required this.category,
     required this.subcategory,
     this.variants = const [],
+    this.activePromoCodes = const [], // Initialized
   });
 
   factory DetailsProductAttributes.fromJson(Map<String, dynamic> json) {
@@ -101,7 +104,6 @@ class DetailsProductAttributes {
       createdAt: json['createdAt'] ?? '',
       updatedAt: json['updatedAt'] ?? '',
       weight: Weight.fromJson(json['weight'] ?? {}),
-      // --- CRITICAL CHANGE: Pass dynamic 'json' to handle both int and Map ---
       discount: Discount.fromJson(json['discount']),
       location: Location.fromJson(json['location'] ?? {}),
       vendor: Vendor.fromJson(json['vendor'] ?? {}),
@@ -111,9 +113,43 @@ class DetailsProductAttributes {
           ?.map((v) => DetailsVariant.fromJson(v))
           .toList() ??
           [],
+      activePromoCodes: (json['activePromoCodes'] as List?)
+          ?.map((p) => PromoCode.fromJson(p))
+          .toList() ??
+          [], // Mapped the new list
     );
   }
 }
+
+class PromoCode {
+  String id;
+  String code;
+  String title;
+  num discountPercentage;
+  String expiryDate;
+  num minPurchaseAmount;
+
+  PromoCode({
+    this.id = '',
+    this.code = '',
+    this.title = '',
+    this.discountPercentage = 0,
+    this.expiryDate = '',
+    this.minPurchaseAmount = 0,
+  });
+
+  factory PromoCode.fromJson(Map<String, dynamic> json) {
+    return PromoCode(
+      id: json['id'] ?? '',
+      code: json['code'] ?? '',
+      title: json['title'] ?? '',
+      discountPercentage: json['discountPercentage'] ?? 0,
+      expiryDate: json['expiryDate'] ?? '',
+      minPurchaseAmount: json['minPurchaseAmount'] ?? 0,
+    );
+  }
+}
+
 
 class Weight {
   num value;
@@ -136,16 +172,11 @@ class Discount {
 
   Discount({this.maxAmount, this.value = 0, this.type = ''});
 
-  // Updated factory to handle both Map and num
   factory Discount.fromJson(dynamic json) {
     if (json == null) return Discount();
-
-    // If it's a number (Sample 1: discount: 0)
     if (json is num) {
       return Discount(value: json, type: 'flat');
     }
-
-    // If it's a Map (Sample 2: discount: { ... })
     if (json is Map<String, dynamic>) {
       return Discount(
         maxAmount: json['maxAmount'],
@@ -153,10 +184,10 @@ class Discount {
         type: json['type'] ?? '',
       );
     }
-
     return Discount();
   }
 }
+
 
 class Location {
   String type;
@@ -167,7 +198,7 @@ class Location {
   factory Location.fromJson(Map<String, dynamic> json) {
     return Location(
       type: json['type'] ?? '',
-      coordinates: (json['coordinates'] as List?)?.cast<double>() ?? [],
+      coordinates: (json['coordinates'] as List?)?.map((e) => (e as num).toDouble()).toList() ?? [],
     );
   }
 }
@@ -239,12 +270,14 @@ class DetailsVariant {
     this.price = 0,
   });
 
-  // Helper to convert hex string "0XFF..." to Flutter Color
   Color get colorValue {
     if (colorCode.isEmpty) return Colors.transparent;
     try {
       String formattedHex = colorCode.toUpperCase().replaceAll('0X', '0xFF');
-      return Color(int.parse(formattedHex));
+      if (!formattedHex.startsWith('0XFF')) {
+        formattedHex = formattedHex.replaceFirst('#', '').padLeft(8, 'F');
+      }
+      return Color(int.parse(formattedHex, radix: 16));
     } catch (e) {
       return Colors.transparent;
     }

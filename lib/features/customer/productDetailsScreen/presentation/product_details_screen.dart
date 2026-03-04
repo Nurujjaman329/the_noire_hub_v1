@@ -119,8 +119,15 @@ class ProductDetailScreen extends GetView<ProductDetailsController> {
                         ),
                       ),
                     ],
-
                     SizedBox(height: 25.h),
+
+                    // Inside ProductDetailScreen Column, above the Description:
+                    if (p.activePromoCodes.isNotEmpty) ...[
+                      SizedBox(height: 25.h),
+                      _buildPromoCodeSection(p.activePromoCodes),
+                    ],
+
+                    SizedBox(height: 15.h),
                     CustomText(text: "Description", fontSize: 14.sp, fontWeight: FontWeight.bold),
                     SizedBox(height: 10.h),
                     CustomText(
@@ -145,6 +152,96 @@ class ProductDetailScreen extends GetView<ProductDetailsController> {
   }
 
   // --- HELPER WIDGETS ---
+
+
+  Widget _buildPromoCodeSection(List<PromoCode> codes) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            CustomText(
+              text: "Available Offers",
+              fontSize: 14.sp,
+              fontWeight: FontWeight.bold,
+            ),
+            CustomText(
+              text: "${codes.length} Offers",
+              fontSize: 12.sp,
+              color: AppColors.primaryDark,
+            ),
+          ],
+        ),
+        SizedBox(height: 12.h),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          clipBehavior: Clip.none,
+          child: Row(
+            children: codes.map((promo) => _buildPromoCard(promo)).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPromoCard(PromoCode promo) {
+    return Obx(() {
+      bool isSelected = controller.selectedPromoCode.value == promo.code;
+
+      return GestureDetector(
+        onTap: () => controller.togglePromoCode(promo.code),
+        child: Container(
+          width: 220.w,
+          margin: EdgeInsets.only(right: 15.w),
+          padding: EdgeInsets.all(12.r),
+          decoration: BoxDecoration(
+            color: isSelected ? const Color(0xFFF0F7F0) : AppColors.white,
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(
+              color: isSelected ? AppColors.primaryDark : Colors.grey.shade200,
+              width: 1.5,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.local_offer_outlined,
+                      size: 16.sp,
+                      color: AppColors.primaryDark
+                  ),
+                  SizedBox(width: 8.w),
+                  CustomText(
+                    text: promo.code,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14.sp,
+                    color: AppColors.primaryDark,
+                  ),
+                  const Spacer(),
+                  if (isSelected)
+                    Icon(Icons.check_circle, color: AppColors.primaryDark, size: 18.sp),
+                ],
+              ),
+              SizedBox(height: 8.h),
+              CustomText(
+                text: promo.title,
+                fontSize: 12.sp,
+                fontWeight: FontWeight.w500,
+                maxLines: 1,
+              ),
+              CustomText(
+                text: "Get ${promo.discountPercentage}% OFF",
+                fontSize: 11.sp,
+                color: AppColors.geryColor,
+              ),
+            ],
+          ),
+        ),
+      );
+    });
+  }
 
   Widget _buildImageSection(DetailsProductAttributes p) {
     return Stack(

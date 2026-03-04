@@ -180,7 +180,7 @@ class CartScreen extends GetView<MultiVendorCartController> {
 
   Widget _buildAddMoreButton() {
     return GestureDetector(
-      onTap: () => Get.back(),
+      onTap: () => Get.offAllNamed(RouteConstants.customerMainContainer, arguments: {'initialTab': 1}),
       child: Align(
         alignment: Alignment.centerRight,
         child: Padding(
@@ -196,7 +196,7 @@ class CartScreen extends GetView<MultiVendorCartController> {
               children: [
                 Icon(Icons.add, size: 18.sp),
                 SizedBox(width: 5.w),
-                const CustomText(text: "Add more items", fontSize: 13, fontWeight: FontWeight.w500),
+                CustomText(text: "Add more items", fontSize: 13, fontWeight: FontWeight.w500),
               ],
             ),
           ),
