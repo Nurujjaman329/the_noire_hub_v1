@@ -123,7 +123,7 @@ class BusinessInfoTab extends StatelessWidget {
                         Container(
                           padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
                           decoration: BoxDecoration(
-                            color: data.documentApproved ? const Color(0XFF1D3826) : Colors.red.withOpacity(0.8),
+                            color: data.documentApproved ? const Color(0XFF1D3826) : Colors.red.withValues(alpha:0.8),
                             borderRadius: BorderRadius.circular(5.r),
                           ),
                           child: CustomText(

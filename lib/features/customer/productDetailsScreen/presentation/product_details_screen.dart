@@ -222,7 +222,7 @@ class ProductDetailScreen extends GetView<ProductDetailsController> {
                   ),
                   CustomText(
                     text: "\$${v.price}",
-                    color: isSelected ? AppColors.white.withOpacity(0.7) : AppColors.geryColor,
+                    color: isSelected ? AppColors.white.withValues(alpha:0.7) : AppColors.geryColor,
                     fontSize: 10.sp,
                   ),
                 ],
@@ -302,7 +302,7 @@ class ProductDetailScreen extends GetView<ProductDetailsController> {
     return Container(
       padding: EdgeInsets.all(12.r),
       decoration: BoxDecoration(
-        color: stock > 0 ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+        color: stock > 0 ? Colors.green.withValues(alpha:0.1) : Colors.red.withValues(alpha:0.1),
         borderRadius: BorderRadius.circular(10.r),
       ),
       child: Row(

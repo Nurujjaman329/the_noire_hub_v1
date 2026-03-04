@@ -15,7 +15,7 @@ class EditVariantSet {
   })  : nameController = TextEditingController(text: name),
         descController = TextEditingController(text: desc),
         subVariants = existingSubs,
-        hasId = id != null && id!.isNotEmpty; // Check if ID exists and is not empty
+        hasId = id != null && id.isNotEmpty; // Check if ID exists and is not empty
 
   void addSubVariant() {
     subVariants.add({'name': TextEditingController(), 'price': TextEditingController()});

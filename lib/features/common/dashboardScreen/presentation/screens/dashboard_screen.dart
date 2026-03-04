@@ -170,7 +170,7 @@ class DashboardScreen extends StatelessWidget {
   Widget _buildErrorState(String title, String sub) {
     return Container(
       padding: EdgeInsets.all(20.r),
-      decoration: BoxDecoration(color: Colors.redAccent.withOpacity(0.1), borderRadius: BorderRadius.circular(25.r)),
+      decoration: BoxDecoration(color: Colors.redAccent.withValues(alpha:0.1), borderRadius: BorderRadius.circular(25.r)),
       child: Column(
         children: [
           Icon(Icons.lock_person, color: Colors.red),
@@ -418,30 +418,6 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildProductTile(String url, String prodcutId) {
-    return GestureDetector(
-      onTap: () => Get.toNamed(RouteConstants.vendorProductDetailScreen, arguments: prodcutId),
-      child: Container(
-        width: 100.w,
-        height: 110.h,
-        margin: EdgeInsets.symmetric(horizontal: 8.w),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.2),
-          borderRadius: BorderRadius.circular(25.r),
-          border: Border.all(color: AppColors.white, width: 4),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(20.r), // Match border radius minus border width
-          child: CachedNetworkImage(
-            imageUrl: url,
-            fit: BoxFit.cover,
-            placeholder: (context, url) => const Center(child: Icon(Icons.image, color: Colors.white)),
-            errorWidget: (context, url, error) => const Icon(Icons.error),
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildRevenueSection() {
     return Container(

@@ -157,7 +157,7 @@ class _OrderFulfillmentScreenState extends State<OrderFulfillmentScreen> {
 
     return Container(
       padding: EdgeInsets.symmetric(vertical: 12.h),
-      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.geryColor.withOpacity(0.1)))),
+      decoration: BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.geryColor.withValues(alpha:0.1)))),
       child: Row(
         children: [
           Expanded(
@@ -192,7 +192,7 @@ class _OrderFulfillmentScreenState extends State<OrderFulfillmentScreen> {
           ),
           IconButton(
             onPressed: () => setState(() => enabledMap[key] = !isSelected),
-            icon: Icon(isSelected ? Icons.check_box : Icons.check_box_outline_blank, color: isSelected ? const Color(0xFF4A5D3F) : AppColors.geryColor.withOpacity(0.3)),
+            icon: Icon(isSelected ? Icons.check_box : Icons.check_box_outline_blank, color: isSelected ? const Color(0xFF4A5D3F) : AppColors.geryColor.withValues(alpha:0.3)),
           ),
           SizedBox(width: 15.w),
           Container(
@@ -218,7 +218,7 @@ class _OrderFulfillmentScreenState extends State<OrderFulfillmentScreen> {
     return ListTile(
       contentPadding: EdgeInsets.zero,
       title: CustomText(text: label, fontSize: 12.sp, color: AppColors.primaryDark),
-      trailing: Icon(isSelected ? Icons.check_box : Icons.check_box_outline_blank, color: isSelected ? const Color(0xFF4A5D3F) : AppColors.geryColor.withOpacity(0.3)),
+      trailing: Icon(isSelected ? Icons.check_box : Icons.check_box_outline_blank, color: isSelected ? const Color(0xFF4A5D3F) : AppColors.geryColor.withValues(alpha:0.3)),
       onTap: () => setState(() => enabledMap[key] = !isSelected),
     );
   }
@@ -252,7 +252,7 @@ class _OrderFulfillmentScreenState extends State<OrderFulfillmentScreen> {
           ],
         ),
         SizedBox(height: 4.h),
-        CustomText(text: "Select all that apply", fontSize: 11.sp, color: AppColors.geryColor.withOpacity(0.6)),
+        CustomText(text: "Select all that apply", fontSize: 11.sp, color: AppColors.geryColor.withValues(alpha:0.6)),
         SizedBox(height: 10.h),
       ],
     );

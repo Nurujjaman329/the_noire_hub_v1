@@ -1,4 +1,3 @@
-import 'package:get/get.dart';
 import 'package:the_noire_hub_v1/features/beautician/serviceDetailsScreen/data/service_details_response_model.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/api/api_client.dart';

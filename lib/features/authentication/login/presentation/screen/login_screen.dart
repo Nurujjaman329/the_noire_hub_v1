@@ -163,7 +163,7 @@ class LoginScreen extends GetView<LoginController> {
 
   // --- Options Row ---
   Widget _buildOptionsRow() {
-    final controller = Get.find<LoginController>();
+    // final controller = Get.find<LoginController>();
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [

@@ -71,7 +71,7 @@ class BeauticianStoreServiceController extends GetxController {
   Future<void> removeService(String id) async {
     try {
       // Optimistic Update: remove from UI first for speed
-      final backup = List<ServiceModel>.from(services);
+      // final backup = List<ServiceModel>.from(services);
       services.removeWhere((element) => element.id == id);
 
       await _service.deleteService(id);

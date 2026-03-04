@@ -84,7 +84,7 @@ class CustomerFavoritesController extends GetxController {
     } else {
       Get.snackbar("Error", "Failed to update favorites",
           snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red.withOpacity(0.7),
+          backgroundColor: Colors.red.withValues(alpha:0.7),
           colorText: Colors.white);
     }
   }

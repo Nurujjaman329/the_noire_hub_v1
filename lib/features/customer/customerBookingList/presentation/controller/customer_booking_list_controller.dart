@@ -81,7 +81,7 @@ class CustomerBookingListController extends GetxController {
         Get.snackbar(
             "Success",
             "Booking cancelled successfully",
-            backgroundColor: const Color(0xFF3F592B).withOpacity(0.7),
+            backgroundColor: const Color(0xFF3F592B).withValues(alpha:0.7),
             colorText: Colors.white
         );
         // Refresh the current list to reflect changes
@@ -91,7 +91,7 @@ class CustomerBookingListController extends GetxController {
       Get.snackbar(
           "Error",
           "Failed to cancel booking. Please try again.",
-          backgroundColor: Colors.red.withOpacity(0.7),
+          backgroundColor: Colors.red.withValues(alpha:0.7),
           colorText: Colors.white
       );
     } finally {

@@ -60,11 +60,6 @@ class _BeauticianAddServiceScreenState extends State<BeauticianAddServiceScreen>
     categoryController.loadCategories(userId: CacheService.userId);
   }
 
-  String _formatTime(TimeOfDay time) {
-    final now = DateTime.now();
-    final dt = DateTime(now.year, now.month, now.day, time.hour, time.minute);
-    return DateFormat('HH:mm').format(dt);
-  }
 
   void _handleSave() {
     // 1. Basic Validation
@@ -260,9 +255,9 @@ class _BeauticianAddServiceScreenState extends State<BeauticianAddServiceScreen>
       width: double.infinity,
       padding: EdgeInsets.all(12.r),
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.05),
+        color: AppColors.primary.withValues(alpha:0.05),
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+        border: Border.all(color: AppColors.primary.withValues(alpha:0.2)),
       ),
       child: Wrap(
         spacing: 8.w,
@@ -342,9 +337,9 @@ class _BeauticianAddServiceScreenState extends State<BeauticianAddServiceScreen>
               margin: EdgeInsets.only(bottom: 10.h),
               padding: EdgeInsets.all(12.w),
               decoration: BoxDecoration(
-                  color: const Color(0xFF1D3826).withOpacity(0.05),
+                  color: const Color(0xFF1D3826).withValues(alpha:0.05),
                   borderRadius: BorderRadius.circular(10.r),
-                  border: Border.all(color: const Color(0xFF1D3826).withOpacity(0.2))
+                  border: Border.all(color: const Color(0xFF1D3826).withValues(alpha:0.2))
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -362,7 +357,7 @@ class _BeauticianAddServiceScreenState extends State<BeauticianAddServiceScreen>
                   )
                 ],
               ),
-            )).toList(),
+            )),
             SizedBox(height: 10.h),
           ],
         )
@@ -391,7 +386,7 @@ class _BeauticianAddServiceScreenState extends State<BeauticianAddServiceScreen>
               duration: const Duration(milliseconds: 300),
               width: 100.w, height: 110.h, margin: EdgeInsets.only(right: 15.w),
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.secondaryVariant : AppColors.primary.withOpacity(0.2),
+                color: isSelected ? AppColors.secondaryVariant : AppColors.primary.withValues(alpha:0.2),
                 borderRadius: BorderRadius.circular(25.r),
               ),
               child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -410,7 +405,7 @@ class _BeauticianAddServiceScreenState extends State<BeauticianAddServiceScreen>
       final subCats = subCategoryController.subCategories;
       return Container(
         padding: EdgeInsets.symmetric(horizontal: 10.w),
-        decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(10.r), border: Border.all(color: AppColors.primary)),
+        decoration: BoxDecoration(color: AppColors.primary.withValues(alpha:0.1), borderRadius: BorderRadius.circular(10.r), border: Border.all(color: AppColors.primary)),
         child: DropdownButtonHideUnderline(child: DropdownButton<String>(
           value: selectedSubCategoryId, isExpanded: true,
           hint: CustomText(text: subCategoryController.isLoading.value ? "..." : "Type", fontSize: 11.sp),
@@ -427,7 +422,7 @@ class _BeauticianAddServiceScreenState extends State<BeauticianAddServiceScreen>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20.r),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.05), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       // Fix: GestureDetector stops the parent ScrollView from scrolling when touching the calendar
       child: GestureDetector(
@@ -587,11 +582,11 @@ class _BeauticianAddServiceScreenState extends State<BeauticianAddServiceScreen>
   Widget _buildInputWrapper({required Widget child}) => Container(padding: EdgeInsets.symmetric(horizontal: 12.w), decoration: BoxDecoration(border: Border.all(color: const Color(0xFF1D3826)), borderRadius: BorderRadius.circular(8.r)), child: child);
   Widget _buildPriceAndDiscountRow() => Row(crossAxisAlignment: CrossAxisAlignment.start, children: [Expanded(flex: 2, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [_buildLabel("Price"), _buildInputWrapper(child: TextField(controller: priceController, keyboardType: TextInputType.number, decoration: const InputDecoration(hintText: "0.00", border: InputBorder.none, prefixText: "\$ ")))])), SizedBox(width: 10.w), Expanded(flex: 3, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [_buildLabel("Discount"), Row(children: [Expanded(child: _buildInputWrapper(child: TextField(controller: discountValueController, keyboardType: TextInputType.number, decoration: const InputDecoration(hintText: "Val", border: InputBorder.none)))), SizedBox(width: 5.w), _buildDiscountTypeDropdown()])]))]);
   Widget _buildDiscountTypeDropdown() => Container(padding: EdgeInsets.symmetric(horizontal: 8.w), decoration: BoxDecoration(border: Border.all(color: const Color(0xFF1D3826)), borderRadius: BorderRadius.circular(8.r)), child: DropdownButtonHideUnderline(child: DropdownButton<String>(value: selectedDiscountType, hint: Text("Type", style: TextStyle(fontSize: 11.sp)), items: ["flat", "%"].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(), onChanged: (v) => setState(() => selectedDiscountType = v))));
-  Widget _buildHomeServiceToggle() => Container(padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h), decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(12.r), border: Border.all(color: const Color(0xFF1D3826).withOpacity(0.3))), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Row(children: [Icon(Icons.home_work_outlined, color: const Color(0xFF1D3826), size: 22.sp), SizedBox(width: 10.w), CustomText(text: "Home Service Available", fontSize: 14.sp, fontWeight: FontWeight.w600)]), Switch(value: isHomeServiceAvailable, activeColor: const Color(0xFF1D3826), onChanged: (v) => setState(() => isHomeServiceAvailable = v))]));
+  Widget _buildHomeServiceToggle() => Container(padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h), decoration: BoxDecoration(color: AppColors.primary.withValues(alpha:0.1), borderRadius: BorderRadius.circular(12.r), border: Border.all(color: const Color(0xFF1D3826).withValues(alpha:0.3))), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Row(children: [Icon(Icons.home_work_outlined, color: const Color(0xFF1D3826), size: 22.sp), SizedBox(width: 10.w), CustomText(text: "Home Service Available", fontSize: 14.sp, fontWeight: FontWeight.w600)]), Switch(value: isHomeServiceAvailable, activeThumbColor: const Color(0xFF1D3826), onChanged: (v) => setState(() => isHomeServiceAvailable = v))]));
   Widget _buildDescriptionField() => Container(padding: EdgeInsets.symmetric(horizontal: 10.w), decoration: BoxDecoration(border: Border.all(color: const Color(0xFF1D3826)), borderRadius: BorderRadius.circular(8.r)), child: TextField(controller: descController, maxLines: 3, decoration: const InputDecoration(hintText: "Describe your service...", border: InputBorder.none)));
   Widget _buildVariantLink() => GestureDetector(onTap: () => Get.dialog(const BeauticiansAddVariantSheet(), barrierDismissible: true), child: Container(padding: EdgeInsets.symmetric(vertical: 12.h), decoration: BoxDecoration(color: const Color(0xFF1D3826), borderRadius: BorderRadius.circular(15.r)), child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.add_circle_outline, color: Colors.white, size: 20.sp), SizedBox(width: 10.w), CustomText(text: "Add Service Add-ons (Variants)", color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14.sp)])));
   Widget _buildSliverAppBar() => SliverAppBar(expandedHeight: 180.h, backgroundColor: AppColors.primaryDark, pinned: true, flexibleSpace: FlexibleSpaceBar(background: Center(child: CustomNetworkImage(imageUrl: AppAssets.appLogo, height: 60.h, width: 150.w, fit: BoxFit.contain))), leading: IconButton(icon: Icon(Icons.arrow_back_ios_new, color: AppColors.white, size: 20.sp), onPressed: () => Get.back()));
-  Widget _buildPhotoUploader() => Obx(() => GestureDetector(onTap: () => _showImagePickerOptions(), child: Container(width: double.infinity, height: 120.h, decoration: BoxDecoration(color: const Color(0XFFCADA9F).withOpacity(0.3), border: Border.all(color: const Color(0xFF1D3826)), borderRadius: BorderRadius.circular(15.r)), child: serviceController.selectedImages.isEmpty ? Column(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.add_a_photo_outlined, size: 30, color: Color(0xFF1D3826)), CustomText(text: "Tap to add service photos", fontSize: 11.sp, top: 8.h)]) : ListView.builder(scrollDirection: Axis.horizontal, padding: EdgeInsets.all(10.w), itemCount: serviceController.selectedImages.length, itemBuilder: (context, index) => _imagePreviewTile(index)))));
+  Widget _buildPhotoUploader() => Obx(() => GestureDetector(onTap: () => _showImagePickerOptions(), child: Container(width: double.infinity, height: 120.h, decoration: BoxDecoration(color: const Color(0XFFCADA9F).withValues(alpha:0.3), border: Border.all(color: const Color(0xFF1D3826)), borderRadius: BorderRadius.circular(15.r)), child: serviceController.selectedImages.isEmpty ? Column(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.add_a_photo_outlined, size: 30, color: Color(0xFF1D3826)), CustomText(text: "Tap to add service photos", fontSize: 11.sp, top: 8.h)]) : ListView.builder(scrollDirection: Axis.horizontal, padding: EdgeInsets.all(10.w), itemCount: serviceController.selectedImages.length, itemBuilder: (context, index) => _imagePreviewTile(index)))));
   Widget _imagePreviewTile(int index) => Stack(children: [Container(margin: EdgeInsets.only(right: 10.w), width: 100.w, decoration: BoxDecoration(borderRadius: BorderRadius.circular(10.r), image: DecorationImage(image: FileImage(serviceController.selectedImages[index]), fit: BoxFit.cover))), Positioned(top: 0, right: 5.w, child: GestureDetector(onTap: () => serviceController.removeImage(index), child: const CircleAvatar(radius: 12, backgroundColor: Colors.red, child: Icon(Icons.close, size: 14, color: Colors.white))))]);
   void _showImagePickerOptions() => Get.bottomSheet(Container(padding: EdgeInsets.all(20.w), decoration: const BoxDecoration(color: Colors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(20))), child: Column(mainAxisSize: MainAxisSize.min, children: [ListTile(leading: const Icon(Icons.camera_alt), title: const Text("Camera"), onTap: () { Get.back(); serviceController.pickImage(ImageSource.camera); }), ListTile(leading: const Icon(Icons.photo_library), title: const Text("Gallery"), onTap: () { Get.back(); serviceController.pickImage(ImageSource.gallery); })])));
 }

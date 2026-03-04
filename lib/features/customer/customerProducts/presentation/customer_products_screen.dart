@@ -425,7 +425,7 @@ class CustomerProductsScreen extends StatelessWidget {
               style: TextStyle(fontSize: 14.sp, color: Colors.black),
               decoration: InputDecoration(
                 hintText: "Search services, products and stylists",
-                hintStyle: TextStyle(fontSize: 12.sp, color: const Color(0XFF000000).withOpacity(0.5)),
+                hintStyle: TextStyle(fontSize: 12.sp, color: const Color(0XFF000000).withValues(alpha:0.5)),
                 border: InputBorder.none,
                 isDense: true,
                 contentPadding: EdgeInsets.symmetric(vertical: 12.h),
@@ -629,9 +629,9 @@ class CustomerProductsScreen extends StatelessWidget {
           SliderTheme(
             data: SliderTheme.of(Get.context!).copyWith(
               activeTrackColor: const Color(0xFF1D3826),
-              inactiveTrackColor: const Color(0xFF1D3826).withOpacity(0.1),
+              inactiveTrackColor: const Color(0xFF1D3826).withValues(alpha:0.1),
               thumbColor: const Color(0xFF1D3826),
-              overlayColor: const Color(0xFF1D3826).withOpacity(0.2),
+              overlayColor: const Color(0xFF1D3826).withValues(alpha:0.2),
               valueIndicatorColor: const Color(0xFF1D3826),
               valueIndicatorTextStyle: const TextStyle(color: Colors.white),
             ),
@@ -746,9 +746,9 @@ class CustomerProductsScreen extends StatelessWidget {
           SliderTheme(
             data: SliderTheme.of(Get.context!).copyWith(
               activeTrackColor: const Color(0xFF1D3826),
-              inactiveTrackColor: const Color(0xFF1D3826).withOpacity(0.1),
+              inactiveTrackColor: const Color(0xFF1D3826).withValues(alpha:0.1),
               thumbColor: const Color(0xFF1D3826),
-              overlayColor: const Color(0xFF1D3826).withOpacity(0.2),
+              overlayColor: const Color(0xFF1D3826).withValues(alpha:0.2),
               rangeThumbShape: const RoundRangeSliderThumbShape(enabledThumbRadius: 10),
             ),
             child: RangeSlider(

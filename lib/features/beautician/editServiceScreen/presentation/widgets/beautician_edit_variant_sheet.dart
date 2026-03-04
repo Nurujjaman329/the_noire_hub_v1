@@ -100,7 +100,7 @@ class _BeauticiansEditVariantSheetState extends State<BeauticiansEditVariantShee
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: editSets.length,
-                separatorBuilder: (_, __) => Padding(
+                separatorBuilder: (_, _) => Padding(
                   padding: EdgeInsets.symmetric(vertical: 15.h),
                   child: const Divider(color: Color(0xFFCADA9F)),
                 ),
@@ -155,13 +155,13 @@ class _BeauticiansEditVariantSheetState extends State<BeauticiansEditVariantShee
                 Expanded(flex: 2, child: _buildSubInputField("\$ 0.00", set.subVariants[subIdx]['price']!, isNum: true)),
                 if (set.subVariants.length > 1)
                   IconButton(
-                    icon: Icon(Icons.remove_circle_outline, color: Colors.redAccent.withOpacity(0.7), size: 20.sp),
+                    icon: Icon(Icons.remove_circle_outline, color: Colors.redAccent.withValues(alpha:0.7), size: 20.sp),
                     onPressed: () => setState(() => set.subVariants.removeAt(subIdx)),
                   )
               ],
             ),
           );
-        }).toList(),
+        }),
 
         GestureDetector(
           onTap: () => setState(() => set.addSubVariant()),
@@ -181,9 +181,9 @@ class _BeauticiansEditVariantSheetState extends State<BeauticiansEditVariantShee
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 12.w),
       decoration: BoxDecoration(
-        color: const Color(0xFFCADA9F).withOpacity(0.2),
+        color: const Color(0xFFCADA9F).withValues(alpha:0.2),
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: const Color(0xFF1D3826).withOpacity(0.3)),
+        border: Border.all(color: const Color(0xFF1D3826).withValues(alpha:0.3)),
       ),
       child: TextField(
         controller: ctr,
@@ -199,7 +199,7 @@ class _BeauticiansEditVariantSheetState extends State<BeauticiansEditVariantShee
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8.r),
-        border: Border.all(color: const Color(0xFF1D3826).withOpacity(0.5)),
+        border: Border.all(color: const Color(0xFF1D3826).withValues(alpha:0.5)),
       ),
       child: TextField(
         controller: ctr,
@@ -208,7 +208,7 @@ class _BeauticiansEditVariantSheetState extends State<BeauticiansEditVariantShee
         decoration: InputDecoration(
           hintText: hint,
           border: InputBorder.none,
-          hintStyle: TextStyle(fontSize: 12.sp, color: Colors.grey.withOpacity(0.6)),
+          hintStyle: TextStyle(fontSize: 12.sp, color: Colors.grey.withValues(alpha:0.6)),
         ),
       ),
     );

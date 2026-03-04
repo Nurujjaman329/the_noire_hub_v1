@@ -69,14 +69,14 @@ class BookingCard extends StatelessWidget {
                       CustomText(
                           text: formattedDate,
                           fontSize: 12.sp,
-                          color: Colors.black.withOpacity(0.7)),
+                          color: Colors.black.withValues(alpha:0.7)),
                     ],
                   ),
                   SizedBox(height: 4.h),
                   CustomText(
                       text: "Time: ${booking.appointmentTime}",
                       fontSize: 10.sp,
-                      color: Colors.black.withOpacity(0.7)),
+                      color: Colors.black.withValues(alpha:0.7)),
                   SizedBox(height: 8.h),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -85,7 +85,7 @@ class BookingCard extends StatelessWidget {
                         text: "\$${booking.totalAmount.toStringAsFixed(2)}",
                         fontSize: 14.sp,
                         fontWeight: FontWeight.bold,
-                        color: const Color(0xFF3F592B).withOpacity(0.8),
+                        color: const Color(0xFF3F592B).withValues(alpha:0.8),
                       ),
                       _buildActionButton(context, listController),
                     ],
@@ -238,7 +238,7 @@ class BookingCard extends StatelessWidget {
                       children: [
                         CustomText(text: booking.service?.name ?? "Booking Details", fontSize: 18.sp, fontWeight: FontWeight.bold),
                         SizedBox(height: 5.h),
-                        _statusBadge(tabStatus, const Color(0xFF2D3E2F), const Color(0xFFC4C99A).withOpacity(0.4)),
+                        _statusBadge(tabStatus, const Color(0xFF2D3E2F), const Color(0xFFC4C99A).withValues(alpha:0.4)),
                       ],
                     ),
                   ),
@@ -326,7 +326,7 @@ class BookingCard extends StatelessWidget {
       case "Pending":
         return GestureDetector(
           onTap: () => _showCancelDialog(context, controller),
-          child: _statusBadge("Cancel", const Color(0xFFFF0000), const Color(0xFFFF0000).withOpacity(0.1)),
+          child: _statusBadge("Cancel", const Color(0xFFFF0000), const Color(0xFFFF0000).withValues(alpha:0.1)),
         );
 
       case "In Progress":
@@ -339,7 +339,7 @@ class BookingCard extends StatelessWidget {
               child: _statusBadge(
                   "Cancel",
                   const Color(0xFFFF0000),
-                  const Color(0xFFFF0000).withOpacity(0.1)
+                  const Color(0xFFFF0000).withValues(alpha:0.1)
               ),
             ),
             SizedBox(width: 8.w), // Space between buttons
@@ -349,7 +349,7 @@ class BookingCard extends StatelessWidget {
               child: _statusBadge(
                   "Complete",
                   const Color(0xFF3F592B),
-                  const Color(0xFFCADA9F).withOpacity(0.3)
+                  const Color(0xFFCADA9F).withValues(alpha:0.3)
               ),
             ),
           ],

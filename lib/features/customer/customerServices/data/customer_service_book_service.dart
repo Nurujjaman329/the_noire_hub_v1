@@ -33,10 +33,12 @@ class CustomerServiceBookService {
     if (latitude != null) queryParams['latitude'] = latitude;
     if (longitude != null) queryParams['longitude'] = longitude;
     if (name != null && name.isNotEmpty) queryParams['name'] = name;
-    if (category != null && category.isNotEmpty)
+    if (category != null && category.isNotEmpty) {
       queryParams['category'] = category;
-    if (subcategory != null && subcategory.isNotEmpty)
+    }
+    if (subcategory != null && subcategory.isNotEmpty) {
       queryParams['subcategory'] = subcategory;
+    }
     if (maxDistance != null) queryParams['maxDistance'] = maxDistance;
     if (minRating != null) queryParams['minRating'] = minRating;
     if (minPrice != null) queryParams['minPrice'] = minPrice;

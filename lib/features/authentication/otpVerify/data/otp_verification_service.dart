@@ -33,10 +33,10 @@ class OtpVerificationService {
         double? latitude;
         double? longitude;
 
-        if (user.addresses != null && user.addresses!.isNotEmpty) {
-          final addr = user.addresses!.firstWhere(
+        if (user.addresses.isNotEmpty) {
+          final addr = user.addresses.firstWhere(
                 (a) => a.isDefault,
-            orElse: () => user.addresses!.first,
+            orElse: () => user.addresses.first,
           );
 
           combinedAddress = "${addr.city}|${addr.country}";

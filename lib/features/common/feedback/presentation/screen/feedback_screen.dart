@@ -131,7 +131,7 @@ class FeedbackScreen extends GetView<FeedbackController> {
               width: double.infinity,
               padding: EdgeInsets.all(8.r),
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.05),
+                color: Colors.blue.withValues(alpha:0.05),
                 borderRadius: BorderRadius.circular(6.r),
               ),
               child: CustomText(
@@ -162,7 +162,7 @@ class FeedbackScreen extends GetView<FeedbackController> {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha:0.1),
         borderRadius: BorderRadius.circular(5.r),
       ),
       child: CustomText(

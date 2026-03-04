@@ -69,7 +69,7 @@ class _EditServicesScreenState extends State<EditServicesScreen> {
     selectedDiscountType = service.discount.type;
 
     isHomeServiceAvailable = service.homeService;
-    existingImages = service.images ?? [];
+    existingImages = service.images;
 
     // ✅ MERGE DATES: Add all existing dates to the selection set
     for (var dateStr in service.availableDates) {
@@ -281,7 +281,7 @@ class _EditServicesScreenState extends State<EditServicesScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: const Color(0xFF1D3826).withOpacity(0.1)),
+        border: Border.all(color: const Color(0xFF1D3826).withValues(alpha:0.1)),
       ),
       child: ListTile(
         contentPadding: EdgeInsets.symmetric(horizontal: 15.w),
@@ -420,7 +420,7 @@ class _EditServicesScreenState extends State<EditServicesScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20.r),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.05), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: GestureDetector(
         onVerticalDragUpdate: (_) {}, // Prevents page scroll when touching calendar
@@ -474,7 +474,7 @@ class _EditServicesScreenState extends State<EditServicesScreen> {
 
   Widget _buildDiscountTypeDropdown() => Container(padding: EdgeInsets.symmetric(horizontal: 8.w), decoration: BoxDecoration(border: Border.all(color: const Color(0xFF1D3826)), borderRadius: BorderRadius.circular(8.r)), child: DropdownButtonHideUnderline(child: DropdownButton<String>(value: selectedDiscountType, hint: Text("Type", style: TextStyle(fontSize: 11.sp)), items: ["flat", "%"].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(), onChanged: (v) => setState(() => selectedDiscountType = v))));
 
-  Widget _buildHomeServiceToggle() => Container(padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h), decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(12.r), border: Border.all(color: const Color(0xFF1D3826).withOpacity(0.3))), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Row(children: [Icon(Icons.home_work_outlined, color: const Color(0xFF1D3826), size: 22.sp), SizedBox(width: 10.w), CustomText(text: "Home Service Available", fontSize: 14.sp, fontWeight: FontWeight.w600)]), Switch(value: isHomeServiceAvailable, activeColor: const Color(0xFF1D3826), onChanged: (v) => setState(() => isHomeServiceAvailable = v))]));
+  Widget _buildHomeServiceToggle() => Container(padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h), decoration: BoxDecoration(color: AppColors.primary.withValues(alpha:0.1), borderRadius: BorderRadius.circular(12.r), border: Border.all(color: const Color(0xFF1D3826).withValues(alpha:0.3))), child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Row(children: [Icon(Icons.home_work_outlined, color: const Color(0xFF1D3826), size: 22.sp), SizedBox(width: 10.w), CustomText(text: "Home Service Available", fontSize: 14.sp, fontWeight: FontWeight.w600)]), Switch(value: isHomeServiceAvailable, activeColor: const Color(0xFF1D3826), onChanged: (v) => setState(() => isHomeServiceAvailable = v))]));
 
   Widget _buildDescriptionField() => Container(padding: EdgeInsets.symmetric(horizontal: 10.w), decoration: BoxDecoration(border: Border.all(color: const Color(0xFF1D3826)), borderRadius: BorderRadius.circular(8.r)), child: TextField(controller: descController, maxLines: 3, decoration: const InputDecoration(hintText: "Describe your service...", border: InputBorder.none)));
 
@@ -487,7 +487,7 @@ class _EditServicesScreenState extends State<EditServicesScreen> {
       width: double.infinity,
       height: 120.h,
       decoration: BoxDecoration(
-        color: const Color(0XFFCADA9F).withOpacity(0.3),
+        color: const Color(0XFFCADA9F).withValues(alpha:0.3),
         border: Border.all(color: const Color(0xFF1D3826)),
         borderRadius: BorderRadius.circular(15.r),
       ),

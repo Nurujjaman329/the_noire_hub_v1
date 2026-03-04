@@ -172,8 +172,8 @@ class _BusinessDocumentsTabState extends State<BusinessDocumentsTab> {
       padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
         color: isServer
-            ? const Color(0XFFCADA9F).withOpacity(0.1)
-            : AppColors.divider.withOpacity(0.2),
+            ? const Color(0XFFCADA9F).withValues(alpha:0.1)
+            : AppColors.divider.withValues(alpha:0.2),
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
           color: isServer

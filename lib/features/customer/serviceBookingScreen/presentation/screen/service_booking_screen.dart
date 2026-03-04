@@ -106,7 +106,7 @@ class ServiceBookingScreen extends StatelessWidget {
           child: GestureDetector(
             onTap: () => Get.back(),
             child: CircleAvatar(
-              backgroundColor: Colors.black.withOpacity(0.5),
+              backgroundColor: Colors.black.withValues(alpha:0.5),
               child: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 18),
             ),
           ),
@@ -228,9 +228,9 @@ class ServiceBookingScreen extends StatelessWidget {
           Container(
             padding: EdgeInsets.all(15.r),
             decoration: BoxDecoration(
-              color: const Color(0xFFF1F4D3).withOpacity(0.3),
+              color: const Color(0xFFF1F4D3).withValues(alpha:0.3),
               borderRadius: BorderRadius.circular(20.r),
-              border: Border.all(color: const Color(0xFFC4C99A).withOpacity(0.5)),
+              border: Border.all(color: const Color(0xFFC4C99A).withValues(alpha:0.5)),
             ),
             child: Column(
               children: [
@@ -276,7 +276,7 @@ class ServiceBookingScreen extends StatelessWidget {
                           shape: BoxShape.circle,
                           color: isSelected
                               ? const Color(0xFF2D3E2F)
-                              : (isAvailable ? const Color(0xFFC4C99A).withOpacity(0.3) : Colors.transparent),
+                              : (isAvailable ? const Color(0xFFC4C99A).withValues(alpha:0.3) : Colors.transparent),
                           border: isAvailable ? Border.all(color: const Color(0xFF2D3E2F), width: 0.5) : null,
                         ),
                         alignment: Alignment.center,
@@ -330,7 +330,7 @@ class ServiceBookingScreen extends StatelessWidget {
               decoration: BoxDecoration(
                 border: Border.all(color: const Color(0xFFC4C99A)),
                 borderRadius: BorderRadius.circular(25.r),
-                color: const Color(0xFFF1F4D3).withOpacity(0.2),
+                color: const Color(0xFFF1F4D3).withValues(alpha:0.2),
               ),
               child: Row(
                 children: [

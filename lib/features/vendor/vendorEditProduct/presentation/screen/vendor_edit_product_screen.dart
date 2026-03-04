@@ -387,7 +387,7 @@ class _VendorEditProductScreenState extends State<VendorEditProductScreen> {
       width: double.infinity,
       height: 110.h,
       decoration: BoxDecoration(
-        border: Border.all(color: const Color(0xFF1D3826).withOpacity(0.3)),
+        border: Border.all(color: const Color(0xFF1D3826).withValues(alpha:0.3)),
         borderRadius: BorderRadius.circular(15.r),
       ),
       child: editController.selectedImages.isEmpty
@@ -464,7 +464,7 @@ class _VendorEditProductScreenState extends State<VendorEditProductScreen> {
 
   Widget _buildInputWrapper({required Widget child}) => Container(
     padding: EdgeInsets.symmetric(horizontal: 12.w),
-    decoration: BoxDecoration(border: Border.all(color: const Color(0xFF1D3826).withOpacity(0.5)), borderRadius: BorderRadius.circular(10.r)),
+    decoration: BoxDecoration(border: Border.all(color: const Color(0xFF1D3826).withValues(alpha:0.5)), borderRadius: BorderRadius.circular(10.r)),
     child: child,
   );
 
