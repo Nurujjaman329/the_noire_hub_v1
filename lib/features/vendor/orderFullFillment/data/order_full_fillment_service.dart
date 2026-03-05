@@ -12,17 +12,21 @@ class OrderFullFillmentService {
   OrderFullFillmentService(this._apiClient);
 
   /// Fetch existing fulfillment settings
-  Future<OrderFullFillmentResponseModel> getFulfillmentSettings() async {
+  Future<OrderFullFillmentResponseModel> getFulfillmentSettings({String? vendorId}) async {
     try {
-      debugPrint('🚀 [GET] Fetching Fulfillment: ${ApiConstants.orderFullFillMent}');
+      // Build the URL with query parameter if vendorId is provided
+      String url = ApiConstants.orderFullFillMent;
+      if (vendorId != null && vendorId.isNotEmpty) {
+        url = '$url?vendorId=$vendorId';
+      }
 
-      final response = await _apiClient.get(ApiConstants.orderFullFillMent);
+      debugPrint('🚀 [GET] Fetching Fulfillment: $url');
+
+      final response = await _apiClient.get(url);
 
       // --- DEBUG RESPONSE ---
-      // Using jsonEncode with indent makes the console output easy to read
       final prettyJson = const JsonEncoder.withIndent('  ').convert(response.data);
-      debugPrint('📥 Response Data:\n$prettyJson');
-      // ----------------------
+      debugPrint('📥 Response Data for $vendorId:\n$prettyJson');
 
       return OrderFullFillmentResponseModel.fromJson(response.data);
     } on AppException catch (e) {
@@ -33,7 +37,6 @@ class OrderFullFillmentService {
       rethrow;
     }
   }
-
   /// Update or Create fulfillment settings
 
   Future<bool> saveFulfillmentSettings(OrderFullFillmentPostBody body) async {

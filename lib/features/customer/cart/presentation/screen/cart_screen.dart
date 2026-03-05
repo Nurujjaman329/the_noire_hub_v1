@@ -11,7 +11,6 @@ import '../../../../../core/widgets/custom_text.dart';
 import '../../../multiVendorCartScreen/data/multi_vendor_cart_response_model.dart';
 import '../../../multiVendorCartScreen/presentation/controller/multi_vendor_cart_controller.dart';
 
-// 1. Change to GetView to access our controller easily
 class CartScreen extends GetView<MultiVendorCartController> {
   const CartScreen({super.key});
 
@@ -84,9 +83,13 @@ class CartScreen extends GetView<MultiVendorCartController> {
                       ],
                     ),
                     SizedBox(height: 20.h),
+                    // Inside CartScreen subtotal section
                     CustomButton(
                       text: "Go to checkout",
-                      onTap: () => Get.toNamed(RouteConstants.checkOutScreen),
+                      onTap: () => Get.toNamed(
+                          RouteConstants.checkOutScreen,
+                          arguments: currentVendor ?? vendorData
+                      ),
                     ),
                   ],
                 ),

@@ -9,6 +9,8 @@ import '../../features/customer/customerProducts/presentation/controller/custome
 import '../../features/customer/customerServices/presentation/controller/customer_service_controller.dart';
 import '../../features/customer/multiVendorCartScreen/data/multi_vendor_cart_service.dart';
 import '../../features/customer/multiVendorCartScreen/presentation/controller/multi_vendor_cart_controller.dart';
+import '../../features/vendor/orderFullFillment/data/order_full_fillment_service.dart';
+import '../../features/vendor/orderFullFillment/presentation/controller/order_full_fillment_controller.dart';
 import '../../features/vendor/vendorOrderScreen/data/vendor_order_service.dart';
 import '../../features/vendor/vendorOrderScreen/presentation/controller/vendor_order_controller.dart';
 import '../api/api_client.dart';
@@ -64,9 +66,12 @@ class InitialBinding extends Bindings {
     Get.lazyPut<MultiVendorCartService>(() => MultiVendorCartService(Get.find<ApiClient>()));
     Get.lazyPut<MultiVendorCartController>(() => MultiVendorCartController(Get.find<MultiVendorCartService>()));
 
-    // Customer Cart List
     Get.lazyPut<VendorOrderService>(() => VendorOrderService(Get.find<ApiClient>()));
     Get.lazyPut<VendorOrderController>(() => VendorOrderController(Get.find<VendorOrderService>()));
+
+
+    Get.lazyPut<OrderFullFillmentService>(() => OrderFullFillmentService(Get.find<ApiClient>()));
+    Get.lazyPut<OrderFullFillmentController>(() => OrderFullFillmentController(Get.find<OrderFullFillmentService>()));
 
   }
 }

@@ -12,15 +12,24 @@ class MultiVendorCartService {
     final uri = ApiConstants.cart;
 
     try {
+      debugPrint("🛒 Cart API Request: $uri");
+
       final response = await _apiClient.get(uri);
 
+      debugPrint("✅ Status Code: ${response.statusCode}");
+      debugPrint("📦 Response Data: ${response.data}");
+
       if (response.statusCode == 200) {
-        return MultiVendorCartResponseModel.fromJson(response.data);
+        final model = MultiVendorCartResponseModel.fromJson(response.data);
+        debugPrint("🎯 Cart Parsed Successfully");
+        return model;
       } else {
+        debugPrint("❌ Failed Status Code: ${response.statusCode}");
         throw Exception("Failed to load cart: ${response.statusCode}");
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint("❌ CartService Error: $e");
+      debugPrint("📍 StackTrace: $stackTrace");
       rethrow;
     }
   }
