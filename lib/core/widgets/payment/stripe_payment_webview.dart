@@ -28,22 +28,36 @@ class _StripePaymentWebViewState extends State<StripePaymentWebView> {
           onPageStarted: (String url) {
             setState(() => isLoading = true);
           },
-          onPageFinished: (String url) {
-            setState(() => isLoading = false);
+            onPageFinished: (String url) {
+              setState(() => isLoading = false);
 
-            // --- SUCCESS CASE ---
-            if (url.contains('success')) {
-              // Show snackbar first
-              Get.snackbar(
-                "Payment Successful",
-                "Your booking has been confirmed.",
-                backgroundColor: const Color(0xFF1D3826),
-                colorText: Colors.white,
-                duration: const Duration(seconds: 3),
-              );
+              // --- SUCCESS CASE ---
+              if (url.contains('success')) {
+                // Identify where we came from
+                final String? source = Get.arguments is String ? Get.arguments as String : null;
 
-              // Navigate and clear the history so user can't "back" into payment
-              Get.offAllNamed(RouteConstants.customerBookingSuccess,arguments: Get.arguments,);
+                if (source == "checkout") {
+                  // 1. Success from Checkout -> OrderSuccessScreen
+                  Get.snackbar(
+                    "Order Successful",
+                    "Your order has been placed.",
+                    backgroundColor: const Color(0xFF1D3826),
+                    colorText: Colors.white,
+                  );
+                  Get.offAllNamed(RouteConstants.orderSuccessScreen);
+                } else {
+                  // 2. Default/Booking Success -> BookingSuccessScreen
+                  Get.snackbar(
+                    "Payment Successful",
+                    "Your booking has been confirmed.",
+                    backgroundColor: const Color(0xFF1D3826),
+                    colorText: Colors.white,
+                  );
+                  Get.offAllNamed(
+                    RouteConstants.customerBookingSuccess,
+                    arguments: Get.arguments,
+                  );
+                }
 
               // Get.offAllNamed(
               //     RouteConstants.customerMainContainer,

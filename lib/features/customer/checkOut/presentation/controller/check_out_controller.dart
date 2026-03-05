@@ -42,7 +42,10 @@ class CheckOutController extends GetxController with MapSearchMixin {
       if (result != null) {
         String checkoutUrl = result['checkoutUrl'] ?? "";
         if (checkoutUrl.isNotEmpty) {
-          Get.to(() => StripePaymentWebView(url: checkoutUrl));
+          Get.to(
+                () => StripePaymentWebView(url: checkoutUrl),
+            arguments: "checkout",
+          );
         }
       }
     } catch (e) {
