@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:the_noire_hub_v1/core/constants/app_colors.dart';
 import '../../../../../../core/constants/route_constants.dart';
 import '../../../../../../core/widgets/custom_network_image.dart';
 import '../../../../../../core/widgets/custom_text.dart';
@@ -94,16 +95,14 @@ class VendorOrderHistoryCard extends StatelessWidget {
     switch (tabStatus) {
       case "Pending":
         return GestureDetector(
-          onTap: () => _showCancelDialog(context, controller),
-          child: _statusBadge("Cancel", const Color(0xFFFF0000), const Color(0xFFFF0000).withOpacity(0.1)),
+          // Trigger simple confirmation instead of reason dialog
+          onTap: () => _showStatusConfirmDialog(context, controller, "in-progress"),
+          child: _statusBadge("Accept Order", const Color(0xFF3F592B), const Color(0xFFCADA9F)),
         );
       case "In Progress":
-        return _statusBadge("Shipped", const Color(0xFF2D3E2F), const Color(0xFFC4C99A).withOpacity(0.3));
+        return CustomText(text: "In-Progress", fontSize: 12.sp, fontWeight: FontWeight.bold, color: AppColors.background);
       case "Completed":
-        return GestureDetector(
-          onTap: () => Get.toNamed(RouteConstants.rateServiceScreen, arguments: order.id),
-          child: _statusBadge("Review", const Color(0xFF2D3E2F), const Color(0xFFC4C99A)),
-        );
+        return _statusBadge("Finished", const Color(0xFF2D3E2F), const Color(0xFFF5F5F5));
       case "Canceled":
         return CustomText(text: "Canceled", fontSize: 12.sp, fontWeight: FontWeight.bold, color: Colors.red);
       default:
@@ -111,13 +110,11 @@ class VendorOrderHistoryCard extends StatelessWidget {
     }
   }
 
-  void _showCancelDialog(BuildContext context, VendorOrderController controller) {
-    final reasonController = TextEditingController();
-
+  /// Simple Confirmation BottomSheet for Status Updates (No Reason Required)
+  void _showStatusConfirmDialog(BuildContext context, VendorOrderController controller, String nextStatus) {
     Get.bottomSheet(
-      isScrollControlled: true,
       Container(
-        padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, MediaQuery.of(context).viewInsets.bottom + 20.h),
+        padding: EdgeInsets.all(20.w),
         decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.vertical(top: Radius.circular(30.r))
@@ -125,41 +122,43 @@ class VendorOrderHistoryCard extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CustomText(text: "Cancel Order", fontSize: 18.sp, fontWeight: FontWeight.bold),
-            SizedBox(height: 15.h),
-            TextField(
-              controller: reasonController,
-              maxLines: 3,
-              decoration: InputDecoration(
-                  hintText: "Reason for cancellation...",
-                  filled: true,
-                  fillColor: const Color(0xFFF5F5F5),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.r), borderSide: BorderSide.none)
-              ),
+            SizedBox(height: 10.h),
+            CustomText(
+                text: "Update Order Status",
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold
             ),
-            SizedBox(height: 20.h),
+            SizedBox(height: 15.h),
+            CustomText(
+                text: "Are you sure you want to mark this order as ${nextStatus.replaceAll('-', ' ')}?",
+                fontSize: 14.sp,
+                textAlign: TextAlign.center,
+                color: Colors.black54
+            ),
+            SizedBox(height: 25.h),
             Obx(() => SizedBox(
               width: double.infinity,
               height: 48.h,
-              child: controller.isCanceling.value
+              child: controller.isStatusUpdating.value
                   ? const Center(child: CircularProgressIndicator(color: Color(0xFF3F592B)))
                   : ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFF0000),
+                    backgroundColor: const Color(0xFF3F592B),
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r))
                 ),
                 onPressed: () {
-                  if(reasonController.text.trim().isEmpty) {
-                    Get.snackbar("Required", "Please provide a reason", snackPosition: SnackPosition.BOTTOM);
-                    return;
-                  }
                   Get.back(); // Close bottom sheet
-                  controller.handleCancel(order.id, reasonController.text.trim());
+                  controller.updateStatus(order.id, nextStatus);
                 },
-                child: const Text("Confirm Cancellation"),
+                child: Text("Confirm ${nextStatus.capitalizeFirst}"),
               ),
             )),
+            SizedBox(height: 10.h),
+            TextButton(
+                onPressed: () => Get.back(),
+                child: const CustomText(text: "Cancel", color: Colors.grey)
+            ),
             SizedBox(height: 10.h),
           ],
         ),

@@ -49,35 +49,30 @@ class VendorOrderService {
     }
   }
 
-  Future<bool> cancelOrder({required String orderId, required String reason}) async {
-    final String url = "${ApiConstants.productOrders}/$orderId/cancel";
 
-    debugPrint("===> CANCEL ORDER REQUEST: $url");
-    debugPrint("===> BODY: {'cancellationReason': '$reason'}");
+  Future<bool> updateOrderStatus({required String orderId, required String status}) async {
+    final String url = "${ApiConstants.productOrders}/$orderId/status";
+
+    debugPrint("===> UPDATE STATUS REQUEST: $url");
+    debugPrint("===> BODY: {'status': '$status'}");
 
     try {
-      // Changed 'body' to 'data' to match your postJson signature
-      final response = await _apiClient.postJson(
+      final response = await _apiClient.patch(
         url,
         data: {
-          "cancellationReason": reason,
+          "status": status,
         },
       );
 
-      debugPrint("<=== CANCEL RESPONSE CODE: ${response.statusCode}");
+      debugPrint("<=== UPDATE STATUS RESPONSE CODE: ${response.statusCode}");
 
-      // Check if the API returned a success code in the JSON body
-      if (response.data != null && response.data['code'] == 200) {
-        debugPrint("<=== CANCEL SUCCESSFUL");
-        return true;
-      }
-
-      debugPrint("<=== CANCEL FAILED: ${response.data['message']}");
-      return false;
+      // Returns true if code is 200
+      return response.data != null && response.data['code'] == 200;
     } catch (e) {
-      debugPrint("!!! CANCEL ORDER SERVICE ERROR: $e");
+      debugPrint("!!! UPDATE STATUS SERVICE ERROR: $e");
       return false;
     }
   }
+
 
 }

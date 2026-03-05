@@ -12,7 +12,7 @@ class VendorOrderController extends GetxController {
   // Defaulting to "Pending" to match the first tab
   var selectedTab = "Pending".obs;
   var isLoading = false.obs;
-  var isCanceling = false.obs;
+  var isStatusUpdating = false.obs;
   var orders = <VendorOrderDoc>[].obs;
 
   // --- Pagination ---
@@ -76,13 +76,31 @@ class VendorOrderController extends GetxController {
     }
   }
 
-  Future<void> handleCancel(String id, String reason) async {
-    isCanceling.value = true;
-    bool success = await _service.cancelOrder(orderId: id, reason: reason);
-    isCanceling.value = false;
+  Future<void> updateStatus(String orderId, String newStatus) async {
+    isStatusUpdating.value = true;
+    try {
+      final success = await _service.updateOrderStatus(
+        orderId: orderId,
+        status: newStatus,
+      );
 
-    if (success) {
-      onRefresh(); // Refresh the list to move order to 'Canceled' tab
+      if (success) {
+        Get.snackbar(
+          "Success",
+          "Order status updated to $newStatus",
+          backgroundColor: const Color(0xFF3F592B).withOpacity(0.8),
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        // Refresh the current tab to remove the item (it will move to the next tab)
+        onRefresh();
+      } else {
+        Get.snackbar("Error", "Failed to update status");
+      }
+    } catch (e) {
+      debugPrint("Controller Status Update Error: $e");
+    } finally {
+      isStatusUpdating.value = false;
     }
   }
 

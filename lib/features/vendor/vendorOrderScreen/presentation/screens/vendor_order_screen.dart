@@ -17,7 +17,7 @@ class VendorOrdersScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: CustomAppBar(title: "Order History", showBackButton: true),
+      appBar: CustomAppBar(title: "Order History",),
       body: Column(
         children: [
           _buildOrderTabs(controller),
