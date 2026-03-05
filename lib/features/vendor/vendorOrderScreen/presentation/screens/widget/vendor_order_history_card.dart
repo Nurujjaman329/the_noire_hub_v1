@@ -1,41 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+import '../../../../../../core/constants/route_constants.dart';
 import '../../../../../../core/widgets/custom_network_image.dart';
 import '../../../../../../core/widgets/custom_text.dart';
+import '../../../data/vendor_order_response_model.dart';
+import '../../controller/vendor_order_controller.dart';
 
 
 class VendorOrderHistoryCard extends StatelessWidget {
-  final String studioName;
-  final String serviceName;
-  final String date;
-  final String status; // "Pending", "In Progress", "Complete", "Canceled"
+  final VendorOrderDoc order;
+  final String tabStatus;
 
   const VendorOrderHistoryCard({
     super.key,
-    required this.studioName,
-    required this.serviceName,
-    required this.date,
-    required this.status,
+    required this.order,
+    required this.tabStatus,
   });
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.find<VendorOrderController>();
+
+    final firstItem = order.items.isNotEmpty ? order.items.first : null;
+    final String imageUrl = firstItem?.productImage ?? "";
+    final String productName = firstItem?.productName ?? "Product Order";
+    final String vendorName = order.vendor?.businessName ?? "Studio";
+
     return Container(
       margin: EdgeInsets.only(bottom: 20.h),
       padding: EdgeInsets.only(bottom: 15.h),
       decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: Color(0xFFF5F5F5), width: 1),
-        ),
+        border: Border(bottom: BorderSide(color: Color(0xFFF5F5F5), width: 1)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ClipRRect(
-            borderRadius: BorderRadius.circular(50.r),
+            borderRadius: BorderRadius.circular(10.r),
             child: CustomNetworkImage(
-              imageUrl: "https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=200",
+              imageUrl: imageUrl,
               height: 70.h,
               width: 70.w,
             ),
@@ -48,31 +53,33 @@ class VendorOrderHistoryCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    CustomText(text: studioName, fontSize: 14.sp, fontWeight: FontWeight.bold),
+                    Expanded(
+                      child: CustomText(text: vendorName, fontSize: 14.sp, fontWeight: FontWeight.bold, overflow: TextOverflow.ellipsis),
+                    ),
                     CustomText(
-                        text: "05/10/2020",
-                        fontSize: 12.sp,
-                        color: const Color(0xFF000000).withValues(alpha:0.7)
+                      text: DateFormat('dd/MM/yyyy').format(DateTime.parse(order.createdAt)),
+                      fontSize: 12.sp,
+                      color: Colors.black.withOpacity(0.6),
                     ),
                   ],
                 ),
                 SizedBox(height: 4.h),
                 CustomText(
-                    text: serviceName,
-                    fontSize: 10.sp,
-                    color: const Color(0xFF000000).withValues(alpha:0.7)
+                  text: productName + (order.items.length > 1 ? " (+${order.items.length - 1} more)" : ""),
+                  fontSize: 11.sp,
+                  color: Colors.black.withOpacity(0.6),
                 ),
                 SizedBox(height: 8.h),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     CustomText(
-                      text: "\$175.89",
+                      text: "\$${order.totalAmount.toStringAsFixed(2)}",
                       fontSize: 14.sp,
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF3F592B).withValues(alpha:0.8),
+                      color: const Color(0xFF3F592B),
                     ),
-                    _buildActionButton(context),
+                    _buildActionButton(context, controller),
                   ],
                 ),
               ],
@@ -83,67 +90,88 @@ class VendorOrderHistoryCard extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButton(BuildContext context) {
-    switch (status) {
+  Widget _buildActionButton(BuildContext context, VendorOrderController controller) {
+    switch (tabStatus) {
       case "Pending":
         return GestureDetector(
-          onTap: () => _showActionDialog(context, "Accept Order", "Are you sure you want to Accept?"),
-          child: _statusBadge("Accept",  Colors.white, const Color(0XFF748666)),
+          onTap: () => _showCancelDialog(context, controller),
+          child: _statusBadge("Cancel", const Color(0xFFFF0000), const Color(0xFFFF0000).withOpacity(0.1)),
         );
       case "In Progress":
-        return CustomText(
-          text: "In Progress",
-          fontSize: 12.sp,
-          fontWeight: FontWeight.bold,
-          color:  Color(0XFF748666),
-        );
-      case "Complete":
-        return CustomText(
-          text: "Complete",
-          fontSize: 12.sp,
-          fontWeight: FontWeight.bold,
-          color:  Color(0XFF748666),
+        return _statusBadge("Shipped", const Color(0xFF2D3E2F), const Color(0xFFC4C99A).withOpacity(0.3));
+      case "Completed":
+        return GestureDetector(
+          onTap: () => Get.toNamed(RouteConstants.rateServiceScreen, arguments: order.id),
+          child: _statusBadge("Review", const Color(0xFF2D3E2F), const Color(0xFFC4C99A)),
         );
       case "Canceled":
-        return CustomText(
-          text: "Canceled",
-          fontSize: 12.sp,
-          fontWeight: FontWeight.bold,
-          color:  Colors.red,
-        );
+        return CustomText(text: "Canceled", fontSize: 12.sp, fontWeight: FontWeight.bold, color: Colors.red);
       default:
         return const SizedBox.shrink();
     }
   }
 
-  Widget _statusBadge(String label, Color textColor, Color bgColor) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 6.h),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(20.r),
-      ),
-      child: CustomText(
-        text: label,
-        fontSize: 12.sp,
-        fontWeight: FontWeight.w600,
-        color: textColor,
+  void _showCancelDialog(BuildContext context, VendorOrderController controller) {
+    final reasonController = TextEditingController();
+
+    Get.bottomSheet(
+      isScrollControlled: true,
+      Container(
+        padding: EdgeInsets.fromLTRB(20.w, 20.h, 20.w, MediaQuery.of(context).viewInsets.bottom + 20.h),
+        decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(30.r))
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CustomText(text: "Cancel Order", fontSize: 18.sp, fontWeight: FontWeight.bold),
+            SizedBox(height: 15.h),
+            TextField(
+              controller: reasonController,
+              maxLines: 3,
+              decoration: InputDecoration(
+                  hintText: "Reason for cancellation...",
+                  filled: true,
+                  fillColor: const Color(0xFFF5F5F5),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.r), borderSide: BorderSide.none)
+              ),
+            ),
+            SizedBox(height: 20.h),
+            Obx(() => SizedBox(
+              width: double.infinity,
+              height: 48.h,
+              child: controller.isCanceling.value
+                  ? const Center(child: CircularProgressIndicator(color: Color(0xFF3F592B)))
+                  : ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFF0000),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r))
+                ),
+                onPressed: () {
+                  if(reasonController.text.trim().isEmpty) {
+                    Get.snackbar("Required", "Please provide a reason", snackPosition: SnackPosition.BOTTOM);
+                    return;
+                  }
+                  Get.back(); // Close bottom sheet
+                  controller.handleCancel(order.id, reasonController.text.trim());
+                },
+                child: const Text("Confirm Cancellation"),
+              ),
+            )),
+            SizedBox(height: 10.h),
+          ],
+        ),
       ),
     );
   }
 
-  void _showActionDialog(BuildContext context, String title, String content) {
-    Get.defaultDialog(
-      title: title,
-      middleText: content,
-      textConfirm: "Confirm",
-      textCancel: "Back",
-      confirmTextColor: Colors.white,
-      buttonColor: const Color(0xFF3F592B),
-      onConfirm: () {
-        Get.back();
-        // Add logic to update status here
-      },
+  Widget _statusBadge(String label, Color textColor, Color bgColor) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+      decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(20.r)),
+      child: CustomText(text: label, fontSize: 11.sp, fontWeight: FontWeight.w600, color: textColor),
     );
   }
 }
