@@ -8,14 +8,14 @@ class CustomerOrderController extends GetxController {
   final CustomerOrdersService _service;
   CustomerOrderController(this._service);
 
-  // --- Observable States ---
-  // Defaulting to "Pending" to match the first tab
+  /// --- Observable States ---
   var selectedTab = "Pending".obs;
   var isLoading = false.obs;
   var isCanceling = false.obs;
+
   var orders = <OrderDoc>[].obs;
 
-  // --- Pagination ---
+  /// --- Pagination ---
   var currentPage = 1.obs;
   var totalPages = 1.obs;
 
@@ -25,73 +25,93 @@ class CustomerOrderController extends GetxController {
     fetchOrders();
   }
 
-  /// Updated mapping to match your specific status strings:
-  /// "pending", "in-progress", "completed", "cancelled"
+  /// Map tab text → API status
   String _mapTabToStatus(String tab) {
     switch (tab) {
-      case "Pending":     return "pending";
-      case "In Progress": return "in-progress";
-      case "Completed":   return "completed";
-      case "Canceled":    return "cancelled"; // Matches double 'l' in your request
-      default:            return "pending";
+      case "Pending":
+        return "pending";
+      case "In Progress":
+        return "in-progress";
+      case "Completed":
+        return "completed";
+      case "Canceled":
+        return "cancelled";
+      default:
+        return "pending";
     }
   }
 
-  /// Updates the UI state and triggers a fresh API call
+  /// Change tab
   void changeTab(String value) {
     if (selectedTab.value != value) {
       selectedTab.value = value;
       orders.clear();
       currentPage.value = 1;
+      totalPages.value = 1;
+
       fetchOrders(page: 1);
     }
   }
 
-  /// Fetches orders using the updated status mapping
+  /// Fetch orders
   Future<void> fetchOrders({int page = 1}) async {
-    if (page == 1) isLoading.value = true;
-
     try {
+      if (page == 1) {
+        isLoading.value = true;
+      }
+
       final response = await _service.getCustomerOrders(
         page: page,
         status: _mapTabToStatus(selectedTab.value),
       );
 
-      if (response.data?.attributes != null) {
-        final attr = response.data!.attributes!;
+      final attr = response.data?.attributes;
+
+      if (attr != null) {
         if (page == 1) {
           orders.assignAll(attr.docs);
         } else {
           orders.addAll(attr.docs);
         }
+
         currentPage.value = attr.page;
         totalPages.value = attr.totalPages;
       }
     } catch (e) {
-      // debugPrint is already implemented in your Service,
-      // but we keep this here for controller-specific issues.
       debugPrint("Order Controller Error: $e");
     } finally {
       isLoading.value = false;
     }
   }
 
+  /// Cancel order
   Future<void> handleCancel(String id, String reason) async {
-    isCanceling.value = true;
-    bool success = await _service.cancelOrder(orderId: id, reason: reason);
-    isCanceling.value = false;
+    try {
+      isCanceling.value = true;
 
-    if (success) {
-      onRefresh(); // Refresh the list to move order to 'Canceled' tab
+      bool success =
+      await _service.cancelOrder(orderId: id, reason: reason);
+
+      if (success) {
+        await onRefresh();
+      }
+    } catch (e) {
+      debugPrint("Cancel Order Error: $e");
+    } finally {
+      isCanceling.value = false;
     }
   }
 
-  /// Pull-to-refresh logic
-  Future<void> onRefresh() async => await fetchOrders(page: 1);
+  /// Pull to refresh
+  Future<void> onRefresh() async {
+    currentPage.value = 1;
+    await fetchOrders(page: 1);
+  }
 
-  /// Infinite scroll / Pagination logic
+  /// Load more (pagination)
   void loadMore() {
-    if (currentPage.value < totalPages.value && !isLoading.value) {
+    if (!isLoading.value &&
+        currentPage.value < totalPages.value) {
       fetchOrders(page: currentPage.value + 1);
     }
   }

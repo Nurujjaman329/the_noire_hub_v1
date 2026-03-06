@@ -1,4 +1,3 @@
-
 class CustomerOrdersResponseModel {
   int code;
   String message;
@@ -19,6 +18,7 @@ class CustomerOrdersResponseModel {
   }
 }
 
+
 class OrderData {
   OrderAttributes? attributes;
 
@@ -35,35 +35,51 @@ class OrderData {
 
 class OrderAttributes {
   List<OrderDoc> docs;
-  int totalDocs;
-  int limit;
+
   int page;
   int totalPages;
+  int totalDocs;
+  int limit;
+
   bool hasNextPage;
   bool hasPrevPage;
 
+  int? nextPage;
+  int? prevPage;
+
   OrderAttributes({
     this.docs = const [],
-    this.totalDocs = 0,
-    this.limit = 10,
     this.page = 1,
     this.totalPages = 1,
+    this.totalDocs = 0,
+    this.limit = 0,
     this.hasNextPage = false,
     this.hasPrevPage = false,
+    this.nextPage,
+    this.prevPage,
   });
 
   factory OrderAttributes.fromJson(Map<String, dynamic> json) {
     return OrderAttributes(
-      docs: (json['docs'] as List?)?.map((v) => OrderDoc.fromJson(v)).toList() ?? [],
-      totalDocs: json['totalDocs'] ?? 0,
-      limit: json['limit'] ?? 10,
+      docs: (json['docs'] as List?)
+          ?.map((e) => OrderDoc.fromJson(e))
+          .toList() ??
+          [],
+
       page: json['page'] ?? 1,
       totalPages: json['totalPages'] ?? 1,
+      totalDocs: json['totalDocs'] ?? 0,
+      limit: json['limit'] ?? 0,
+
       hasNextPage: json['hasNextPage'] ?? false,
       hasPrevPage: json['hasPrevPage'] ?? false,
+
+      nextPage: json['nextPage'],
+      prevPage: json['prevPage'],
     );
   }
 }
+
 
 class OrderDoc {
   String id;
@@ -71,26 +87,37 @@ class OrderDoc {
   OrderUser? user;
   OrderVendor? vendor;
   List<OrderItem> items;
+
   String deliveryMethod;
   num deliveryPrice;
   String deliveryTime;
   String deliveryInstructions;
+
   String? shippingMethod;
   num shippingPrice;
+  String? shippingTime;
+  bool? isCrossBorder;
+
   num tip;
   String? promoCode;
   num promoDiscount;
+
   num subtotal;
+  num adminCommission;
+  num vendorAmount;
   num totalAmount;
+
   String paymentStatus;
   String status;
+
   String refundStatus;
   num refundAmount;
+  num refundPercentage;
+
   String createdAt;
+
   String? stripeSessionId;
-  String? cancellationReason;
-  String? cancelledAt;
-  String? cancelledBy;
+  String? stripePaymentIntentId;
 
   OrderDoc({
     this.id = '',
@@ -104,78 +131,108 @@ class OrderDoc {
     this.deliveryInstructions = '',
     this.shippingMethod,
     this.shippingPrice = 0,
+    this.shippingTime,
+    this.isCrossBorder,
     this.tip = 0,
     this.promoCode,
     this.promoDiscount = 0,
     this.subtotal = 0,
+    this.adminCommission = 0,
+    this.vendorAmount = 0,
     this.totalAmount = 0,
     this.paymentStatus = '',
     this.status = '',
     this.refundStatus = '',
     this.refundAmount = 0,
+    this.refundPercentage = 0,
     this.createdAt = '',
     this.stripeSessionId,
-    this.cancellationReason,
-    this.cancelledAt,
-    this.cancelledBy,
+    this.stripePaymentIntentId,
   });
 
   factory OrderDoc.fromJson(Map<String, dynamic> json) {
     return OrderDoc(
       id: json['id'] ?? '',
-      deliveryAddress: json['deliveryAddress'] != null ? DeliveryAddress.fromJson(json['deliveryAddress']) : null,
+      deliveryAddress: json['deliveryAddress'] != null
+          ? DeliveryAddress.fromJson(json['deliveryAddress'])
+          : null,
       user: json['user'] != null ? OrderUser.fromJson(json['user']) : null,
       vendor: json['vendor'] != null ? OrderVendor.fromJson(json['vendor']) : null,
-      items: (json['items'] as List?)?.map((v) => OrderItem.fromJson(v)).toList() ?? [],
+      items: (json['items'] as List?)
+          ?.map((e) => OrderItem.fromJson(e))
+          .toList() ??
+          [],
       deliveryMethod: json['deliveryMethod'] ?? '',
       deliveryPrice: json['deliveryPrice'] ?? 0,
       deliveryTime: json['deliveryTime'] ?? '',
       deliveryInstructions: json['deliveryInstructions'] ?? '',
       shippingMethod: json['shippingMethod'],
       shippingPrice: json['shippingPrice'] ?? 0,
+      shippingTime: json['shippingTime'],
+      isCrossBorder: json['isCrossBorder'],
       tip: json['tip'] ?? 0,
       promoCode: json['promoCode'],
       promoDiscount: json['promoDiscount'] ?? 0,
       subtotal: json['subtotal'] ?? 0,
+      adminCommission: json['adminCommission'] ?? 0,
+      vendorAmount: json['vendorAmount'] ?? 0,
       totalAmount: json['totalAmount'] ?? 0,
       paymentStatus: json['paymentStatus'] ?? '',
       status: json['status'] ?? '',
       refundStatus: json['refundStatus'] ?? '',
       refundAmount: json['refundAmount'] ?? 0,
+      refundPercentage: json['refundPercentage'] ?? 0,
       createdAt: json['createdAt'] ?? '',
       stripeSessionId: json['stripeSessionId'],
-      cancellationReason: json['cancellationReason'],
-      cancelledAt: json['cancelledAt'],
-      cancelledBy: json['cancelledBy'],
+      stripePaymentIntentId: json['stripePaymentIntentId'],
     );
   }
 }
 
 class DeliveryAddress {
-  String fullName;
-  String phone;
-  String addressLine;
+  Location? location;
+  String street;
   String city;
+  String state;
   String country;
-  String postalCode;
+  bool isDefault;
 
   DeliveryAddress({
-    this.fullName = '',
-    this.phone = '',
-    this.addressLine = '',
+    this.location,
+    this.street = '',
     this.city = '',
+    this.state = '',
     this.country = '',
-    this.postalCode = '',
+    this.isDefault = false,
   });
 
   factory DeliveryAddress.fromJson(Map<String, dynamic> json) {
     return DeliveryAddress(
-      fullName: json['fullName'] ?? '',
-      phone: json['phone'] ?? '',
-      addressLine: json['addressLine'] ?? '',
+      location: json['location'] != null
+          ? Location.fromJson(json['location'])
+          : null,
+      street: json['street'] ?? '',
       city: json['city'] ?? '',
+      state: json['state'] ?? '',
       country: json['country'] ?? '',
-      postalCode: json['postalCode'] ?? '',
+      isDefault: json['isDefault'] ?? false,
+    );
+  }
+}
+
+class Location {
+  String type;
+  List<num> coordinates;
+
+  Location({
+    this.type = '',
+    this.coordinates = const [],
+  });
+
+  factory Location.fromJson(Map<String, dynamic> json) {
+    return Location(
+      type: json['type'] ?? '',
+      coordinates: (json['coordinates'] as List?)?.cast<num>() ?? [],
     );
   }
 }
@@ -185,8 +242,15 @@ class OrderUser {
   String fullName;
   String email;
   String image;
+  String phoneNumber;
 
-  OrderUser({this.id = '', this.fullName = '', this.email = '', this.image = ''});
+  OrderUser({
+    this.id = '',
+    this.fullName = '',
+    this.email = '',
+    this.image = '',
+    this.phoneNumber = '',
+  });
 
   factory OrderUser.fromJson(Map<String, dynamic> json) {
     return OrderUser(
@@ -194,6 +258,7 @@ class OrderUser {
       fullName: json['fullName'] ?? '',
       email: json['email'] ?? '',
       image: json['image'] ?? '',
+      phoneNumber: json['phoneNumber'] ?? '',
     );
   }
 }
@@ -201,25 +266,31 @@ class OrderUser {
 class OrderVendor {
   String id;
   String fullName;
+  String email;
   String businessName;
   String shopImage;
   String image;
+  String phoneNumber;
 
   OrderVendor({
     this.id = '',
     this.fullName = '',
+    this.email = '',
     this.businessName = '',
     this.shopImage = '',
     this.image = '',
+    this.phoneNumber = '',
   });
 
   factory OrderVendor.fromJson(Map<String, dynamic> json) {
     return OrderVendor(
       id: json['id'] ?? '',
       fullName: json['fullName'] ?? '',
+      email: json['email'] ?? '',
       businessName: json['businessName'] ?? '',
       shopImage: json['shopImage'] ?? '',
       image: json['image'] ?? '',
+      phoneNumber: json['phoneNumber'] ?? '',
     );
   }
 }
@@ -227,37 +298,64 @@ class OrderVendor {
 class OrderItem {
   String id;
   String product;
+  String vendor;
   String productName;
   String productImage;
+
+  VariantWeight? variantWeight;
+  String? variantColor;
+  String? variantId;
+
   num unitPrice;
   int quantity;
   num subtotal;
-  String? variantWeight;
-  String? variantColor;
 
   OrderItem({
     this.id = '',
     this.product = '',
+    this.vendor = '',
     this.productName = '',
     this.productImage = '',
+    this.variantWeight,
+    this.variantColor,
+    this.variantId,
     this.unitPrice = 0,
     this.quantity = 0,
     this.subtotal = 0,
-    this.variantWeight,
-    this.variantColor,
   });
 
   factory OrderItem.fromJson(Map<String, dynamic> json) {
     return OrderItem(
       id: json['_id'] ?? '',
       product: json['product'] ?? '',
+      vendor: json['vendor'] ?? '',
       productName: json['productName'] ?? '',
       productImage: json['productImage'] ?? '',
+      variantWeight: json['variantWeight'] != null
+          ? VariantWeight.fromJson(json['variantWeight'])
+          : null,
+      variantColor: json['variantColor'],
+      variantId: json['variantId'],
       unitPrice: json['unitPrice'] ?? 0,
       quantity: json['quantity'] ?? 0,
       subtotal: json['subtotal'] ?? 0,
-      variantWeight: json['variantWeight'],
-      variantColor: json['variantColor'],
+    );
+  }
+}
+
+class VariantWeight {
+  num value;
+  String unit;
+
+  VariantWeight({
+    this.value = 0,
+    this.unit = '',
+  });
+
+  factory VariantWeight.fromJson(Map<String, dynamic> json) {
+    return VariantWeight(
+      value: json['value'] ?? 0,
+      unit: json['unit'] ?? '',
     );
   }
 }
