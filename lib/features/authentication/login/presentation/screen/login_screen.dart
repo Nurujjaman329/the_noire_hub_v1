@@ -112,17 +112,17 @@ class LoginScreen extends GetView<LoginController> {
                       ),
                     ),
 
-                    _buildSocialDivider(),
-
-                    // --- Social Buttons ---
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _socialButton("Google", AppIcons.googleIcon),
-                        _socialButton("Facebook", AppIcons.fbIcon),
-                        _socialButton("Apple", AppIcons.appleIcon),
-                      ],
-                    ),
+                    // _buildSocialDivider(),
+                    //
+                    // // --- Social Buttons ---
+                    // Row(
+                    //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    //   children: [
+                    //     _socialButton("Google", AppIcons.googleIcon),
+                    //     _socialButton("Facebook", AppIcons.fbIcon),
+                    //     _socialButton("Apple", AppIcons.appleIcon),
+                    //   ],
+                    // ),
 
                     SizedBox(height: 40.h),
                   ],
@@ -188,45 +188,45 @@ class LoginScreen extends GetView<LoginController> {
     );
   }
 
-  // --- Divider ---
-  Widget _buildSocialDivider() {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 25.h),
-      child: Row(
-        children: [
-          const Expanded(child: Divider()),
-          CustomText(
-            text: "Or Continue With",
-            color: const Color(0x4D000000),
-            fontSize: 12.sp,
-            left: 10.w,
-            right: 10.w,
-          ),
-          const Expanded(child: Divider()),
-        ],
-      ),
-    );
-  }
-
-  // --- Social Button ---
-  Widget _socialButton(String label, String iconPath) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceVariant,
-        borderRadius: BorderRadius.circular(10.r),
-      ),
-      child: Row(
-        children: [
-          SvgPicture.asset(iconPath, width: 20.w, height: 20.w),
-          CustomText(
-            text: label,
-            fontSize: 12.sp,
-            fontWeight: FontWeight.w500,
-            left: 8.w,
-          ),
-        ],
-      ),
-    );
-  }
+  // // --- Divider ---
+  // Widget _buildSocialDivider() {
+  //   return Padding(
+  //     padding: EdgeInsets.symmetric(vertical: 25.h),
+  //     child: Row(
+  //       children: [
+  //         const Expanded(child: Divider()),
+  //         CustomText(
+  //           text: "Or Continue With",
+  //           color: const Color(0x4D000000),
+  //           fontSize: 12.sp,
+  //           left: 10.w,
+  //           right: 10.w,
+  //         ),
+  //         const Expanded(child: Divider()),
+  //       ],
+  //     ),
+  //   );
+  // }
+  //
+  // // --- Social Button ---
+  // Widget _socialButton(String label, String iconPath) {
+  //   return Container(
+  //     padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+  //     decoration: BoxDecoration(
+  //       color: AppColors.surfaceVariant,
+  //       borderRadius: BorderRadius.circular(10.r),
+  //     ),
+  //     child: Row(
+  //       children: [
+  //         SvgPicture.asset(iconPath, width: 20.w, height: 20.w),
+  //         CustomText(
+  //           text: label,
+  //           fontSize: 12.sp,
+  //           fontWeight: FontWeight.w500,
+  //           left: 8.w,
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 }

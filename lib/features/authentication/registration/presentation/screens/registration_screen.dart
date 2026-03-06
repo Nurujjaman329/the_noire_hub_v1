@@ -98,17 +98,17 @@ class RegistrationScreen extends GetView<RegistrationController> {
                       },
                     ),
 
-                    _buildDivider("Or"),
-
-                    // Social Buttons
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _socialButton("Google", AppIcons.googleIcon),
-                        _socialButton("Facebook", AppIcons.fbIcon),
-                        _socialButton("Apple", AppIcons.appleIcon),
-                      ],
-                    ),
+                    // _buildDivider("Or"),
+                    //
+                    // // Social Buttons
+                    // Row(
+                    //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    //   children: [
+                    //     _socialButton("Google", AppIcons.googleIcon),
+                    //     _socialButton("Facebook", AppIcons.fbIcon),
+                    //     _socialButton("Apple", AppIcons.appleIcon),
+                    //   ],
+                    // ),
 
                     SizedBox(height: 25.h),
 

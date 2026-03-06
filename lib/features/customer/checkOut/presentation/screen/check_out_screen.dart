@@ -278,7 +278,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               SizedBox(height: 25.h),
               _priceRow("Subtotal", vendorData.subtotal.toStringAsFixed(2)),
               _priceRow("Delivery Fee", _getSelectedDeliveryPrice().toStringAsFixed(2)),
-              _priceRow("Taxes & Other Fees", "9.28"),
 
               SizedBox(height: 15.h),
               _buildTotalSection(),
@@ -302,10 +301,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _buildEstimatedTimeHeader(GetDeliveryMethodConfig? methods) {
     String timeRange = "";
-    if (selectedSpeed == "Turbo") timeRange = methods?.turbo.deliveryTime ?? "";
-    else if (selectedSpeed == "Basic") timeRange = methods?.basic.deliveryTime ?? "";
-    else if (selectedSpeed == "Pickup") timeRange = "Ready for pickup";
-    else timeRange = methods?.standard.deliveryTime ?? "";
+    if (selectedSpeed == "Turbo") {
+      timeRange = methods?.turbo.deliveryTime ?? "";
+    } else if (selectedSpeed == "Basic") {timeRange = methods?.basic.deliveryTime ?? "";}
+    else if (selectedSpeed == "Pickup") {
+      timeRange = "Ready for pickup";
+    }
+    else {
+      timeRange = methods?.standard.deliveryTime ?? "";
+    }
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -330,7 +334,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         width: 82.w,
         padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 4.w),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.surfaceVariant : AppColors.surfaceVariant.withOpacity(0.5),
+          color: isSelected ? AppColors.surfaceVariant : AppColors.surfaceVariant.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(15.r),
           border: Border.all(color: isSelected ? AppColors.chipActive : Colors.transparent, width: 2),
         ),
@@ -350,7 +354,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Widget _buildTotalSection() {
-    double total = vendorData.subtotal + _getSelectedDeliveryPrice() + 9.28;
+    double total = vendorData.subtotal + _getSelectedDeliveryPrice();
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
