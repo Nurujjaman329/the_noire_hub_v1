@@ -8,19 +8,17 @@ import '../../../../../core/widgets/custom_app_bar.dart';
 import '../../../../../core/widgets/custom_button.dart';
 import '../../../../../core/widgets/custom_network_image.dart';
 import '../../../../../core/widgets/custom_text.dart';
+import '../../../multiVendorCartScreen/data/multi_vendor_cart_response_model.dart';
+import '../../../multiVendorCartScreen/presentation/controller/multi_vendor_cart_controller.dart';
 
-class CartScreen extends StatefulWidget {
+class CartScreen extends GetView<MultiVendorCartController> {
   const CartScreen({super.key});
 
   @override
-  State<CartScreen> createState() => _CartScreenState();
-}
-
-class _CartScreenState extends State<CartScreen> {
-  bool isLoading = false;
-
-  @override
   Widget build(BuildContext context) {
+    // Retrieve the specific vendor data passed via Get.arguments
+    final CartVendor vendorData = Get.arguments;
+
     return Scaffold(
       backgroundColor: AppColors.white,
       appBar: CustomAppBar(
@@ -31,88 +29,81 @@ class _CartScreenState extends State<CartScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. Cart Items List
-            ListView(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              padding: EdgeInsets.symmetric(horizontal: 20.w),
-              children: [
-                _buildCartItem("Skie Jojoba Castor Hair Growth Oil", "40.00", "2", "https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?q=80&w=200", false),
-                _buildCartItem("Skie Mint Bar Soap", "10.00", "1", "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?q=80&w=200", true), // Show delete icon
-                _buildCartItem("Skie Cucumber Hair Growth Milk", "10.00", "4", "https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?q=80&w=200", false),
-              ],
-            ),
+            // 2. Wrap list in Obx so it refreshes when controller.getCartDetails() is called
+            Obx(() {
+              // We find the current vendor's updated data from the controller's main list
+              final currentVendor = controller.cartAttributes.value?.vendors
+                  .firstWhereOrNull((v) => v.vendor.id == vendorData.vendor.id);
 
-            // 2. Add More Items Button
-            Align(
-              alignment: Alignment.centerRight,
-              child: Padding(
-                padding: EdgeInsets.only(right: 20.w, top: 10.h, bottom: 20.h),
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 8.h),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFDEDD9D),
-                    borderRadius: BorderRadius.circular(10.r),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.add, size: 18.sp),
-                      SizedBox(width: 5.w),
-                      CustomText(text: "Add more items", fontSize: 13.sp, fontWeight: FontWeight.w500,color: Color(0xFF000000),),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+              // Fallback to initial vendorData if controller hasn't loaded yet
+              final displayItems = currentVendor?.items ?? vendorData.items;
+
+              return ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                padding: EdgeInsets.symmetric(horizontal: 20.w),
+                itemCount: displayItems.length,
+                itemBuilder: (context, index) {
+                  final item = displayItems[index];
+                  return _buildCartItem(item);
+                },
+              );
+            }),
+
+            // Add More Items Button
+            _buildAddMoreButton(),
 
             const Divider(thickness: 1, color: Colors.black12),
 
-            // 3. Gift and Promotion Section
-            _buildOptionTile(Icons.card_giftcard, "Send as a gift"),
-            _buildOptionTile(Icons.star_border, "Save on this order with TNP Star"),
+            // Subtotal Section
+            Obx(() {
+              final currentVendor = controller.cartAttributes.value?.vendors
+                  .firstWhereOrNull((v) => v.vendor.id == vendorData.vendor.id);
+              final subtotal = currentVendor?.subtotal ?? vendorData.subtotal;
 
-            // 4. Subtotal and Checkout
-            Padding(
-              padding: EdgeInsets.all(20.r),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CustomText(text: "Subtotal", fontSize: 18.sp, fontWeight: FontWeight.bold,color: Color(0XFF020F1B),),
-                          CustomText(text: "Promotions Applied at Checkout", fontSize: 10.sp, color: Color(0XFF000000)),
-                        ],
+              return Padding(
+                padding: EdgeInsets.all(20.r),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CustomText(text: "Subtotal", fontSize: 18.sp, fontWeight: FontWeight.bold),
+                            CustomText(text: "Promotions Applied at Checkout", fontSize: 10.sp),
+                          ],
+                        ),
+                        CustomText(
+                          text: "\$${subtotal.toStringAsFixed(2)}",
+                          fontSize: 18.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 20.h),
+                    // Inside CartScreen subtotal section
+                    CustomButton(
+                      text: "Go to checkout",
+                      onTap: () => Get.toNamed(
+                          RouteConstants.checkOutScreen,
+                          arguments: currentVendor ?? vendorData
                       ),
-                      CustomText(text: "\$76.00", fontSize: 18.sp, fontWeight: FontWeight.bold,color: Color(0XFF000000)),
-                    ],
-                  ),
-                  SizedBox(height: 20.h),
+                    ),
+                  ],
+                ),
+              );
+            }),
 
-                  CustomButton(
-                    text: "Go to checkout",
-                    loading: isLoading,
-                    onTap: () {
-                      setState(() => isLoading = true);
-                      // Registration logic here
-                      Future.delayed(const Duration(seconds: 2), () {
-                        setState(() => isLoading = false);
-                      });
-                      Get.toNamed(RouteConstants.checkOutScreen);
-                    },
-                  ),
-
-                ],
-              ),
-            ),
-
-            // 5. Products You Might Need (Similar Items)
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20.w),
-              child: CustomText(text: "Products You Might Need", fontSize: 16.sp, fontWeight: FontWeight.bold,color: Color(0XFF000000)),
+              child: CustomText(
+                text: "Products You Might Need",
+                fontSize: 16.sp,
+                fontWeight: FontWeight.bold,
+                color: const Color(0XFF000000),
+              ),
             ),
             SizedBox(height: 15.h),
             SingleChildScrollView(
@@ -132,7 +123,11 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildCartItem(String title, String price, String qty, String imgUrl, bool showDelete) {
+  Widget _buildCartItem(CartItem item) {
+    final imgUrl = item.product.image.startsWith('http')
+        ? item.product.image
+        : "https://tonmoy3000.sobhoy.com${item.product.image}";
+
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 12.h),
       child: Row(
@@ -148,27 +143,36 @@ class _CartScreenState extends State<CartScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CustomText(text: title, fontSize: 14.sp, fontWeight: FontWeight.w600, maxLines: 2,color: Color(0XFF000000),),
+                CustomText(text: item.product.name, fontSize: 14.sp, fontWeight: FontWeight.w600, maxLines: 2),
                 SizedBox(height: 10.h),
-                CustomText(text: "\$$price", fontSize: 14.sp, fontWeight: FontWeight.bold,color: Color(0XFF000000),),
+                CustomText(text: "\$${item.unitPrice.toStringAsFixed(2)}", fontSize: 14.sp, fontWeight: FontWeight.bold),
               ],
             ),
           ),
-          // Increment / Decrement Selector
+
+          // QUANTITY SELECTOR PART
           Container(
             padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
             decoration: BoxDecoration(
-              color: Color(0XFFF1F0B2),
+              color: const Color(0XFFF1F0B2),
               borderRadius: BorderRadius.circular(10.r),
             ),
             child: Row(
               children: [
-                Icon(showDelete ? Icons.delete_outline : Icons.remove, size: 18.sp),
+                // Decrement
+                GestureDetector(
+                  onTap: () => controller.updateItemQuantity(item.cartItemId, item.quantity - 1),
+                  child: Icon(item.quantity <= 1 ? Icons.delete_outline : Icons.remove, size: 18.sp),
+                ),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 12.w),
-                  child: CustomText(text: qty, fontSize: 14.sp, fontWeight: FontWeight.bold),
+                  child: CustomText(text: "${item.quantity}", fontSize: 14.sp, fontWeight: FontWeight.bold),
                 ),
-                Icon(Icons.add, size: 18.sp),
+                // Increment
+                GestureDetector(
+                  onTap: () => controller.updateItemQuantity(item.cartItemId, item.quantity + 1),
+                  child: Icon(Icons.add, size: 18.sp),
+                ),
               ],
             ),
           ),
@@ -177,20 +181,33 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildOptionTile(IconData icon, String title) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 15.h),
-      child: Row(
-        children: [
-          Icon(icon, color: Color(0XFF000000), size: 24.sp),
-          SizedBox(width: 15.w),
-          CustomText(text: title, fontSize: 14.sp, fontWeight: FontWeight.w500,color: Color(0XFF000000)),
-        ],
+  Widget _buildAddMoreButton() {
+    return GestureDetector(
+      onTap: () => Get.offAllNamed(RouteConstants.customerMainContainer, arguments: {'initialTab': 1}),
+      child: Align(
+        alignment: Alignment.centerRight,
+        child: Padding(
+          padding: EdgeInsets.only(right: 20.w, top: 10.h, bottom: 20.h),
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 8.h),
+            decoration: BoxDecoration(
+              color: const Color(0xFFDEDD9D),
+              borderRadius: BorderRadius.circular(10.r),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.add, size: 18.sp),
+                SizedBox(width: 5.w),
+                CustomText(text: "Add more items", fontSize: 13, fontWeight: FontWeight.w500),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
 
-  // Your existing _buildProductCard remains here...
   Widget _buildProductCard(String title, String price, String imgUrl) {
     return Container(
       width: 140.w,
@@ -202,9 +219,20 @@ class _CartScreenState extends State<CartScreen> {
       ),
       child: Column(
         children: [
-          CustomNetworkImage(imageUrl: imgUrl, height: 100.h, width: 110.w, borderRadius: BorderRadius.circular(20.r)),
+          CustomNetworkImage(
+            imageUrl: imgUrl,
+            height: 100.h,
+            width: 110.w,
+            borderRadius: BorderRadius.circular(20.r),
+          ),
           SizedBox(height: 10.h),
-          CustomText(text: title, fontSize: 11.sp, fontWeight: FontWeight.bold, textAlign: TextAlign.center, maxLines: 2),
+          CustomText(
+            text: title,
+            fontSize: 11.sp,
+            fontWeight: FontWeight.bold,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+          ),
           SizedBox(height: 8.h),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -222,4 +250,5 @@ class _CartScreenState extends State<CartScreen> {
       ),
     );
   }
+
 }

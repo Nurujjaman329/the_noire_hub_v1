@@ -1,89 +1,80 @@
 
-
+import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:the_noire_hub_v1/features/vendor/vendorOrderScreen/presentation/screens/widget/vendor_cancel_order_list.dart';
-import 'package:the_noire_hub_v1/features/vendor/vendorOrderScreen/presentation/screens/widget/vendor_complete_order_list.dart';
-import 'package:the_noire_hub_v1/features/vendor/vendorOrderScreen/presentation/screens/widget/vendor_inProgress_order_list.dart';
-import 'package:the_noire_hub_v1/features/vendor/vendorOrderScreen/presentation/screens/widget/vendor_pending_order_list.dart';
-import '../../../../../core/constants/app_colors.dart';
+import 'package:the_noire_hub_v1/features/vendor/vendorOrderScreen/presentation/screens/widget/vendor_order_history_card.dart';
 import '../../../../../core/widgets/custom_app_bar.dart';
 import '../../../../../core/widgets/custom_text.dart';
+import '../controller/vendor_order_controller.dart';
 
-class VendorOrdersScreen extends StatefulWidget {
+class VendorOrdersScreen extends StatelessWidget {
   const VendorOrdersScreen({super.key});
 
   @override
-  State<VendorOrdersScreen> createState() => _VendorOrdersScreenState();
-}
-
-class _VendorOrdersScreenState extends State<VendorOrdersScreen> {
-  // Local state to track selected tab
-  int selectedTabIndex = 0;
-
-  @override
   Widget build(BuildContext context) {
+    // Ensure the service is injected if not done in binding
+    final controller = Get.find<VendorOrderController>();
+
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: Colors.white,
       appBar: CustomAppBar(title: "Order History",),
-      body: Padding(
-        padding: EdgeInsets.only(top: 10.h),
-        child: Column(
-          children: [
-            _buildOrderTabs(),
-            Expanded(
-              child: _buildOrderList(),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Logic to switch between views based on local state
-  Widget _buildOrderList() {
-    switch (selectedTabIndex) {
-      case 0:
-        return const VendorPendingOrderList();
-      case 1:
-        return const VendorInprogressOrderList();
-      case 2:
-        return const VendorCompleteOrderList();
-      case 3:
-        return const VendorCancelOrderList();
-      default:
-        return const VendorPendingOrderList();
-    }
-  }
-
-  Widget _buildOrderTabs() {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-      height: 48.h,
-      decoration: BoxDecoration(
-        color: const Color(0xFFF5F5F5),
-        borderRadius: BorderRadius.circular(30.r),
-      ),
-      child: Row(
+      body: Column(
         children: [
-          _tabButton("Pending", 0),
-          _tabButton("In Progress", 1),
-          _tabButton("Completed", 2),
-          _tabButton("Canceled", 3),
+          _buildOrderTabs(controller),
+          Expanded(
+            child: Obx(() {
+              if (controller.isLoading.value && controller.orders.isEmpty) {
+                return const Center(child: CircularProgressIndicator(color: Color(0xFFC4C99A)));
+              }
+
+              return RefreshIndicator(
+                onRefresh: () => controller.onRefresh(),
+                child: controller.orders.isEmpty
+                    ? _buildEmptyState(controller.selectedTab.value)
+                    : ListView.builder(
+                  padding: EdgeInsets.symmetric(horizontal: 25.w, vertical: 20.h),
+                  itemCount: controller.orders.length,
+                  itemBuilder: (context, index) {
+                    return VendorOrderHistoryCard(
+                      order: controller.orders[index],
+                      tabStatus: controller.selectedTab.value,
+                    );
+                  },
+                ),
+              );
+            }),
+          ),
         ],
       ),
     );
   }
 
-  Widget _tabButton(String title, int index) {
-    bool isSelected = selectedTabIndex == index;
+  Widget _buildEmptyState(String tab) {
+    return ListView(
+      children: [
+        SizedBox(height: 200.h),
+        Center(child: CustomText(text: "No $tab orders found", color: Colors.grey)),
+      ],
+    );
+  }
+
+  Widget _buildOrderTabs(VendorOrderController controller) {
+    final tabs = ["Pending", "In Progress", "Completed", "Canceled"];
+    return Obx(() => Container(
+      margin: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+      height: 48.h,
+      decoration: BoxDecoration(color: const Color(0xFFF5F5F5), borderRadius: BorderRadius.circular(30.r)),
+      child: Row(
+        children: tabs.map((tab) => _tabButton(tab, controller)).toList(),
+      ),
+    ));
+  }
+
+  Widget _tabButton(String title, VendorOrderController controller) {
+    bool isSelected = controller.selectedTab.value == title;
     return Expanded(
       child: GestureDetector(
-        onTap: () {
-          setState(() {
-            selectedTabIndex = index;
-          });
-        },
+        onTap: () => controller.changeTab(title),
         child: Container(
           alignment: Alignment.center,
           margin: EdgeInsets.all(4.w),
@@ -94,8 +85,8 @@ class _VendorOrdersScreenState extends State<VendorOrdersScreen> {
           child: CustomText(
             text: title,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            color: isSelected ? const Color(0xFF000000) : const Color(0xB2000000),
-            fontSize: 10.sp, // Reduced slightly to ensure 4 tabs fit on smaller screens
+            color: isSelected ? Colors.black : Colors.black54,
+            fontSize: 11.sp,
           ),
         ),
       ),

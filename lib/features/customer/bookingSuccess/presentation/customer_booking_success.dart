@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import '../../../../core/constants/route_constants.dart';
 import '../../../../core/widgets/custom_text.dart';
 
 class CustomerBookingSuccess extends StatelessWidget {
@@ -8,14 +9,27 @@ class CustomerBookingSuccess extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 1. Retrieve the arguments passed from the booking flow
+    final Map<String, dynamic> args = Get.arguments ?? {};
+
+    final String serviceTitle = args['title'] ?? "Service";
+    final String date = args['date'] ?? "";
+    final String time = args['time'] ?? "";
+    final List<dynamic> displayItems = args['displayItems'] ?? [];
+
+    // Format the variants into a single string for the "Services" row
+    String serviceList = displayItems.map((item) => item['name']).join("\n");
+    if (serviceList.isEmpty) serviceList = serviceTitle;
+
     return Scaffold(
       backgroundColor: const Color(0xFFCADA9F),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        // When successful, back should go to Home, not the payment screen
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-          onPressed: () => Get.back(),
+          icon: const Icon(Icons.close, color: Colors.white),
+          onPressed: () => Get.offAllNamed(RouteConstants.customerMainContainer, arguments: {'initialTab': 0}),
         ),
         title: CustomText(
           text: "Thanks For Booking!",
@@ -43,8 +57,6 @@ class CustomerBookingSuccess extends StatelessWidget {
                 child: Column(
                   children: [
                     SizedBox(height: 30.h),
-
-                    // 1. Success Status Header
                     CustomText(text: "Payment Success", fontSize: 24.sp, fontWeight: FontWeight.bold),
                     SizedBox(height: 15.h),
                     const CircleAvatar(
@@ -55,19 +67,19 @@ class CustomerBookingSuccess extends StatelessWidget {
 
                     const Divider(height: 50, thickness: 1, color: Color(0xFFF1F4D3)),
 
-                    // 2. Appointment Details
-                    _buildDetailSection(),
+                    // 2. Dynamic Appointment Details
+                    _buildDetailSection(
+                      providerName: "Beautician", // You can pass provider name in args if available
+                      services: serviceList,
+                      location: "Provider's Location", // Usually fixed for specific salons
+                      date: date,
+                      time: time,
+                    ),
 
                     const Divider(height: 50, thickness: 1, color: Color(0xFFF1F4D3)),
-
-                    // 3. Action Icons (Reminder, Save, Gift)
                     _buildActionIcons(),
-
                     const Divider(height: 50, thickness: 2, color: Color(0xFFC4C99A)),
-
-                    // 4. Recommendations Section
                     _buildRecommendations(),
-
                     SizedBox(height: 40.h),
                   ],
                 ),
@@ -79,7 +91,13 @@ class CustomerBookingSuccess extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailSection() {
+  Widget _buildDetailSection({
+    required String providerName,
+    required String services,
+    required String location,
+    required String date,
+    required String time,
+  }) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 25.w),
       child: Column(
@@ -87,16 +105,15 @@ class CustomerBookingSuccess extends StatelessWidget {
         children: [
           CustomText(text: "Appointment Details", fontSize: 18.sp, fontWeight: FontWeight.bold),
           SizedBox(height: 25.h),
-          _detailRow("Service Provider", "Braids By Mia"),
-          _detailRow("Services", "Knotless Braids\nMedium Size\nArmpit Length"),
-          _detailRow("Location", "Salon\n12 Island Crescent NW,\nBanff, AB, T1L1A4"),
-          _detailRow("Date", "October 3rd 2025"),
-          _detailRow("Time", "1:00 AM (MST)"),
+          _detailRow("Service Provider", providerName),
+          _detailRow("Services", services),
+          _detailRow("Location", location),
+          _detailRow("Date", date),
+          _detailRow("Time", time),
         ],
       ),
     );
   }
-
   Widget _detailRow(String label, String value) {
     return Padding(
       padding: EdgeInsets.only(bottom: 20.h),

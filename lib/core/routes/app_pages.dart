@@ -4,8 +4,15 @@ import 'package:the_noire_hub_v1/features/authentication/gmailVerification/prese
 import 'package:the_noire_hub_v1/features/authentication/registration/presentation/bindings/registration_bindings.dart';
 import 'package:the_noire_hub_v1/features/authentication/resetPassword/presentation/bindings/reset_password_bindings.dart';
 import 'package:the_noire_hub_v1/features/beautician/beauticianAddService/presentation/screen/beautician_add_service_screen.dart';
+import 'package:the_noire_hub_v1/features/beautician/serviceDetailsScreen/presentation/bindings/service_details_bindings.dart';
 import 'package:the_noire_hub_v1/features/common/businessDocument/presentation/bindings/business_documents_bindings.dart';
 import 'package:the_noire_hub_v1/features/common/changePassword/presentation/bindings/change_password_bindings.dart';
+import 'package:the_noire_hub_v1/features/common/inviteFriends/presentation/bindings/invite_friends_bindings.dart';
+import 'package:the_noire_hub_v1/features/customer/checkOut/presentation/bindings/check_out_bindings.dart';
+import 'package:the_noire_hub_v1/features/customer/customerOrderScreen/presentation/bindings/customer_orders_bindings.dart';
+import 'package:the_noire_hub_v1/features/customer/customerServices/presentation/bindings/customer_service_bindings.dart';
+import 'package:the_noire_hub_v1/features/customer/favourite/presentation/bindings/favorites_bindings.dart';
+import 'package:the_noire_hub_v1/features/customer/productDetailsScreen/presentation/bindings/product_details_bindings.dart';
 import 'package:the_noire_hub_v1/features/vendor/orderFullFillment/presentation/bindings/order_full_fillment_bindings.dart';
 import 'package:the_noire_hub_v1/features/vendor/vendorAddProduct/presentation/screen/vendor_add_product_screen.dart';
 import 'package:the_noire_hub_v1/features/vendor/vendorStoreScreen/presentation/binding/vendor_product_binding.dart';
@@ -19,12 +26,17 @@ import '../../features/authentication/registration/presentation/screens/customer
 import '../../features/authentication/registration/presentation/screens/registration_screen.dart';
 import '../../features/authentication/registration/presentation/screens/vendor_registration_screen.dart';
 import '../../features/authentication/resetPassword/presentation/screen/reset_password_screen.dart';
+import '../../features/beautician/beauticanStoreScreen/presentation/bindings/beautician_store_service_bindings.dart';
+import '../../features/beautician/beauticanStoreScreen/presentation/screens/beautician_store_screen.dart';
+import '../../features/beautician/beauticianAddService/presentation/bindings/beauticians_create_service_bindings.dart';
 import '../../features/beautician/beauticianAvailabiltySection/presentation/screens/beautician_availability_section.dart';
 import '../../features/beautician/beauticiansBookingHistory/presentation/screens/beauticians_bookings_history_screen.dart';
+import '../../features/beautician/editServiceScreen/presentation/bindings/beauticians_update_service_bindings.dart';
 import '../../features/beautician/editServiceScreen/presentation/edit_service_screen.dart';
 import '../../features/beautician/serviceDetailsScreen/presentation/service_details_screen.dart';
 import '../../features/common/aboutUS/presentation/about_us_screen.dart';
 import '../../features/common/addBank/presentation/add_bank_screen.dart';
+import '../../features/common/addDealsPromos/presentation/bindings/deals_promos_bindings.dart';
 import '../../features/common/addDealsPromos/presentation/screen/add_deals_pomos_screen.dart';
 import '../../features/common/averageReviewScreen/presentation/screens/average_review_screens.dart';
 import '../../features/common/bottomNavBar/customer/customer_main_container.dart';
@@ -34,6 +46,8 @@ import '../../features/common/businessDocument/presentation/screen/business_scre
 import '../../features/common/changePassword/presentation/screen/change_password_screen.dart';
 import '../../features/common/editProfile/presentation/binding/edit_profile_binding.dart';
 import '../../features/common/editProfile/presentation/edit_profile_screen.dart';
+import '../../features/common/feedback/presentation/bindings/feedback_bindings.dart';
+import '../../features/common/feedback/presentation/screen/feedback_screen.dart';
 import '../../features/common/help/presentation/help_screen.dart';
 import '../../features/common/inviteFriends/presentation/invite_friends_screen.dart';
 import '../../features/common/personalInfo/presentation/binding/personal_info_binding.dart';
@@ -51,19 +65,24 @@ import '../../features/customer/bookingSuccess/presentation/customer_booking_suc
 import '../../features/customer/cart/presentation/screen/cart_screen.dart';
 import '../../features/customer/checkOut/presentation/screen/check_out_screen.dart';
 import '../../features/customer/customerAppointmentScreen/presentation/screen/customer_appoinment_screen.dart';
+import '../../features/customer/customerBookingList/presentation/bindings/customer_booking_list_bindings.dart';
 import '../../features/customer/customerBookingList/presentation/screen/customer_bookings_list.dart';
 import '../../features/customer/customerConfirmBookings/presentation/customer_confirm_bookings.dart';
 import '../../features/customer/customerOrderScreen/presentation/screen/customer_orders_screen.dart';
+import '../../features/customer/customerProducts/presentation/bindings/customer_products_bindings.dart';
+import '../../features/customer/customerProducts/presentation/customer_products_screen.dart';
 import '../../features/customer/customerServiceProductDetails/presentation/customer_service_product_details_screen.dart';
 import '../../features/customer/customerServices/presentation/customer_service_screen.dart';
 import '../../features/customer/dealsPromos/presentation/service_deals_promos_screen.dart';
 import '../../features/customer/dealsPromos/presentation/screens/deals_promos_screen.dart';
 import '../../features/customer/dealsPromosHistory/presentation/deals_promos_history_screen.dart';
 import '../../features/customer/favourite/presentation/favourites_screen.dart';
+import '../../features/customer/multiVendorCartScreen/presentation/bindings/multi_vendor_cart_bindings.dart';
 import '../../features/customer/multiVendorCartScreen/presentation/screen/multi_vendor_cart_screen.dart';
 import '../../features/customer/orderSuccessScreen/order_success_screen.dart';
 import '../../features/customer/popularNearYou/presentation/service_popular_near_you_screen.dart';
 import '../../features/customer/productDetailsScreen/presentation/product_details_screen.dart';
+import '../../features/customer/serviceBookingScreen/presentation/bindings/service_booking_details_bindings.dart';
 import '../../features/customer/serviceBookingScreen/presentation/screen/service_booking_screen.dart';
 import '../../features/customer/vendorStoreList/presentation/screens/vendor_store_list_screen.dart';
 import '../../features/vendor/editProductDetails/presentation/edit_product_details_screen.dart';
@@ -73,10 +92,12 @@ import '../../features/vendor/vendorAddProduct/presentation/bindings/vendor_add_
 import '../../features/vendor/vendorBillingSection/presentation/screens/vendor_billing_section.dart';
 import '../../features/vendor/vendorEditProduct/presentation/bindings/vendor_edit_product_bindings.dart';
 import '../../features/vendor/vendorEditProduct/presentation/screen/vendor_edit_product_screen.dart';
+import '../../features/vendor/vendorOrderScreen/presentation/bindings/vendor_order_bindings.dart';
 import '../../features/vendor/vendorOrderScreen/presentation/screens/vendor_order_screen.dart';
 import '../../features/vendor/vendorProductDetailsScreen/presentation/bindings/vendor_product_details_bindings.dart';
 import '../../features/vendor/vendorProductDetailsScreen/presentation/vendor_product_details_screen.dart';
 import '../../features/vendor/vendorStoreScreen/presentation/screens/vendor_store_screen.dart';
+import '../bindings/initialBindings.dart';
 
 class AppPages {
   static const initial = RouteConstants.splash;
@@ -119,11 +140,13 @@ class AppPages {
     GetPage(
       name: RouteConstants.customerServices,
       page: () => const CustomerServiceScreen(),
+      binding: CustomerServiceBindings(),
       transition: Transition.cupertino,
     ),
     GetPage(
       name: RouteConstants.customerMainContainer,
       page: () => const CustomerMainContainer(),
+      binding: InitialBinding(),
       transition: Transition.cupertino,
     ),
     GetPage(
@@ -139,6 +162,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.customerServiceBookingScreen,
       page: () => const ServiceBookingScreen(),
+      binding: ServiceBookingDetailsBindings(),
       transition: Transition.cupertino,
     ),
     GetPage(
@@ -159,6 +183,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.customerBookingsList,
       page: () => const CustomerBookingsList(),
+      binding: CustomerBookingListBindings(),
       transition: Transition.cupertino,
     ),
     GetPage(
@@ -174,6 +199,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.checkOutScreen,
       page: () => const CheckoutScreen(),
+      bindings: [ CheckOutBindings(),OrderFullFillmentBindings()],
       transition: Transition.cupertino,
     ),
     GetPage(
@@ -184,6 +210,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.productDetailsScreen,
       page: () => const ProductDetailScreen(),
+      binding: ProductDetailsBindings(),
       transition: Transition.cupertino,
     ),
     GetPage(
@@ -194,6 +221,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.favouritesScreen,
       page: () => const FavoritesScreen(),
+      binding: FavoritesBindings(),
       transition: Transition.cupertino,
     ),
 
@@ -228,6 +256,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.customerOrdersScreen,
       page: () => const CustomerOrdersScreen(),
+      binding: CustomerOrdersBindings(),
       transition: Transition.cupertino,
     ),
 
@@ -336,21 +365,25 @@ class AppPages {
     GetPage(
       name: RouteConstants.vendorOrdersScreen,
       page: () => const VendorOrdersScreen(),
+      binding: VendorOrderBindings(),
       transition: Transition.cupertino,
     ),
     GetPage(
       name: RouteConstants.inviteScreens,
       page: () => const InviteFriendsScreen(),
+      binding: InviteFriendsBindings(),
       transition: Transition.cupertino,
     ),
     GetPage(
       name: RouteConstants.multiVendorCartScreen,
       page: () => const MultiVendorCartScreen(),
+      binding: MultiVendorCartBindings(),
       transition: Transition.cupertino,
     ),
     GetPage(
       name: RouteConstants.servicePopularNearYou,
       page: () => const ServicePopularNearYouScreen(),
+      binding: CustomerProductsBindings(),
       transition: Transition.cupertino,
     ),
     GetPage(
@@ -379,6 +412,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.addDealsPromos,
       page: () => const AddDealsPomosScreen(),
+      binding: DealsPromosBindings(),
       transition: Transition.cupertino,
     ),
     GetPage(
@@ -389,11 +423,13 @@ class AppPages {
     GetPage(
       name: RouteConstants.editServiceScreen,
       page: () => const EditServicesScreen(),
+      binding: BeauticiansUpdateServiceBindings(),
       transition: Transition.cupertino,
     ),
     GetPage(
       name: RouteConstants.serviceDetailsScreen,
       page: () => const ServiceDetailsScreen(),
+      binding: ServiceDetailsBindings(),
       transition: Transition.cupertino,
     ),
     GetPage(
@@ -405,12 +441,34 @@ class AppPages {
     GetPage(
       name: RouteConstants.beauticiansAddServiceScreen,
       page: () => const BeauticianAddServiceScreen(),
+      binding: BeauticiansCreateServiceBindings(),
       transition: Transition.cupertino,
     ),
     GetPage(
       name: RouteConstants.vendorEditProductScreen,
       page: () => VendorEditProductScreen(product: Get.arguments as Product),
       binding: VendorEditProductBindings(),
+      transition: Transition.cupertino,
+    ),
+
+    GetPage(
+      name: RouteConstants.beauticiansStoreScreen,
+      page: () => const BeauticianStoreScreen(),
+      binding: BeauticianStoreServiceBindings(),
+      transition: Transition.cupertino,
+    ),
+
+    GetPage(
+      name: RouteConstants.customerProducts,
+      page: () => const CustomerProductsScreen(),
+      binding: CustomerProductsBindings(),
+      transition: Transition.cupertino,
+    ),
+
+    GetPage(
+      name: RouteConstants.feedbackScreen,
+      page: () => const FeedbackScreen(),
+      binding: FeedbackBindings(),
       transition: Transition.cupertino,
     ),
   ];

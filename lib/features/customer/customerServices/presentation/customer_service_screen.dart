@@ -1,152 +1,223 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+import '../../../../core/constants/api_constants.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/route_constants.dart';
+import '../../../../core/services/cache_service.dart';
 import '../../../../core/widgets/custom_network_image.dart';
 import '../../../../core/widgets/custom_text.dart';
+import '../../../common/category/presentation/controller/category_controller.dart';
+import '../../../common/subCategories/presentation/controller/sub_categories_controller.dart';
+import '../data/customer_services_response_model.dart';
+import 'controller/customer_service_controller.dart';
 
 class CustomerServiceScreen extends StatelessWidget {
   const CustomerServiceScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.find<CustomerServiceController>();
+    final categoryController = Get.find<CategoryController>();
+    final subCategoryController = Get.find<SubCategoryController>();
+
+    if (categoryController.categories.isEmpty) {
+      categoryController.loadCategories();
+    }
+
+    final image = CacheService.userImage;
+    final fullImageUrl = image.isNotEmpty ? "${ApiConstants.baseImageUrl}$image" : '';
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: EdgeInsets.symmetric(horizontal: 20.w),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 10.h),
-              _buildHeader(),
-              SizedBox(height: 20.h),
-              _buildSearchField(),
-              SizedBox(height: 25.h),
+        // NotificationListener detects scroll without needing a ScrollController
+        child: NotificationListener<ScrollNotification>(
+          onNotification: (ScrollNotification scrollInfo) {
+            if (scrollInfo.metrics.pixels >= scrollInfo.metrics.maxScrollExtent - 200) {
+              controller.loadMore();
+            }
+            return true;
+          },
+          child: RefreshIndicator(
+            onRefresh: () => controller.fetchService(),
+            color: const Color(0xFF1D3826),
+            child: SingleChildScrollView(
+              // Changed to AlwaysScrollable so RefreshIndicator always works
+              physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 10.h),
+                  _buildHeader(fullImageUrl),
+                  SizedBox(height: 20.h),
+                  _buildSearchField(),
+                  SizedBox(height: 25.h),
 
-              const CustomText(
-                text: "Our Specialties",
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0XFF000000),
+                  const CustomText(
+                    text: "Our Specialties",
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0XFF000000),
+                  ),
+                  SizedBox(height: 15.h),
+
+                  _buildSpecialtiesList(categoryController, subCategoryController, controller),
+
+                  SizedBox(height: 20.h),
+                  _buildFilterChips(),
+                  SizedBox(height: 20.h),
+
+                  _buildSubCategoryList(subCategoryController, controller),
+
+                  SizedBox(height: 30.h),
+
+                  // --- DYNAMIC Service SECTION ---
+                  Obx(() {
+                    if (controller.isLoading.value && controller.serviceList.isEmpty) {
+                      return const Center(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 40),
+                          child: CircularProgressIndicator(color: Color(0xFF1D3826)),
+                        ),
+                      );
+                    }
+
+                    if (controller.serviceList.isEmpty) {
+                      return _buildEmptyState(controller); // Extracted for cleanliness
+                    }
+
+                    List<Widget> serviceRows = [];
+                    for (int i = 0; i < controller.serviceList.length; i += 2) {
+                      List<Widget> rowItems = [];
+                      rowItems.add(_buildServiceCard(controller.serviceList[i]));
+                      if (i + 1 < controller.serviceList.length) {
+                        rowItems.add(_buildServiceCard(controller.serviceList[i + 1]));
+                      }
+                      serviceRows.add(_buildHorizontalList(rowItems));
+                      serviceRows.add(SizedBox(height: 20.h));
+                    }
+
+                    // Add a small loader at the bottom when fetching more pages
+                    return Column(
+                      children: [
+                        ...serviceRows,
+                        if (controller.isMoreLoading.value)
+                          Padding(
+                            padding: EdgeInsets.only(bottom: 20.h),
+                            child: const CircularProgressIndicator(color: Color(0xFF1D3826)),
+                          ),
+                      ],
+                    );
+                  }),
+
+                  _buildPopularNearYouSection(),
+                  SizedBox(height: 50.h),
+                ],
               ),
-              SizedBox(height: 15.h),
-              _buildSpecialtiesList(),
-
-              SizedBox(height: 20.h),
-              _buildFilterChips(),
-
-              SizedBox(height: 20.h),
-              _buildSubCategoryList(),
-              SizedBox(height: 30.h),
-
-              _buildHorizontalList([
-                _popularCard(
-                  "Braids By Mia",
-                  "500",
-                  "7 km away",
-                  "4.8",
-                  "https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=500",
-                ),
-                _popularCard(
-                  "Hair Studio",
-                  "300",
-                  "3 km away",
-                  "4.5",
-                  "https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=500",
-                ),
-              ]),
-
-              SizedBox(height: 20.h),
-
-              _buildHorizontalList([
-                _popularCard(
-                  "Full Glam Makeup",
-                  "100",
-                  "5 km away",
-                  "4.9 ( 125 )",
-                  "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=500",
-                ),
-                _popularCard(
-                  "Gel Manicure",
-                  "100",
-                  "5 km away",
-                  "4.9 ( 125 )",
-                  "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=500",
-                ),
-              ]),
-
-              SizedBox(height: 20.h),
-
-              _buildHorizontalList([
-                _popularCard(
-                  "Sarah Jenkins",
-                  "100",
-                  "5 km away",
-                  "4.9 ( 125 )",
-                  "https://images.unsplash.com/photo-1595152772835-219674b2a8a6?q=80&w=500",
-                ),
-                _popularCard(
-                  "Elena Rodriguez",
-                  "100",
-                  "5 km away",
-                  "4.9 ( 125 )",
-                  "https://images.unsplash.com/photo-1580618672591-eb180b1a973f?q=80&w=500",
-                ),
-              ]),
-
-              _buildPopularNearYouSection(),
-
-              SizedBox(height: 20.h),
-
-              _buildHorizontalList([
-                _popularCard(
-                  "First Booking: 20% OFF",
-                  "100",
-                  "5 km away",
-                  "4.9 ( 125 )",
-                  "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=500",
-                ),
-                _popularCard(
-                  "Weekend Special",
-                  "100",
-                  "5 km away",
-                  "4.9 ( 125 )",
-                  "https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?q=80&w=500",
-                ),
-              ]),
-
-              SizedBox(height: 20.h),
-
-              _buildHorizontalList([
-                _popularCard(
-                  "Box Braids",
-                  "100",
-                  "5 km away",
-                  "4.9 ( 125 )",
-                  "https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=500",
-                ),
-                _popularCard(
-                  "Lace Wig Install",
-                  "100",
-                  "5 km away",
-                  "4.9 ( 125 )",
-                  "https://images.unsplash.com/photo-1582095133179-bfd08e2fc6b3?q=80&w=500",
-                ),
-              ]),
-
-              SizedBox(height: 50.h),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 
+  // Helper for Empty state to keep the build method clean
+  Widget _buildEmptyState(CustomerServiceController controller) {
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 60.h),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CustomNetworkImage(
+              imageUrl: AppAssets.empty,
+              height: 200.h,
+              width: 200.w,
+              fit: BoxFit.contain,
+              backgroundColor: Colors.transparent,
+            ),
+            SizedBox(height: 20.h),
+            const CustomText(
+              text: "No stylists found",
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.black54,
+            ),
+            SizedBox(height: 10.h),
+            const CustomText(
+              text: "Try adjusting your distance or price range",
+              fontSize: 12,
+              color: Colors.grey,
+            ),
+            SizedBox(height: 20.h),
+            TextButton(
+              onPressed: () {
+                controller.clearSearch();
+                controller.clearPrice();
+                controller.clearRating();
+                controller.resetDistance();
+                controller.priceRange.value = const RangeValues(1, 50000);
+              },
+              child: const CustomText(
+                text: "Clear All Filters",
+                color: Color(0xFF1D3826),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+
   // --- Helper Methods ---
+
+  Widget _buildServiceCard(CustomerService service) {
+    final imageUrl = service.images.isNotEmpty ? service.images.first : '';
+    final fullImageUrl = "${ApiConstants.baseImageUrl}$imageUrl";
+
+    // --- CALCULATE DISTANCE ---
+    String distanceText = "Distance unknown";
+
+    // CacheService.lat/lon are user coordinates
+    // service.location.coordinates[1] is Latitude, [0] is Longitude (GeoJSON standard)
+    if (CacheService.lat != 0.0 && service.location.coordinates.length >= 2) {
+      double distanceInMeters = Geolocator.distanceBetween(
+        CacheService.lat,
+        CacheService.lon,
+        service.location.coordinates[1], // Latitude
+        service.location.coordinates[0], // Longitude
+      );
+
+      double distanceInKm = distanceInMeters / 1000;
+
+      // Format to 1 decimal place (e.g., 2.5 km) or whole number if preferred
+      distanceText = "${distanceInKm.toStringAsFixed(1)} km away";
+    }
+
+    return _popularCard(
+      service.name,
+      service.price.toString(),
+      distanceText, // Use the dynamic text here
+      service.rating.toString(),
+      service.images.isNotEmpty
+          ? fullImageUrl
+          : "https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=500",
+      onTap: () {
+        Get.toNamed(
+          RouteConstants.customerServiceBookingScreen,
+          arguments: service,
+        );
+      },
+    );
+  }
+
 
   Widget _buildPopularNearYouSection() {
     return SingleChildScrollView(
@@ -161,7 +232,7 @@ class CustomerServiceScreen extends StatelessWidget {
             child: _buildGridActionCard(
               title: "Popular Near You",
               description:
-                  "Trending hair styles provided by Beauticians located less than 5 km away from you",
+              "Trending hair styles provided by Beauticians located less than 5 km away from you",
               images: [
                 "https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=200",
                 "https://images.unsplash.com/photo-1595152772835-219674b2a8a6?q=80&w=200",
@@ -177,7 +248,7 @@ class CustomerServiceScreen extends StatelessWidget {
             child: _buildGridActionCard(
               title: "Deals & Promos",
               description:
-                  "Check out the most requested specialists in your current area this week",
+              "Check out the most requested specialists in your current area this week",
               images: [
                 "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=200",
                 "https://images.unsplash.com/photo-1582095133179-bfd08e2fc6b3?q=80&w=200",
@@ -293,7 +364,9 @@ class CustomerServiceScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader() {
+
+
+  Widget _buildHeader(String imageUrl) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -311,111 +384,127 @@ class CustomerServiceScreen extends StatelessWidget {
               ),
             ),
 
-            CustomText(text: "Beauty", fontWeight: FontWeight.bold),
+            CustomText(
+              text: "Beauty",
+              fontWeight: FontWeight.bold,
+            ),
           ],
         ),
         Row(
           children: [
-            CustomText(
-              text: "72 Poplar Ave NW",
-              fontSize: 12.sp,
-              color: AppColors.textHint,
-            ),
-            Icon(
-              Icons.keyboard_arrow_down,
-              size: 18.sp,
-              color: AppColors.textHint,
-            ),
+            CustomText(text: CacheService.formattedLocation, fontSize: 12.sp, color: AppColors.textHint),
           ],
         ),
 
         GestureDetector(
-          onTap: () {
-            Get.toNamed(RouteConstants.profileScreen);
-          },
-          child: CircleAvatar(
-            child: CustomNetworkImage(
-              imageUrl:
-                  "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200",
-              height: 100.h,
-              width: 100.w,
-              borderRadius: BorderRadius.circular(50.r),
+          onTap: () => Get.toNamed(RouteConstants.profileScreen),
+          child: Container(
+            height: 44.r,
+            width: 44.r,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFF1D3826).withValues(alpha: 0.1),
+            ),
+            child: ClipOval(
+              child: imageUrl.isNotEmpty // Use the parameter here
+                  ? CachedNetworkImage(
+                imageUrl: imageUrl,
+                fit: BoxFit.cover,
+                placeholder: (context, url) => const Center(
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                errorWidget: (context, url, error) => Icon(
+                  Icons.person,
+                  size: 25.sp,
+                  color: const Color(0xFF1D3826),
+                ),
+              )
+                  : Icon(Icons.person, size: 25.sp, color: const Color(0xFF1D3826)),
             ),
           ),
-        ),
+        )
       ],
     );
   }
 
   Widget _buildSearchField() {
+    final controller = Get.find<CustomerServiceController>();
+
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 15.w),
       height: 50.h,
       decoration: BoxDecoration(
-        color: Color(0XFFF1F0B2),
-        // color: AppColors.primaryContainer,
+        color: const Color(0XFFF1F0B2),
         borderRadius: BorderRadius.circular(25.r),
       ),
       child: Row(
         children: [
           Expanded(
             child: TextField(
+              controller: controller.searchController, // Link the controller
+              onChanged: controller.onSearchChanged,    // Trigger search logic
+              style: TextStyle(fontSize: 14.sp, color: Colors.black),
               decoration: InputDecoration(
-                hintText: "Search services, products and stylists",
-                hintStyle: TextStyle(fontSize: 12.sp, color: Color(0XFF000000)),
+                hintText: "Search services, services and stylists",
+                hintStyle: TextStyle(fontSize: 12.sp, color: const Color(0XFF000000).withValues(alpha:0.5)),
                 border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.symmetric(vertical: 12.h),
               ),
             ),
           ),
-          Icon(Icons.search, color: Color(0XFF000000), size: 22.sp),
+          // Dynamic suffix icon: Show 'X' to clear, otherwise show Search icon
+          Obx(() => controller.searchQuery.value.isNotEmpty
+              ? GestureDetector(
+            onTap: controller.clearSearch,
+            child: Icon(Icons.close, color: Colors.black, size: 20.sp),
+          )
+              : Icon(Icons.search, color: const Color(0XFF000000), size: 22.sp),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildSpecialtiesList() {
-    int selectedIndex = 0;
+  Widget _buildSpecialtiesList(
+      CategoryController catCtrl,
+      SubCategoryController subCtrl,
+      CustomerServiceController serviceCtrl
+      ) {
+    return Obx(() {
+      if (catCtrl.isLoading.value) return const LinearProgressIndicator();
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          _specialtyCard(
-            "Hair Care",
-            "https://cdn-icons-png.flaticon.com/512/1940/1940922.png",
-            selectedIndex == 0,
-            () => /* Update State */ {},
-          ),
-          _specialtyCard(
-            "Make Up",
-            "https://cdn-icons-png.flaticon.com/512/1940/1940922.png",
-            selectedIndex == 1,
-            () => {},
-          ),
-          _specialtyCard(
-            "Nail Care",
-            "https://cdn-icons-png.flaticon.com/512/1940/1940922.png",
-            selectedIndex == 2,
-            () => {},
-          ),
-          _specialtyCard(
-            "Skin Care",
-            "https://cdn-icons-png.flaticon.com/512/1940/1940922.png",
-            selectedIndex == 3,
-            () => {},
-          ),
-        ],
-      ),
-    );
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: catCtrl.categories.map((category) {
+            // Check selection from serviceController for persistent filtering UI
+            bool isSelected = serviceCtrl.selectedCategoryId.value == category.id;
+
+            return _specialtyCard(
+              category.name,
+              "${ApiConstants.baseImageUrl}${category.image}",
+              isSelected,
+                  () {
+                // 1. Fetch subcategories for the UI
+                subCtrl.fetchSubCategories(categoryId: category.id);
+                // 2. Filter the service list
+                serviceCtrl.filterByCategory(category.id);
+              },
+            );
+          }).toList(),
+        ),
+      );
+    });
   }
 
   // 2. Updated Card Method
   Widget _specialtyCard(
-    String title,
-    String imageUrl,
-    bool isSelected,
-    VoidCallback onTap,
-  ) {
+      String title,
+      String imageUrl,
+      bool isSelected,
+      VoidCallback onTap,
+      ) {
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -476,157 +565,399 @@ class CustomerServiceScreen extends StatelessWidget {
   }
 
   Widget _buildFilterChips() {
+    final controller = Get.find<CustomerServiceController>();
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       physics: const BouncingScrollPhysics(),
-      // Removing horizontal padding from the Row since it's handled by the parent
-      child: Row(
+      child: Obx(() => Row(
         children: [
-          _filterChip("Rating", Icons.star_border),
+          _filterChip(
+            controller.selectedRating.value > 0
+                ? "${controller.selectedRating.value.toInt()}★"
+                : "Rating",
+            Icons.star_border,
+            isActive: controller.selectedRating.value > 0,
+            onTap: () => _showRatingPicker(controller),
+            onClear: () {
+              controller.selectedRating.value = 0.0;
+              controller.fetchService();
+            },
+          ),
           SizedBox(width: 10.w),
-          _filterChip("Price", Icons.attach_money),
+          _filterChip(
+            controller.maxPrice.value > 0
+                ? "\$${controller.minPrice.value.toInt()}-\$${controller.maxPrice.value.toInt()}"
+                : "Price",
+            Icons.attach_money,
+            isActive: controller.maxPrice.value > 0,
+            onTap: () => _showPriceRangePicker(controller),
+            onClear: () {
+              controller.clearPrice();
+              controller.priceRange.value = const RangeValues(1, 50000);
+            },
+          ),
           SizedBox(width: 10.w),
-          _filterChip("Distance", Icons.location_on_outlined),
+          _filterChip(
+            controller.selectedDistance.value > 0
+                ? "${controller.selectedDistance.value} km"
+                : "Distance",
+            Icons.location_on_outlined,
+            isActive: controller.selectedDistance.value > 0,
+            onTap: () => _showDistancePicker(controller),
+            onClear: () => controller.resetDistance(),
+          ),
           SizedBox(width: 10.w),
-          _filterChip("Offers", Icons.local_offer_outlined),
+          // Updated Offers Chip
+          _filterChip(
+            "HasOffer", // Renamed label
+            Icons.local_offer_outlined,
+            isActive: controller.hasOffer.value,
+            showArrow: false, // Removed dropdown arrow
+            onTap: () => controller.toggleOffer(),
+            onClear: () => controller.toggleOffer(),
+          ),
+
           SizedBox(width: 10.w),
-          _filterChip("Home Service", Icons.home_repair_service_outlined),
-          SizedBox(width: 10.w),
-          _filterChip("Favourites", Icons.favorite_outline_rounded),
-          SizedBox(width: 20.w),
+          // NEW: Home Service Chip
+          _filterChip(
+            "Home Service",
+            Icons.home_repair_service_outlined,
+            isActive: controller.homeService.value,
+            showArrow: false,
+            onTap: () => controller.toggleHomeService(),
+            onClear: () => controller.toggleHomeService(),
+          ),
         ],
+      )),
+    );
+  }
+
+  void _showRatingPicker(CustomerServiceController controller) {
+    // Sync the slider starting point with the current active rating
+    controller.ratingValue.value = controller.selectedRating.value > 0
+        ? controller.selectedRating.value
+        : 1.0;
+
+    _showStyledBottomSheet(
+      title: "Minimum Rating",
+      child: Obx(() => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CustomText(
+                text: controller.ratingValue.value.toStringAsFixed(1),
+                fontSize: 24.sp,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF1D3826),
+              ),
+              Icon(Icons.star, color: Colors.amber, size: 28.sp),
+              CustomText(text: " & Up", fontSize: 16.sp),
+            ],
+          ),
+          SizedBox(height: 10.h),
+          SliderTheme(
+            data: SliderTheme.of(Get.context!).copyWith(
+              activeTrackColor: const Color(0xFF1D3826),
+              inactiveTrackColor: const Color(0xFF1D3826).withValues(alpha:0.1),
+              thumbColor: const Color(0xFF1D3826),
+              overlayColor: const Color(0xFF1D3826).withValues(alpha:0.2),
+              valueIndicatorColor: const Color(0xFF1D3826),
+              valueIndicatorTextStyle: const TextStyle(color: Colors.white),
+            ),
+            child: Slider(
+              value: controller.ratingValue.value,
+              min: 1.0,
+              max: 5.0,
+              divisions: 4, // Steps: 1, 2, 3, 4, 5
+              label: controller.ratingValue.value.toInt().toString(),
+              onChanged: (double value) {
+                controller.ratingValue.value = value;
+              },
+            ),
+          ),
+          SizedBox(height: 20.h),
+          ElevatedButton(
+            onPressed: () {
+              controller.selectedRating.value = controller.ratingValue.value;
+              controller.fetchService();
+              Get.back();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF1D3826),
+              minimumSize: Size(double.infinity, 50.h),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25.r)),
+            ),
+            child: const CustomText(text: "Apply Rating", color: Colors.white),
+          ),
+          SizedBox(height: 10.h),
+        ],
+      )),
+    );
+  }
+
+  void _showDistancePicker(CustomerServiceController controller) {
+    _showStyledBottomSheet(
+      title: "Search Radius",
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [5, 10, 15, 20, 50].map((km) => ListTile(
+          leading: const Icon(Icons.location_on, color: Color(0xFF1D3826)),
+          title: CustomText(text: "Within $km km"),
+          trailing: controller.selectedDistance.value == km
+              ? const Icon(Icons.check, color: Color(0xFF1D3826)) : null,
+          onTap: () {
+            controller.selectedDistance.value = km;
+            controller.fetchService();
+            Get.back();
+          },
+        )).toList(),
       ),
     );
   }
 
-  Widget _filterChip(String label, IconData icon, {bool isActive = false}) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-      decoration: BoxDecoration(
-        // Change color based on selection state
-        color: Color(0XFFB5B475),
-        // color: isActive ? AppColors.navigationIndicator : AppColors.chipInactive,
-        borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(
-          color: isActive ? AppColors.primary : Colors.transparent,
-          width: 1,
+// Helper to keep BottomSheets consistent
+  void _showStyledBottomSheet({required String title, required Widget child}) {
+    Get.bottomSheet(
+      Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(25.r)),
+        ),
+        padding: EdgeInsets.all(20.r),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // The drag handle
+            Container(
+              width: 40.w,
+              height: 4.h,
+              margin: EdgeInsets.only(bottom: 15.h), // Fixed here
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            CustomText(text: title, fontSize: 18.sp, fontWeight: FontWeight.bold),
+            SizedBox(height: 10.h),
+            child,
+          ],
         ),
       ),
-      child: Row(
-        children: [
-          Icon(
-            icon,
-            size: 16.sp,
-            color: Color(0XFF000000),
-            // color: isActive ? AppColors.white : AppColors.iconOnSurface
-          ),
-          SizedBox(width: 4.w),
-          CustomText(
-            text: label,
-            fontSize: 12.sp,
-            fontWeight: FontWeight.w500,
-            color: Color(0XFF000000),
-            // color: isActive ? AppColors.white : AppColors.textPrimary,
-          ),
-          Icon(
-            Icons.keyboard_arrow_down,
-            size: 16.sp,
-            color: Color(0XFF000000),
-            // color: isActive ? AppColors.white : AppColors.iconOnSurface,
-          ),
-        ],
-      ),
+      isScrollControlled: true,
     );
   }
 
-  Widget _buildSubCategoryList() {
-    // You can manage this with a state variable just like the specialties
-    int selectedSubIndex = 0;
-
-    final categories = [
-      {"name": "Braids", "img": AppAssets.subCategory},
-      {"name": "Faux Locs", "img": AppAssets.subCategory},
-      {"name": "Kids", "img": AppAssets.subCategory},
-      {"name": "Wig Install", "img": AppAssets.subCategory},
-    ];
-
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      physics: const BouncingScrollPhysics(),
-      child: Row(
-        children: List.generate(categories.length, (index) {
-          final isSelected = selectedSubIndex == index;
-          final cat = categories[index];
-
-          return Padding(
-            padding: EdgeInsets.only(right: 15.w, left: index == 0 ? 5.w : 0),
-            child: Column(
+  void _showPriceRangePicker(CustomerServiceController controller) {
+    _showStyledBottomSheet(
+      title: "Select Price Range",
+      child: Obx(() => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 10.w),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // The Rounded Container
-                Container(
-                  width: 85.w,
-                  height: 85.w,
-                  decoration: BoxDecoration(
-                    // Use the pale yellow for selected, white for unselected
-                    color: isSelected ? const Color(0xFFF1F0B2) : Colors.white,
-                    borderRadius: BorderRadius.circular(25.r),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha:0.08),
-                        blurRadius: 12,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20.r),
-                    child: Padding(
-                      padding: EdgeInsets.all(
-                        8.r,
-                      ), // Padding for the image inside the card
-                      child: CustomNetworkImage(
-                        imageUrl: cat["img"]!,
-                        height:
-                            75.h, // Slightly smaller than container for padding
-                        width: 75.w,
-                        borderRadius: BorderRadius.circular(18.r),
-                      ),
-                    ),
-                  ),
-                ),
-                // The Label
                 CustomText(
-                  text: cat["name"]!,
-                  fontSize: 13.sp,
-                  top: 10.h,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black,
+                  text: "\$${controller.priceRange.value.start.toInt()}",
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16.sp,
+                ),
+                CustomText(
+                  text: "\$${controller.priceRange.value.end.toInt()}",
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16.sp,
                 ),
               ],
             ),
-          );
-        }),
+          ),
+          SizedBox(height: 10.h),
+          SliderTheme(
+            data: SliderTheme.of(Get.context!).copyWith(
+              activeTrackColor: const Color(0xFF1D3826),
+              inactiveTrackColor: const Color(0xFF1D3826).withValues(alpha:0.1),
+              thumbColor: const Color(0xFF1D3826),
+              overlayColor: const Color(0xFF1D3826).withValues(alpha:0.2),
+              rangeThumbShape: const RoundRangeSliderThumbShape(enabledThumbRadius: 10),
+            ),
+            child: RangeSlider(
+              values: controller.priceRange.value,
+              min: 1,
+              max: 50000,
+              divisions: 500, // Moves in increments of 100
+              labels: RangeLabels(
+                controller.priceRange.value.start.round().toString(),
+                controller.priceRange.value.end.round().toString(),
+              ),
+              onChanged: (RangeValues values) {
+                controller.priceRange.value = values;
+              },
+            ),
+          ),
+          SizedBox(height: 20.h),
+          // Apply Button
+          ElevatedButton(
+            onPressed: () {
+              controller.updatePriceRange(controller.priceRange.value);
+              controller.fetchService();
+              Get.back();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF1D3826),
+              minimumSize: Size(double.infinity, 50.h),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25.r)),
+            ),
+            child: const CustomText(text: "Apply Filter", color: Colors.white),
+          ),
+          SizedBox(height: 10.h),
+        ],
+      )),
+    );
+  }
+
+  Widget _filterChip(
+      String label,
+      IconData icon, {
+        bool isActive = false,
+        bool showArrow = true,
+        required VoidCallback onTap,
+        required VoidCallback onClear,
+      }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+        decoration: BoxDecoration(
+          // Use primary color if active, otherwise white
+          color: isActive ? const Color(0xFF1D3826) : const Color(0XFFB5B475),
+          borderRadius: BorderRadius.circular(20.r),
+          border: Border.all(
+            color: isActive ? const Color(0xFF1D3826) : Colors.grey.shade300,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+                icon,
+                size: 16.sp,
+                color: isActive ? Colors.white : Colors.black87
+            ),
+            SizedBox(width: 6.w),
+            CustomText(
+              text: label,
+              fontSize: 12.sp,
+              color: isActive ? Colors.white : Colors.black87,
+              fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+            ),
+            if (showArrow && !isActive) ...[
+              SizedBox(width: 4.w),
+              Icon(Icons.keyboard_arrow_down, size: 16.sp, color: Colors.black54),
+            ],
+            if (isActive) ...[
+              SizedBox(width: 6.w),
+              GestureDetector(
+                onTap: onClear,
+                child: Icon(Icons.close, size: 14.sp, color: Colors.white),
+              ),
+            ]
+          ],
+        ),
       ),
     );
   }
 
-  Widget _popularCard(
-    String name,
-    String price,
-    String distance,
-    String rating,
-    String imageUrl, {
-    VoidCallback? onTap,
-  }) {
-    return GestureDetector(
-      onTap:
-          onTap ??
-          () {
-            Get.toNamed(
-              RouteConstants.customerServiceBookingScreen,
-              arguments: {'title': name, 'imageUrl': imageUrl},
+
+  Widget _buildSubCategoryList(
+      SubCategoryController subCtrl,
+      CustomerServiceController serviceCtrl
+      ) {
+    return Obx(() {
+      if (subCtrl.isLoading.value) return const Center(child: CircularProgressIndicator());
+      if (subCtrl.subCategories.isEmpty) return const SizedBox.shrink();
+
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        child: Row(
+          children: subCtrl.subCategories.map((sub) {
+            bool isSelected = serviceCtrl.selectedSubCategoryId.value == sub.id;
+
+            return GestureDetector(
+              onTap: () => serviceCtrl.filterBySubCategory(sub.id),
+              child: Padding(
+                padding: EdgeInsets.only(right: 15.w),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 85.w,
+                      height: 85.w,
+                      decoration: BoxDecoration(
+                        // Color change based on selection
+                        color: isSelected ? const Color(0xFF1D3826) : Colors.white,
+                        borderRadius: BorderRadius.circular(25.r),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.08),
+                            blurRadius: 12,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20.r),
+                        child: Padding(
+                          padding: EdgeInsets.all(8.r),
+                          child: CustomNetworkImage(
+                            imageUrl: "${ApiConstants.baseImageUrl}${sub.image}",
+                            height: 75.h,
+                            width: 75.w,
+                            // Tint icon if selected
+                            color: isSelected ? Colors.white : null,
+                            borderRadius: BorderRadius.circular(18.r),
+                          ),
+                        ),
+                      ),
+                    ),
+                    CustomText(
+                      text: sub.name,
+                      fontSize: 13.sp,
+                      top: 10.h,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                      color: isSelected ? const Color(0xFF1D3826) : Colors.black,
+                    ),
+                  ],
+                ),
+              ),
             );
+          }).toList(),
+        ),
+      );
+    });
+  }
+
+  Widget _popularCard(
+      String name,
+      String price,
+      String distance,
+      String rating,
+      String imageUrl, {
+        VoidCallback? onTap,
+      }) {
+    return GestureDetector(
+      onTap: onTap ?? () {
+        Get.toNamed(
+          RouteConstants.customerServiceBookingScreen, // Ensure this matches your route name
+          arguments: {
+            'title': name,
+            'price': price,
+            'image': imageUrl,
           },
+        );
+      },
       child: Container(
         width: 220.w,
         margin: EdgeInsets.only(right: 20.w, bottom: 10.h),

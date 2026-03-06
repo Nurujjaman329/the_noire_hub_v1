@@ -2,8 +2,6 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import '../../../../../core/api/api_exception.dart';
 import '../../../../../core/services/cache_service.dart';
-import '../../../../../core/storage/local_storage.dart';
-import '../../../../authentication/login/data/login_response_model.dart';
 import '../../data/personal_info_response_model.dart';
 import '../../data/personal_info_service.dart';
 

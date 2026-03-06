@@ -111,8 +111,17 @@ class RegistrationController extends GetxController with MapSearchMixin {
   }
 
   Future<dynamic> _handleVendorRegistration() async {
-    if (selectedShopImage.value == null) throw "Please select a shop image";
+    // 1. Get the file from the observable
+    final file = selectedShopImage.value;
+
+    // 2. Check if null OR if the file actually exists on the device
+    if (file == null || !(await file.exists())) {
+      throw "Please select a valid shop image";
+    }
+
+    // 3. Pass the role dynamically
     return await _service.registerVendor(
+      role: userRole.value, // 'vendor' or 'beautician'
       fullName: fullNameController.text.trim(),
       email: emailController.text.trim(),
       password: passwordController.text.trim(),
@@ -121,13 +130,53 @@ class RegistrationController extends GetxController with MapSearchMixin {
       bio: bioController.text.trim(),
       addresses: addresses,
       selectedCategories: selectedCategories,
-      shopImage: selectedShopImage.value!,
+      shopImage: file, // Use the verified local variable
     );
   }
 
   Future<void> pickShopImage() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
-    if (pickedFile != null) selectedShopImage.value = File(pickedFile.path);
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(16),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text("Take Photo"),
+              onTap: () async {
+                Get.back();
+                final pickedFile = await _picker.pickImage(
+                  source: ImageSource.camera,
+                  imageQuality: 80,
+                );
+                if (pickedFile != null) {
+                  selectedShopImage.value = File(pickedFile.path);
+                }
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text("Choose from Gallery"),
+              onTap: () async {
+                Get.back();
+                final pickedFile = await _picker.pickImage(
+                  source: ImageSource.gallery,
+                  imageQuality: 80,
+                );
+                if (pickedFile != null) {
+                  selectedShopImage.value = File(pickedFile.path);
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
 

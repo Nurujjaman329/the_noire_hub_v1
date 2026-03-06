@@ -13,5 +13,6 @@ class AppAssets{
   static String vendorStoreTop="$baseUrl/vendor_store_top.png";
   static String vendorStoreShadow="$baseUrl/vendor_shadow.png";
   static String subCategory = "$baseUrl/sub_cat.png";
+  static String empty = "$baseUrl/empty.png";
 
 }

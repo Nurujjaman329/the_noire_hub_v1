@@ -127,10 +127,12 @@ class SelectionScreen extends StatelessWidget {
                       children: [
                         _buildSelectionCard(
                           title: "Vendors",
+                          role: "vendor", // Pass role explicitly
                           image: AppAssets.vendors,
                         ),
                         _buildSelectionCard(
                           title: "Beauticians",
+                          role: "beautician", // Pass role explicitly
                           image: AppAssets.beauticians,
                         ),
                       ],
@@ -145,14 +147,16 @@ class SelectionScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSelectionCard({required String title, required String image}) {
+  Widget _buildSelectionCard({
+    required String title,
+    required String role,
+    required String image
+  }) {
     return GestureDetector(
       onTap: () {
         final regController = Get.find<RegistrationController>();
-
         regController.resetFields();
-        // Assign role based on card title
-        regController.userRole.value = (title == "Vendors") ? 'vendor' : 'beautician';
+        regController.userRole.value = role; // No more conditional logic here
         Get.toNamed(RouteConstants.vendorRegistration);
       },
       child: Container(

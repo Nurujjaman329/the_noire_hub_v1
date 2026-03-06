@@ -28,6 +28,9 @@ class VendorProductDetailsScreen extends GetView<VendorProductDetailsController>
         final product = controller.productDetails.value;
         if (product == null) return const Center(child: Text("Product not found"));
 
+        // Logic to check if there is an active discount
+        final bool hasDiscount = product.discountedPrice < product.originalPrice;
+
         return CustomScrollView(
           slivers: [
             SliverAppBar(
@@ -47,16 +50,26 @@ class VendorProductDetailsScreen extends GetView<VendorProductDetailsController>
                 background: Column(
                   children: [
                     SizedBox(height: 100.h),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(25.r),
-                      child: CustomNetworkImage(
-                        imageUrl: product.images.isNotEmpty
-                            ? "${ApiConstants.baseImageUrl}${product.images[0]}"
-                            : "",
-                        height: 300.h,
-                        width: 340.w,
-                        fit: BoxFit.cover,
-                      ),
+                    Stack( // Added Stack to show Discount Badge on Detail Image
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(25.r),
+                          child: CustomNetworkImage(
+                            imageUrl: product.images.isNotEmpty
+                                ? "${ApiConstants.baseImageUrl}${product.images[0]}"
+                                : "",
+                            height: 300.h,
+                            width: 340.w,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        if (hasDiscount)
+                          Positioned(
+                            top: 15.h,
+                            right: 15.w,
+                            child: _buildDiscountBadge(product),
+                          ),
+                      ],
                     ),
                     SizedBox(height: 15.h),
                     Row(
@@ -83,12 +96,36 @@ class VendorProductDetailsScreen extends GetView<VendorProductDetailsController>
                       color: const Color(0xFF1D3826),
                     ),
                     SizedBox(height: 10.h),
-                    CustomText(
-                      text: "\$${product.price.toStringAsFixed(2)}",
-                      fontSize: 28.sp,
-                      fontWeight: FontWeight.w900,
-                      color: const Color(0xFF1D3826),
+
+                    // --- UPDATED PRICE SECTION ---
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        CustomText(
+                          text: "\$${product.discountedPrice.toStringAsFixed(2)}",
+                          fontSize: 28.sp,
+                          fontWeight: FontWeight.w900,
+                          color: const Color(0xFF1D3826),
+                        ),
+                        if (hasDiscount) ...[
+                          SizedBox(width: 10.w),
+                          Padding(
+                            padding: EdgeInsets.only(bottom: 4.h), // Changed from .bottom() to .only(bottom: ...)
+                            child: Text(
+                              "\$${product.originalPrice.toStringAsFixed(2)}",
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                color: Colors.grey,
+                                decoration: TextDecoration.lineThrough,
+                              ),
+                            ),
+                          ),
+
+                        ],
+                      ],
                     ),
+                    // -----------------------------
+
                     Padding(
                       padding: EdgeInsets.symmetric(vertical: 15.h),
                       child: Divider(color: Colors.grey.shade300, thickness: 1),
@@ -108,7 +145,6 @@ class VendorProductDetailsScreen extends GetView<VendorProductDetailsController>
                     ),
                     SizedBox(height: 25.h),
 
-                    // Updated Variant Section
                     if (product.variants.isNotEmpty)
                       _buildVariantSection(product.variants),
 
@@ -120,6 +156,33 @@ class VendorProductDetailsScreen extends GetView<VendorProductDetailsController>
           ],
         );
       }),
+    );
+  }
+
+  // Helper for the Discount Badge on the image
+  Widget _buildDiscountBadge(ProductDetailData product) {
+    String label = "";
+    if (product.discount.type == "%") {
+      label = "${product.discount.value.toInt()}% OFF";
+    } else {
+      label = "SAVE \$${(product.originalPrice - product.discountedPrice).toStringAsFixed(0)}";
+    }
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+      decoration: BoxDecoration(
+        color: const Color(0xFF9BB575), // Brand Green
+        borderRadius: BorderRadius.circular(10.r),
+        boxShadow: [
+          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2))
+        ],
+      ),
+      child: CustomText(
+        text: label,
+        fontSize: 10.sp,
+        color: Colors.white,
+        fontWeight: FontWeight.bold,
+      ),
     );
   }
 

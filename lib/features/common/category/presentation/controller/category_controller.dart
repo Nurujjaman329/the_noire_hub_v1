@@ -29,14 +29,15 @@ class CategoryController extends GetxController {
   }) async {
     if (page == 1) isLoading.value = true;
 
-    this.currentUserId = userId;
+    currentUserId = userId;
 
     // Logic change: Only auto-detect type if NO userId is provided
     String? finalType = categoryType;
     if (userId == null && finalType == null) {
       final String role = CacheService.role.toLowerCase();
-      if (role.contains('vendor')) finalType = 'product';
-      else if (role.contains('beautician')) finalType = 'service';
+      if (role.contains('vendor')) {
+        finalType = 'product';
+      } else if (role.contains('beautician')) finalType = 'service';
     }
 
     try {

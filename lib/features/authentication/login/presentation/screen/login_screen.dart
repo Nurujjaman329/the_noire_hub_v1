@@ -163,23 +163,14 @@ class LoginScreen extends GetView<LoginController> {
 
   // --- Options Row ---
   Widget _buildOptionsRow() {
-    final controller = Get.find<LoginController>();
+    // final controller = Get.find<LoginController>();
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Row(
           children: [
-            Obx(() => Checkbox(
-              value: controller.rememberMe.value,
-              activeColor: const Color(0XFF1D3826),
-              onChanged: (val) => controller.rememberMe.value = val!,
-            )),
-            CustomText(
-              text: "Remember Me",
-              fontSize: 12.sp,
-              color: Colors.black,
-              left: 8.w,
-            ),
+
+
           ],
         ),
         GestureDetector(

@@ -31,18 +31,39 @@ class _VendorEditProductScreenState extends State<VendorEditProductScreen> {
   late TextEditingController descController;
   late TextEditingController weightValueController;
   late TextEditingController stockController;
+  late TextEditingController discountValueController;
+  late TextEditingController maxDiscountController;
 
   String selectedWeightUnit = "g";
+  String? selectedDiscountType;
 
   @override
   void initState() {
     super.initState();
     nameController = TextEditingController(text: widget.product.name);
     priceController = TextEditingController(text: widget.product.price.toString());
-    descController = TextEditingController(text: widget.product.description ?? "");
+    descController = TextEditingController(text: widget.product.description);
     weightValueController = TextEditingController(text: widget.product.weight.value.toString());
     stockController = TextEditingController(text: widget.product.stock.toString());
-    selectedWeightUnit = widget.product.weight.unit ?? "g";
+    selectedWeightUnit = widget.product.weight.unit;
+
+    final initialDiscountValue = widget.product.discount.value;
+    final initialMaxAmount = widget.product.discount.maxAmount;
+
+    discountValueController = TextEditingController(
+        text: initialDiscountValue > 0 ? initialDiscountValue.toString() : ""
+    );
+
+    maxDiscountController = TextEditingController(
+        text: (initialMaxAmount != null && initialMaxAmount > 0) ? initialMaxAmount.toString() : ""
+    );
+
+    if (initialDiscountValue > 0 &&
+        (widget.product.discount.type == "%" || widget.product.discount.type == "flat")) {
+      selectedDiscountType = widget.product.discount.type;
+    } else {
+      selectedDiscountType = null; // Forces "Select Type" hint to show
+    }
 
     editController.selectedVariants.clear();
     for (var variant in widget.product.variants) {
@@ -95,32 +116,59 @@ class _VendorEditProductScreenState extends State<VendorEditProductScreen> {
   }
 
   void _handleUpdate() {
-    if (nameController.text.trim().isEmpty || priceController.text.trim().isEmpty) {
+    final String name = nameController.text.trim();
+    final String priceRaw = priceController.text.trim();
+    final String discountValRaw = discountValueController.text.trim();
+    final String maxAmountRaw = maxDiscountController.text.trim();
+
+    // Basic Validation
+    if (name.isEmpty || priceRaw.isEmpty) {
       Get.snackbar("Required", "Please enter product name and price",
           backgroundColor: Colors.redAccent, colorText: Colors.white);
       return;
     }
 
-    // Check if variants actually changed
+    final double discountAmount = double.tryParse(discountValRaw) ?? 0.0;
+    final double maxAmount = double.tryParse(maxAmountRaw) ?? 0.0;
+
+    // Rule: If discount value > 0, Type is MUST
+    if (discountAmount > 0 && selectedDiscountType == null) {
+      Get.snackbar("Required", "Please select a discount type",
+          backgroundColor: Colors.orangeAccent, colorText: Colors.white);
+      return;
+    }
+
+    // Rule: If Max Amount is set, Value and Type are MUST
+    if (maxAmount > 0 && (discountAmount <= 0 || selectedDiscountType == null)) {
+      Get.snackbar("Error", "Max Amount requires a Discount Value and Type",
+          backgroundColor: Colors.orangeAccent, colorText: Colors.white);
+      return;
+    }
+
     bool variantsChanged = _haveVariantsChanged();
+    final bool hasValidDiscount = discountAmount > 0;
 
     final updateBody = VendorUpdateProductFormBody(
-      name: nameController.text.trim(),
-      price: double.tryParse(priceController.text),
+      name: name,
+      price: double.tryParse(priceRaw),
       description: descController.text.trim(),
       weightValue: double.tryParse(weightValueController.text),
       weightUnit: selectedWeightUnit,
+
+      // Pass values ONLY if they satisfy the discount requirements
+      discountValue: hasValidDiscount ? discountAmount : null,
+      discountType: hasValidDiscount ? selectedDiscountType : null,
+      discountMaxAmount: (hasValidDiscount && maxAmount > 0) ? maxAmount : null,
+
       stock: int.tryParse(stockController.text),
       newImages: editController.selectedImages,
-
-      // Pass the list ONLY if variantsChanged is true, otherwise pass null
       variants: variantsChanged ? editController.selectedVariants : null,
-
       isActive: true,
     );
 
     editController.updateProduct(widget.product.id, updateBody);
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -128,6 +176,7 @@ class _VendorEditProductScreenState extends State<VendorEditProductScreen> {
       backgroundColor: const Color(0xFF1D3826),
       appBar: CustomAppBar(
           title: "Edit Product",
+          tittleColor: Colors.white,
           showBackButton: true,
           bgColor: Colors.transparent,
           arrowColor: Colors.white
@@ -180,6 +229,9 @@ class _VendorEditProductScreenState extends State<VendorEditProductScreen> {
                     ),
 
                     SizedBox(height: 20.h),
+                    _buildDiscountRow(),
+
+                    SizedBox(height: 20.h),
                     _buildLabel("Stock Quantity"),
                     _buildInputWrapper(
                       child: TextField(
@@ -207,6 +259,66 @@ class _VendorEditProductScreenState extends State<VendorEditProductScreen> {
   }
 
   // --- UI Helper Components ---
+
+  Widget _buildDiscountRow() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildLabel("Discount"),
+        Row(
+          children: [
+            Expanded(
+              flex: 3,
+              child: _buildInputWrapper(
+                child: TextField(
+                  controller: discountValueController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                      hintText: "Value",
+                      border: InputBorder.none,
+                      icon: Icon(Icons.money_off, size: 18, color: Color(0xFF1D3826))
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(width: 10.w),
+            Expanded(
+              flex: 3,
+              child: _buildInputWrapper(
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    isExpanded: true,
+                    value: selectedDiscountType,
+                    hint: CustomText(text: "Select Type", fontSize: 12.sp, color: Colors.grey),
+                    items: ["%", "flat"].map((u) => DropdownMenuItem(
+                        value: u,
+                        child: Text(u == "%" ? "Percentage (%)" : "Flat Amount")
+                    )).toList(),
+                    onChanged: (v) => setState(() => selectedDiscountType = v),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        // ✅ Added Max Amount Field
+        SizedBox(height: 15.h),
+        _buildLabel("Max Discount Amount (Optional Cap)"),
+        _buildInputWrapper(
+          child: TextField(
+            controller: maxDiscountController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+                hintText: "Enter max cap amount",
+                border: InputBorder.none,
+                icon: Icon(Icons.gavel, size: 18, color: Color(0xFF1D3826))
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
 
   Widget _buildHeaderSection() {
     return Row(
@@ -275,7 +387,7 @@ class _VendorEditProductScreenState extends State<VendorEditProductScreen> {
       width: double.infinity,
       height: 110.h,
       decoration: BoxDecoration(
-        border: Border.all(color: const Color(0xFF1D3826).withOpacity(0.3)),
+        border: Border.all(color: const Color(0xFF1D3826).withValues(alpha:0.3)),
         borderRadius: BorderRadius.circular(15.r),
       ),
       child: editController.selectedImages.isEmpty
@@ -352,7 +464,7 @@ class _VendorEditProductScreenState extends State<VendorEditProductScreen> {
 
   Widget _buildInputWrapper({required Widget child}) => Container(
     padding: EdgeInsets.symmetric(horizontal: 12.w),
-    decoration: BoxDecoration(border: Border.all(color: const Color(0xFF1D3826).withOpacity(0.5)), borderRadius: BorderRadius.circular(10.r)),
+    decoration: BoxDecoration(border: Border.all(color: const Color(0xFF1D3826).withValues(alpha:0.5)), borderRadius: BorderRadius.circular(10.r)),
     child: child,
   );
 

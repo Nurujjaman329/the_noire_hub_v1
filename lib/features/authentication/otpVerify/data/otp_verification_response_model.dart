@@ -9,25 +9,27 @@ class OtpVerificationResponseModel {
     required this.data,
   });
 
-  factory OtpVerificationResponseModel.fromJson(Map<String, dynamic> json) {
+  factory OtpVerificationResponseModel.fromJson(Map<String, dynamic>? json) {
     return OtpVerificationResponseModel(
-      code: json['code'] ?? 0,
-      message: json['message'] ?? '',
-      data: LoginData.fromJson(json['data'] ?? {}),
+      code: json?['code'] ?? 0,
+      message: json?['message'] ?? '',
+      data: LoginData.fromJson(json?['data']),
     );
   }
 }
+
 class LoginData {
   final LoginAttributes attributes;
 
   LoginData({required this.attributes});
 
-  factory LoginData.fromJson(Map<String, dynamic> json) {
+  factory LoginData.fromJson(Map<String, dynamic>? json) {
     return LoginData(
-      attributes: LoginAttributes.fromJson(json['attributes'] ?? {}),
+      attributes: LoginAttributes.fromJson(json?['attributes']),
     );
   }
 }
+
 class LoginAttributes {
   final OtpUserModel user;
   final TokenPair tokens;
@@ -37,14 +39,13 @@ class LoginAttributes {
     required this.tokens,
   });
 
-  factory LoginAttributes.fromJson(Map<String, dynamic> json) {
+  factory LoginAttributes.fromJson(Map<String, dynamic>? json) {
     return LoginAttributes(
-      user: OtpUserModel.fromJson(json['user'] ?? {}),
-      tokens: TokenPair.fromJson(json['tokens'] ?? {}),
+      user: OtpUserModel.fromJson(json?['user']),
+      tokens: TokenPair.fromJson(json?['tokens']),
     );
   }
 }
-
 
 class OtpUserModel {
   final String id;
@@ -59,9 +60,8 @@ class OtpUserModel {
   final String image;
   final String role;
   final String callingCode;
-
-  final int phoneNumber;
-  final int nidNumber;
+  final String phoneNumber;
+  final String nidNumber;
 
   final bool isNIDVerified;
   final bool isProfileCompleted;
@@ -95,72 +95,37 @@ class OtpUserModel {
     required this.addresses,
   });
 
-  factory OtpUserModel.fromJson(Map<String, dynamic> json) {
+  factory OtpUserModel.fromJson(Map<String, dynamic>? json) {
     return OtpUserModel(
-      id: json['id'] ?? '',
-      firstName: json['firstName'] ?? '',
-      lastName: json['lastName'] ?? '',
-      fullName: json['fullName'] ?? '',
-      email: json['email'] ?? '',
-      businessName: json['businessName'] ?? '',
-      shopImage: json['shopImage'] ?? '',
-      bio: json['bio'] ?? '',
-      stripeAccountId: json['stripeAccountId'] ?? '',
-      image: json['image'] ?? '',
-      role: json['role'] ?? '',
-      callingCode: json['callingCode'] ?? '',
-
-      phoneNumber: (json['phoneNumber'] ?? 0) as int,
-      nidNumber: (json['nidNumber'] ?? 0) as int,
-
-      isNIDVerified: json['isNIDVerified'] ?? false,
-      isProfileCompleted: json['isProfileCompleted'] ?? false,
-
-      dateOfBirth: json['dataOfBirth'] != null
-          ? DateTime.parse(json['dataOfBirth'])
+      id: json?['id'] ?? '',
+      firstName: json?['firstName'] ?? '',
+      lastName: json?['lastName'] ?? '',
+      fullName: json?['fullName'] ?? '',
+      email: json?['email'] ?? '',
+      businessName: json?['businessName'] ?? '',
+      shopImage: json?['shopImage'] ?? '',
+      bio: json?['bio'] ?? '',
+      stripeAccountId: json?['stripeAccountId'] ?? '',
+      image: json?['image'] ?? '',
+      role: json?['role'] ?? '',
+      callingCode: json?['callingCode'] ?? '',
+      phoneNumber: json?['phoneNumber']?.toString() ?? '',
+      nidNumber: json?['nidNumber']?.toString() ?? '',
+      isNIDVerified: json?['isNIDVerified'] ?? false,
+      isProfileCompleted: json?['isProfileCompleted'] ?? false,
+      dateOfBirth: json?['dataOfBirth'] != null
+          ? DateTime.tryParse(json?['dataOfBirth'])
           : null,
-
-      createdAt: json['createdAt'] != null
-          ? DateTime.parse(json['createdAt'])
+      createdAt: json?['createdAt'] != null
+          ? DateTime.tryParse(json?['createdAt'])
           : null,
-
-      selectedCategories: (json['selectedCategories'] as List<dynamic>? ?? [])
+      selectedCategories: (json?['selectedCategories'] as List? ?? [])
           .map((e) => UserCategory.fromJson(e))
           .toList(),
-
-      addresses: (json['addresses'] as List<dynamic>? ?? [])
+      addresses: (json?['addresses'] as List? ?? [])
           .map((e) => UserAddress.fromJson(e))
           .toList(),
     );
-  }
-
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'firstName': firstName,
-      'lastName': lastName,
-      'fullName': fullName,
-      'email': email,
-      'businessName': businessName,
-      'shopImage': shopImage,
-      'bio': bio,
-      'stripeAccountId': stripeAccountId,
-      'image': image,
-      'role': role,
-      'callingCode': callingCode,
-      'phoneNumber': phoneNumber,
-      'nidNumber': nidNumber,
-      'isNIDVerified': isNIDVerified,
-      'isProfileCompleted': isProfileCompleted,
-
-      // ✅ FIX HERE
-      'dateOfBirth': dateOfBirth?.toIso8601String(),
-      'createdAt': createdAt?.toIso8601String(),
-
-      'selectedCategories': selectedCategories.map((e) => e.toJson()).toList(),
-      'addresses': addresses.map((e) => e.toJson()).toList(),
-    };
   }
 }
 
@@ -175,25 +140,16 @@ class UserCategory {
     required this.subcategories,
   });
 
-  factory UserCategory.fromJson(Map<String, dynamic> json) {
+  factory UserCategory.fromJson(Map<String, dynamic>? json) {
     return UserCategory(
-      id: json['_id'] ?? '',
-      category: json['category'] ?? '',
-      subcategories: (json['subcategories'] as List<dynamic>? ?? [])
+      id: json?['_id'] ?? '',
+      category: json?['category'] ?? '',
+      subcategories: (json?['subcategories'] as List? ?? [])
           .map((e) => e.toString())
           .toList(),
     );
   }
-
-  Map<String, dynamic> toJson() {
-    return {
-      '_id': id,
-      'category': category,
-      'subcategories': subcategories,
-    };
-  }
 }
-
 
 class UserAddress {
   final Location location;
@@ -210,24 +166,14 @@ class UserAddress {
     required this.id,
   });
 
-  factory UserAddress.fromJson(Map<String, dynamic> json) {
+  factory UserAddress.fromJson(Map<String, dynamic>? json) {
     return UserAddress(
-      location: Location.fromJson(json['location'] ?? {}),
-      city: json['city'] ?? '',
-      country: json['country'] ?? '',
-      isDefault: json['isDefault'] ?? false,
-      id: json['_id'] ?? '',
+      location: Location.fromJson(json?['location']),
+      city: json?['city'] ?? '',
+      country: json?['country'] ?? '',
+      isDefault: json?['isDefault'] ?? false,
+      id: json?['_id'] ?? '',
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'location': location.toJson(),
-      'city': city,
-      'country': country,
-      'isDefault': isDefault,
-      '_id': id,
-    };
   }
 }
 
@@ -240,25 +186,16 @@ class Location {
     required this.coordinates,
   });
 
-  factory Location.fromJson(Map<String, dynamic> json) {
+  factory Location.fromJson(Map<String, dynamic>? json) {
     return Location(
-      type: json['type'] ?? '',
-      coordinates: List<double>.from(
-        (json['coordinates'] as List<dynamic>? ?? [])
-            .map((e) => (e as num).toDouble()),
-      ),
+      type: json?['type'] ?? '',
+      coordinates: (json?['coordinates'] as List? ?? [])
+          .map((e) => (e as num?)?.toDouble() ?? 0.0)
+          .toList(),
     );
   }
-
-
-  Map<String, dynamic> toJson() {
-    return {
-      'type': type,
-      'coordinates': coordinates,
-    };
-  }
-
 }
+
 class TokenPair {
   final Token access;
   final Token refresh;
@@ -268,10 +205,10 @@ class TokenPair {
     required this.refresh,
   });
 
-  factory TokenPair.fromJson(Map<String, dynamic> json) {
+  factory TokenPair.fromJson(Map<String, dynamic>? json) {
     return TokenPair(
-      access: Token.fromJson(json['access'] ?? {}),
-      refresh: Token.fromJson(json['refresh'] ?? {}),
+      access: Token.fromJson(json?['access']),
+      refresh: Token.fromJson(json?['refresh']),
     );
   }
 }
@@ -285,10 +222,10 @@ class Token {
     required this.expires,
   });
 
-  factory Token.fromJson(Map<String, dynamic> json) {
+  factory Token.fromJson(Map<String, dynamic>? json) {
     return Token(
-      token: json['token'] ?? '',
-      expires: json['expires'] ?? '',
+      token: json?['token'] ?? '',
+      expires: json?['expires'] ?? '',
     );
   }
 }

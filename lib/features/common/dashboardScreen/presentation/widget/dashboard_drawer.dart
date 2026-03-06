@@ -81,11 +81,7 @@ class DashboardDrawer extends StatelessWidget {
                             "Order Fulfillment",
                                 () => Get.toNamed(RouteConstants.orderFullFillMent),
                           ),
-                        _drawerItem(
-                          Icons.payment,
-                          "Add Billings",
-                              () => Get.toNamed(RouteConstants.vendorBillingSection),
-                        ),
+
                       ],
                     ),
                   ),

@@ -84,6 +84,8 @@ class EditProfileController extends GetxController with MapSearchMixin {
   }
 
   // --- Update Profile ---
+// Inside EditProfileController
+
   Future<void> updateProfile() async {
     isLoading.value = true;
     try {
@@ -114,8 +116,17 @@ class EditProfileController extends GetxController with MapSearchMixin {
       );
 
       final updatedUser = response.user;
+      double? newLat;
+      double? newLon;
+      String? combinedAddress;
 
-      // Sync CacheService
+      if (updatedUser.addresses.isNotEmpty) {
+        final addr = updatedUser.addresses.firstWhere((a) => a.isDefault, orElse: () => updatedUser.addresses.first);
+        newLon = addr.location.coordinates[0];
+        newLat = addr.location.coordinates[1];
+      }
+
+      // --- 2. SYNC CACHE SERVICE ---
       await CacheService.saveSession(
         token: CacheService.token,
         userId: updatedUser.id,
@@ -125,9 +136,12 @@ class EditProfileController extends GetxController with MapSearchMixin {
         phone: updatedUser.phoneNumber,
         bio: updatedUser.bio,
         image: updatedUser.image,
+        address: combinedAddress,
+        lat: newLat,
+        lon: newLon,
       );
 
-      // Update PersonalInfoController if alive
+      // --- 3. SYNC OTHER CONTROLLERS ---
       if (Get.isRegistered<PersonalInfoController>()) {
         Get.find<PersonalInfoController>().userProfile.value =
             UserProfileModel.fromJson(updatedUser.toJson());
@@ -143,6 +157,7 @@ class EditProfileController extends GetxController with MapSearchMixin {
       isLoading.value = false;
     }
   }
+
 
   @override
   Future<void> selectPrediction(Map<String, dynamic> prediction) async {

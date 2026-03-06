@@ -4,7 +4,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../../../core/widgets/custom_button.dart';
-import '../../../../../core/widgets/custom_dropdown.dart';
 import '../../../../../core/widgets/custom_text.dart';
 import '../../../../../core/widgets/custom_text_field.dart';
 import '../controller/registration_controller.dart';
@@ -50,19 +49,7 @@ class CustomerAddressAddScreen extends GetView<RegistrationController> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  SizedBox(
-                    width: 90.w,
-                    child: CustomDropdown<String>(
-                      isBoxStyle: true,
-                      labelText: "Country",
-                      value: "+1", // You can link this to controller.selectedCountryCode
-                      items: const ["+1", "+44", "+880", "+234"],
-                      itemAsString: (val) => val,
-                      onChanged: (val) {
-                        // controller.selectedCountryCode.value = val!;
-                      },
-                    ),
-                  ),
+
                   SizedBox(width: 15.w),
                   Expanded(
                     child: CustomTextField(

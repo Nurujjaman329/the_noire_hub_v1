@@ -1,5 +1,4 @@
 import 'package:get/get.dart';
-import 'package:flutter/material.dart';
 import '../../../../../core/api/api_exception.dart';
 import '../../../../../core/utils/app_snackbar.dart';
 import '../../data/vendor_products_response_model.dart';

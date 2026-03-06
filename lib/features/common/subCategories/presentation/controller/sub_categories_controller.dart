@@ -1,6 +1,5 @@
 
 
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../data/sub_categories_response_model.dart';

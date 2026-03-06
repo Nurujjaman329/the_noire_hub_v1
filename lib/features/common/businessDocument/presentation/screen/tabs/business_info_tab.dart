@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../../../../core/constants/api_constants.dart';
 import '../../../../../../core/constants/app_colors.dart';
 import '../../../../../../core/services/cache_service.dart';
@@ -41,30 +43,87 @@ class BusinessInfoTab extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  CustomNetworkImage(
-                    imageUrl: "${ApiConstants.baseImageUrl}${data.shopImage}",
-                    height: 60.r, width: 60.r, boxShape: BoxShape.circle,
+                  // --- PROFILE IMAGE ---
+                  GestureDetector(
+                    onTap: () => _showImageSourceSheet(infoController), // Call the sheet here
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Obx(() => CustomNetworkImage(
+                          imageUrl: infoController.selectedImagePath.value.isNotEmpty
+                              ? infoController.selectedImagePath.value
+                              : "${ApiConstants.baseImageUrl}${data.shopImage}",
+                          height: 60.r,
+                          width: 60.r,
+                          boxShape: BoxShape.circle,
+                          border: Border.all(color: Colors.white24, width: 2),
+                        )),
+                        // Camera Overlay
+                        Positioned(
+                          bottom: 0, right: 0,
+                          child: CircleAvatar(
+                            radius: 10.r,
+                            backgroundColor: Colors.white,
+                            child: Icon(Icons.camera_alt, size: 12.sp, color: Colors.black),
+                          ),
+                        ),
+                        // Loading Spinner during Image Upload
+                        Obx(() => infoController.isUpdating.value && infoController.selectedImagePath.isNotEmpty
+                            ? CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                            : const SizedBox.shrink()),
+                      ],
+                    ),
                   ),
                   SizedBox(width: 15.w),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
+                        // --- BUSINESS NAME FIELD ---
+                        Obx(() => infoController.isEditingName.value
+                            ? Row(
                           children: [
-                            CustomText(text: data.businessName, color: const Color(0XFFF1F0B2), fontWeight: FontWeight.bold, fontSize: 16.sp),
+                            Expanded(
+                              child: TextField(
+                                controller: infoController.nameEditController,
+                                autofocus: true,
+                                style: TextStyle(color: Colors.white, fontSize: 16.sp, fontWeight: FontWeight.bold),
+                                decoration: const InputDecoration(
+                                  isDense: true,
+                                  border: UnderlineInputBorder(borderSide: BorderSide(color: Colors.white)),
+                                ),
+                              ),
+                            ),
+                            IconButton(
+                              icon: Icon(Icons.check_circle, color: const Color(0XFFF1F0B2), size: 22.sp),
+                              onPressed: () => infoController.updateSingleField(name: infoController.nameEditController.text),
+                            )
+                          ],
+                        )
+                            : Row(
+                          children: [
+                            Flexible(
+                              child: CustomText(
+                                text: data.businessName,
+                                color: const Color(0XFFF1F0B2),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16.sp,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
                             if (data.documentApproved) ...[
                               SizedBox(width: 5.w),
                               Icon(Icons.verified, color: const Color(0XFFF1F0B2), size: 16.sp),
                             ]
                           ],
-                        ),
+                        )),
                         CustomText(text: "${data.rating} ★ Rating", color: const Color(0XFFF1F0B2), fontSize: 12.sp, top: 4.h),
                         SizedBox(height: 10.h),
+                        // Verified Badge
                         Container(
                           padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
                           decoration: BoxDecoration(
-                            color: data.documentApproved ? const Color(0XFF1D3826) : Colors.red.withOpacity(0.8),
+                            color: data.documentApproved ? const Color(0XFF1D3826) : Colors.red.withValues(alpha:0.8),
                             borderRadius: BorderRadius.circular(5.r),
                           ),
                           child: CustomText(
@@ -77,7 +136,19 @@ class BusinessInfoTab extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Icon(Icons.edit_outlined, color: Colors.black, size: 20.sp),
+                  // --- NAME EDIT TOGGLE ---
+                  Obx(() => IconButton(
+                    onPressed: () {
+                      if (!infoController.isEditingName.value) {
+                        infoController.nameEditController.text = data.businessName;
+                      }
+                      infoController.isEditingName.value = !infoController.isEditingName.value;
+                    },
+                    icon: Icon(
+                        infoController.isEditingName.value ? Icons.close : Icons.edit_outlined,
+                        color: Colors.black, size: 20.sp
+                    ),
+                  )),
                 ],
               ),
             ),
@@ -85,9 +156,42 @@ class BusinessInfoTab extends StatelessWidget {
             SizedBox(height: 20.h),
 
             // 2. Contact & Bio Details
-            _buildContactTile(Icons.location_on, "Address", "${data.address.city}, ${data.address.country}"),
-            _buildContactTile(Icons.phone, "Phone", "+${data.phoneNumber}"),
-            _buildContactTile(Icons.article_outlined, "Your Bio", data.bio),
+            Obx(() => _buildEditableAddressTile(
+              icon: Icons.location_on,
+              title: "Address",
+              value: "${data.address.city}, ${data.address.country}",
+              isEditing: infoController.isEditingAddress.value,
+              controller: infoController.addressController,
+              mainController: infoController,
+              onEditToggle: () => infoController.prepareAddressEdit(data),
+              onSave: () => infoController.updateAddressField(),
+            )),
+
+            Obx(() => _buildEditableTile(
+              icon: Icons.phone,
+              title: "Phone",
+              value: "+${data.phoneNumber}",
+              isEditing: infoController.isEditingPhone.value,
+              controller: infoController.phoneEditController,
+              onEditToggle: () {
+                infoController.phoneEditController.text = data.phoneNumber.toString();
+                infoController.isEditingPhone.value = true;
+              },
+              onSave: () => infoController.updateSingleField(phone: infoController.phoneEditController.text),
+            )),
+            Obx(() => _buildEditableTile(
+              icon: Icons.article_outlined,
+              title: "Your Bio",
+              value: data.bio,
+              isEditing: infoController.isEditingBio.value,
+              controller: infoController.bioEditController,
+              maxLines: 3,
+              onEditToggle: () {
+                infoController.bioEditController.text = data.bio;
+                infoController.isEditingBio.value = true;
+              },
+              onSave: () => infoController.updateSingleField(bio: infoController.bioEditController.text),
+            )),
 
             SizedBox(height: 5.h),
 
@@ -163,8 +267,202 @@ class BusinessInfoTab extends StatelessWidget {
     });
   }
 
-  // --- Category Selection Sheet Implementation ---
 
+  void _showImageSourceSheet(BusinessInfoController controller) {
+    Get.bottomSheet(
+      Container(
+        padding: EdgeInsets.all(20.r),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CustomText(
+              text: "Select Business Image",
+              fontSize: 16.sp,
+              fontWeight: FontWeight.bold,
+              bottom: 20.h,
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt, color: Color(0XFF627E4C)),
+              title: const Text("Take a Photo"),
+              onTap: () {
+                Get.back(); // Close sheet
+                controller.pickProfileImage(ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library, color: Color(0XFF627E4C)),
+              title: const Text("Choose from Gallery"),
+              onTap: () {
+                Get.back(); // Close sheet
+                controller.pickProfileImage(ImageSource.gallery);
+              },
+            ),
+            SizedBox(height: 10.h),
+          ],
+        ),
+      ),
+    );
+  }
+
+
+  Widget _buildEditableAddressTile({
+    required IconData icon,
+    required String title,
+    required String value,
+    required bool isEditing,
+    required TextEditingController controller,
+    required BusinessInfoController mainController,
+    required VoidCallback onEditToggle,
+    required VoidCallback onSave,
+  }) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 15.h),
+      padding: EdgeInsets.all(15.w),
+      decoration: BoxDecoration(
+        border: Border.all(color: AppColors.divider),
+        borderRadius: BorderRadius.circular(15.r),
+      ),
+      child: Column(
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, color: Colors.black, size: 22.sp),
+              SizedBox(width: 15.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomText(text: title, fontWeight: FontWeight.bold, fontSize: 14.sp),
+                    isEditing
+                        ? TextField(
+                      controller: controller,
+                      onChanged: (val) => mainController.onSearchChanged(val),
+                      style: TextStyle(fontSize: 12.sp),
+                      decoration: const InputDecoration(hintText: "Search address...", border: UnderlineInputBorder()),
+                    )
+                        : CustomText(text: value, color: Colors.black54, fontSize: 12.sp, top: 4.h),
+                  ],
+                ),
+              ),
+              GestureDetector(
+                onTap: isEditing ? onSave : onEditToggle,
+                child: Icon(
+                  isEditing ? Icons.check_circle : Icons.edit_outlined,
+                  color: isEditing ? const Color(0XFF627E4C) : Colors.black,
+                  size: 20.sp,
+                ),
+              ),
+            ],
+          ),
+
+          if (isEditing) ...[
+            // Suggestions List
+            Obx(() {
+              if (mainController.placePredictions.isEmpty) return const SizedBox.shrink();
+              return Container(
+                constraints: BoxConstraints(maxHeight: 200.h),
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: mainController.placePredictions.length,
+                  itemBuilder: (context, index) {
+                    final pred = mainController.placePredictions[index];
+                    return ListTile(
+                      leading: const Icon(Icons.location_searching, size: 18),
+                      title: Text(pred['description'] ?? "", style: TextStyle(fontSize: 12.sp)),
+                      onTap: () => mainController.selectPrediction(pred),
+                    );
+                  },
+                ),
+              );
+            }),
+
+            // Mini Map
+            SizedBox(height: 10.h),
+            Container(
+              height: 150.h,
+              width: double.infinity,
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(10.r)),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10.r),
+                child: GoogleMap(
+                  initialCameraPosition: CameraPosition(target: mainController.selectedLatLng.value, zoom: 14),
+                  onMapCreated: mainController.onMapCreated,
+                  markers: {
+                    Marker(
+                      markerId: const MarkerId("selected"),
+                      position: mainController.selectedLatLng.value,
+                    )
+                  },
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEditableTile({
+    required IconData icon,
+    required String title,
+    required String value,
+    required bool isEditing,
+    required TextEditingController controller,
+    required VoidCallback onEditToggle,
+    required VoidCallback onSave,
+    int maxLines = 1,
+  }) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 15.h),
+      padding: EdgeInsets.all(15.w),
+      decoration: BoxDecoration(
+        border: Border.all(color: AppColors.divider),
+        borderRadius: BorderRadius.circular(15.r),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: Colors.black, size: 22.sp),
+          SizedBox(width: 15.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(text: title, fontWeight: FontWeight.bold, fontSize: 14.sp),
+                isEditing
+                    ? TextField(
+                  controller: controller,
+                  maxLines: maxLines,
+                  autofocus: true,
+                  style: TextStyle(fontSize: 12.sp),
+                  decoration: const InputDecoration(
+                    isDense: true,
+                    border: UnderlineInputBorder(),
+                  ),
+                )
+                    : CustomText(text: value, color: Colors.black54, fontSize: 12.sp, top: 4.h),
+              ],
+            ),
+          ),
+
+          // Show Checkmark if editing, otherwise show Edit Pen
+          GestureDetector(
+            onTap: isEditing ? onSave : onEditToggle,
+            child: Icon(
+              isEditing ? Icons.check_circle : Icons.edit_outlined,
+              color: isEditing ? const Color(0XFF627E4C) : Colors.black,
+              size: 20.sp,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 // --- Category Selection Sheet Implementation ---
   void _showCategorySelectionSheet() {
     final infoController = Get.find<BusinessInfoController>();
@@ -355,33 +653,6 @@ class BusinessInfoTab extends StatelessWidget {
     );
   }
 
-  Widget _buildContactTile(IconData icon, String title, String value) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 15.h),
-      padding: EdgeInsets.all(15.w),
-      decoration: BoxDecoration(
-        border: Border.all(color: AppColors.divider),
-        borderRadius: BorderRadius.circular(15.r),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: Colors.black, size: 22.sp),
-          SizedBox(width: 15.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(text: title, fontWeight: FontWeight.bold, fontSize: 14.sp),
-                CustomText(text: value, color: Colors.black54, fontSize: 12.sp, top: 4.h),
-              ],
-            ),
-          ),
-          Icon(Icons.edit_outlined, color: Colors.black, size: 16.sp),
-        ],
-      ),
-    );
-  }
 
   Widget _buildSectionHeader(String title, {VoidCallback? onAddTap}) {
     return Row(

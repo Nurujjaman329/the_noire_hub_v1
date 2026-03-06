@@ -22,7 +22,7 @@ class BusinessInfoResponseModel {
 class BusinessData {
   final String businessName;
   final String bio;
-  final int phoneNumber;
+  final String phoneNumber;
   final String shopImage;
   final BusinessAddress address;
   final List<BusinessCategory> categories;
@@ -56,7 +56,7 @@ class BusinessData {
     return BusinessData(
       businessName: json['businessName'] ?? '',
       bio: json['bio'] ?? '',
-      phoneNumber: json['phoneNumber'] ?? 0,
+      phoneNumber: json['phoneNumber'] ?? "",
         shopImage: json['shopImage'] ?? '',
       address: BusinessAddress.fromJson(json['address'] ?? {}),
       categories: (json['categories'] as List?)

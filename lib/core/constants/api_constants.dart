@@ -25,11 +25,27 @@ class ApiConstants {
   static const String getBusinessDocuments = "business-documents/my-document";
   static const String getBusinessInfo = "business/me";
   static const String categoryUpdate = "users/self/selected-categories";
+  static const String promoCode = "promo-codes";
+  static const String feedback = "feedback";
+  static const String inviteLink = "invite/link";
+  static const String cart = "cart";
+
+
 
   //customer
+  static const String customerProducts = "products";
+  static const String customerServices = "services";
+  static const String customerBookings = "bookings";
+  static const String customerFavorites = "favorites";
+  static const String cartItems = "cart/items";
+  static const String productOrders = "product-orders";
+
 
 
   //beauticians
+
+  static const String beauticianServiceList = "services/my-services";
+  static const String serviceRoute = "services";
 
 
   //vendor

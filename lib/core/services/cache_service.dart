@@ -18,8 +18,38 @@ class CacheService {
   static const String _fullNameKey = 'user_fullName';
   static const String _phoneKey = 'user_phone';
   static const String _bioKey = 'user_bio';
+  static const String _addressKey = 'user_address';
+  static const String _latKey = 'user_lat';
+  static const String _lonKey = 'user_lon';
 
   // --- Getters ---
+
+  static double get lat => _prefs?.getDouble(_latKey) ?? 0.0;
+  static double get lon => _prefs?.getDouble(_lonKey) ?? 0.0;
+
+  static String get address {
+    final value = _prefs?.getString(_addressKey) ?? '';
+    debugPrint('🔑 Get address: $value');
+    return value;
+  }
+
+  static String get formattedLocation {
+    final String fullAddress = _prefs?.getString(_addressKey) ?? '';
+    if (fullAddress.isEmpty) return '';
+
+    // This assumes we save it as "City|Country" in saveSession
+    final parts = fullAddress.split('|');
+    if (parts.length == 2) {
+      final city = parts[0].trim();
+      final country = parts[1].trim();
+
+      if (city.isNotEmpty && country.isNotEmpty) return '$city, $country';
+      return city.isNotEmpty ? city : country;
+    }
+    return fullAddress;
+  }
+
+
   static String get token {
     final value = _prefs?.getString(_tokenKey) ?? '';
     debugPrint('🔑 Get token: $value');
@@ -84,6 +114,9 @@ class CacheService {
     String? fullName,
     String? phone,
     String? bio,
+    String? address,
+    double? lat,
+    double? lon,
   }) async {
     debugPrint('💾 Saving session...');
     await _prefs?.setString(_tokenKey, token);
@@ -114,6 +147,21 @@ class CacheService {
       await _prefs?.setString(_bioKey, bio);
       debugPrint('💾 bio saved: $bio');
     }
+
+    if (address != null) {
+      await _prefs?.setString(_addressKey, address);
+      debugPrint('💾 address saved: $address');
+    }
+
+    if (lat != null) {
+      await _prefs?.setDouble(_latKey, lat);
+      debugPrint('💾 lat saved: $lat');
+    }
+    if (lon != null) {
+      await _prefs?.setDouble(_lonKey, lon);
+      debugPrint('💾 lon saved: $lon');
+    }
+
   }
 
   static Future<void> clear() async {

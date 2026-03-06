@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import '../services/cache_service.dart';
-import '../storage/local_storage.dart';
 
 class ApiInterceptor extends Interceptor {
   @override

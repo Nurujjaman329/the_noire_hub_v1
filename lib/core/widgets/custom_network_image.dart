@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
@@ -32,9 +33,34 @@ class CustomNetworkImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isAsset = !imageUrl.startsWith('http');
+    // Check for empty URL or local file paths
+    if (imageUrl.isEmpty) return _buildErrorWidget();
 
-    // Create a color filter if a color is provided but no complex filter exists
+    final bool isFile = imageUrl.startsWith('/') || imageUrl.contains('file://');
+    final bool isAsset = !imageUrl.startsWith('http') && !isFile;
+
+    if (isFile) {
+      return Container(
+        height: height, width: width,
+        decoration: BoxDecoration(
+          border: border, borderRadius: borderRadius,
+          shape: boxShape, color: backgroundColor,
+        ),
+        child: ClipRRect(
+          borderRadius: boxShape == BoxShape.circle
+              ? BorderRadius.circular(height)
+              : (borderRadius ?? BorderRadius.zero),
+          child: Image.file(
+            File(imageUrl),
+            height: height,
+            width: width,
+            fit: fit,
+            errorBuilder: (context, error, stackTrace) => _buildErrorWidget(),
+          ),
+        ),
+      );
+    }
+
     final effectiveColorFilter = colorFilter ??
         (color != null ? ColorFilter.mode(color!, BlendMode.srcIn) : null);
 
@@ -57,7 +83,7 @@ class CustomNetworkImage extends StatelessWidget {
             height: height,
             width: width,
             fit: fit,
-            color: color, // Direct tint for assets
+            color: color,
             colorBlendMode: color != null ? BlendMode.srcIn : null,
             errorBuilder: (context, error, stackTrace) => _buildErrorWidget(),
           ),
@@ -78,46 +104,60 @@ class CustomNetworkImage extends StatelessWidget {
           image: DecorationImage(
             image: imageProvider,
             fit: fit,
-            colorFilter: effectiveColorFilter, // Applies the tint here
+            colorFilter: effectiveColorFilter,
           ),
         ),
         child: child,
       ),
+      // Uses Shimmer for a "smooth loading" look
       placeholder: (context, url) => _buildPlaceholder(),
+      // Uses a default icon for "broken" or missing images
       errorWidget: (context, url, error) => _buildErrorWidget(),
     );
   }
 
-  // Extracted Placeholder for cleaner code
   Widget _buildPlaceholder() {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey.withValues(alpha:0.6),
-      highlightColor: Colors.grey.withValues(alpha:0.3),
-      child: Container(
-        height: height,
-        width: width,
-        decoration: BoxDecoration(
-          border: border,
-          color: Colors.grey.withValues(alpha:0.6),
-          borderRadius: borderRadius,
-          shape: boxShape,
+    return SizedBox( // Add SizedBox to enforce dimensions immediately
+      height: height,
+      width: width,
+      child: Shimmer.fromColors(
+        baseColor: Colors.grey[300]!,
+        highlightColor: Colors.grey[100]!,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: border,
+            borderRadius: borderRadius,
+            shape: boxShape,
+          ),
         ),
       ),
     );
   }
 
-  // Extracted Error Widget for cleaner code
   Widget _buildErrorWidget() {
+    // 1. Determine a safe icon size.
+    // If height is infinite, default to a standard size (e.g., 40).
+    final double safeHeight = height.isFinite ? height : 100.0;
+    final double iconSize = safeHeight * 0.4;
+
     return Container(
       height: height,
       width: width,
       decoration: BoxDecoration(
         border: border,
-        color: Colors.grey.withValues(alpha:0.6),
+        color: const Color(0xFFF2F2F2),
         borderRadius: borderRadius,
         shape: boxShape,
       ),
-      child: const Icon(Icons.error, color: Colors.white),
+      child: Center( // Center the icon so it doesn't stretch
+        child: Icon(
+          boxShape == BoxShape.circle ? Icons.person : Icons.image_not_supported_outlined,
+          color: Colors.grey[400],
+          size: iconSize, // Now guaranteed to be finite
+        ),
+      ),
     );
   }
+
 }

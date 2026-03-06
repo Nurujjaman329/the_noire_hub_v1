@@ -4,6 +4,7 @@ import '../../../../../core/utils/app_snackbar.dart';
 import '../../data/order_full_fillment_post_body.dart';
 import '../../data/order_full_fillment_response_model.dart';
 import '../../data/order_full_fillment_service.dart';
+import 'package:flutter/material.dart';
 
 class OrderFullFillmentController extends GetxController {
   final OrderFullFillmentService _service;
@@ -22,13 +23,14 @@ class OrderFullFillmentController extends GetxController {
   }
 
   /// GET: Fetch current settings
-  Future<void> fetchSettings() async {
+  Future<void> fetchSettings({String? vendorId}) async {
     isLoading.value = true;
     try {
-      final response = await _service.getFulfillmentSettings();
+      final response = await _service.getFulfillmentSettings(vendorId: vendorId);
       fulfillmentData.value = response.data.attributes;
     } on AppException catch (e) {
-      AppSnackbar.error(e.message);
+      // AppSnackbar.error(e.message);
+      debugPrint("Error fetching fulfillment: ${e.message}");
     } finally {
       isLoading.value = false;
     }

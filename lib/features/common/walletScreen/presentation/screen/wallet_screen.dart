@@ -40,35 +40,35 @@ class WalletScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // 3. Add Bank Button
-                      Center(
-                        child: GestureDetector(
-                          onTap: () {
-                           Get.toNamed(RouteConstants.addBankScreen);
-                          },
-                          child: Container(
-                            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
-                            decoration: BoxDecoration(
-                              color: const Color(0XFFF1F0B2), // Light yellow
-                              borderRadius: BorderRadius.circular(10.r),
-                              border: Border.all(color: const Color(0xFF9BB575), width: 1),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.account_balance_wallet_outlined, size: 18.sp, color: const Color(0xFF1D3826)),
-                                SizedBox(width: 8.w),
-                                CustomText(
-                                  text: "Add Bank",
-                                  fontSize: 14.sp,
-                                  fontWeight: FontWeight.bold,
-                                  color: const Color(0xFF1D3826),
-                                  textDecoration: TextDecoration.underline,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
+                      // Center(
+                      //   child: GestureDetector(
+                      //     onTap: () {
+                      //      Get.toNamed(RouteConstants.addBankScreen);
+                      //     },
+                      //     child: Container(
+                      //       padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
+                      //       decoration: BoxDecoration(
+                      //         color: const Color(0XFFF1F0B2), // Light yellow
+                      //         borderRadius: BorderRadius.circular(10.r),
+                      //         border: Border.all(color: const Color(0xFF9BB575), width: 1),
+                      //       ),
+                      //       child: Row(
+                      //         mainAxisSize: MainAxisSize.min,
+                      //         children: [
+                      //           Icon(Icons.account_balance_wallet_outlined, size: 18.sp, color: const Color(0xFF1D3826)),
+                      //           SizedBox(width: 8.w),
+                      //           CustomText(
+                      //             text: "Add Bank",
+                      //             fontSize: 14.sp,
+                      //             fontWeight: FontWeight.bold,
+                      //             color: const Color(0xFF1D3826),
+                      //             textDecoration: TextDecoration.underline,
+                      //           ),
+                      //         ],
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ),
 
                       SizedBox(height: 30.h),
 
@@ -110,7 +110,7 @@ class WalletScreen extends StatelessWidget {
                       // 7. Withdraw Button
                       CustomButton(
                         text: "Withdraw balance",
-                        onTap: () => showWithdrawalSheet(context),
+                        // onTap: () => showWithdrawalSheet(context),
                       ),
                       SizedBox(height: 20.h),
                     ],

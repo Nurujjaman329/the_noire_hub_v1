@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import '../../../../core/constants/api_constants.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/route_constants.dart';
 import '../../../../core/services/cache_service.dart';
-import '../../../../core/storage/local_storage.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/widgets/custom_network_image.dart';
 import '../../../../core/widgets/custom_text.dart';
@@ -18,7 +18,8 @@ class ProfileScreen extends StatelessWidget {
     // 1. Get simple strings directly from static CacheService
     final String role = CacheService.role.toLowerCase();
     final String fullName = CacheService.userFullName.isNotEmpty ? CacheService.userFullName : "User Name";
-    final String profileImg = CacheService.userImage;
+    final String image = CacheService.userImage;
+    final profileImg = image.isNotEmpty ? ApiConstants.baseImageUrl + image : '';
 
     // 2. Pure logic without model overhead
     final bool isCustomer = role == 'user' || role == 'customer';
@@ -76,9 +77,7 @@ class ProfileScreen extends StatelessWidget {
           Positioned(
             top: 0,
             child: CustomNetworkImage(
-              imageUrl: profileImg.isNotEmpty
-                  ? profileImg
-                  : "https://ui-avatars.com/api/?name=$fullName&background=random",
+              imageUrl: profileImg,
               height: 120.h,
               width: 120.w,
               boxShape: BoxShape.circle,
@@ -228,6 +227,7 @@ class ProfileScreen extends StatelessWidget {
       {"icon": Icons.group_add_outlined, "label": "Invite Friends"},
       {"icon": Icons.local_offer_outlined, "label": "Deals & Promos"},
       {"icon": Icons.local_offer_outlined, "label": "Add Promo Code"},
+      {"icon": Icons.feedback_outlined, "label": "Admin Feedback"},
       {"icon": Icons.help_outline, "label": "Help"},
       {"icon": Icons.visibility_off_outlined, "label": "Terms of Service"},
       {"icon": Icons.info_outline, "label": "About"},
@@ -239,6 +239,7 @@ class ProfileScreen extends StatelessWidget {
       if (item['label'] == "Invite Friends") return isCustomer;
       if (item['label'] == "Deals & Promos") return isCustomer;
       if (item['label'] == "Add Promo Code") return !isCustomer;
+      if (item['label'] == "Admin Feedback") return !isCustomer;
       return true;
     }).toList();
 
@@ -264,6 +265,9 @@ class ProfileScreen extends StatelessWidget {
                 break;
               case "Add Promo Code":
                 Get.toNamed(RouteConstants.addDealsPromos);
+                break;
+              case "Admin Feedback":
+                Get.toNamed(RouteConstants.feedbackScreen);
                 break;
               case "Help":
                 Get.toNamed(RouteConstants.helpScreen);

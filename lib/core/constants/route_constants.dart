@@ -38,6 +38,8 @@ class RouteConstants {
   static const String servicePopularNearYou = '/servicePopularNearYou';
   static const String dealsPromos = '/dealsPromos';
   static const String dealsPromosHistory = '/dealsPromosHistory';
+  static const String customerProducts = '/customerProducts';
+  static const String feedbackScreen = '/feedbackScreen';
 
 
   // vendor
@@ -63,6 +65,7 @@ class RouteConstants {
   static const String editServiceScreen = '/editServiceScreen';
   static const String serviceDetailsScreen = '/serviceDetailsScreen';
   static const String beauticiansAddServiceScreen = '/beauticiansAddServiceScreen';
+  static const String beauticiansStoreScreen = '/beauticiansStoreScreen';
 
 
 

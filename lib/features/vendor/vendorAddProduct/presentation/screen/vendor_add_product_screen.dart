@@ -1,4 +1,3 @@
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -27,11 +26,14 @@ class _VendorAddProductScreenState extends State<VendorAddProductScreen> {
   final productController = Get.find<VendorAddProductController>();
 
   // Text Controllers
-  final nameController = TextEditingController(); // This is your Product Title
+  final nameController = TextEditingController();
   final priceController = TextEditingController();
   final descController = TextEditingController();
   final weightValueController = TextEditingController();
   final stockController = TextEditingController();
+  final discountValueController = TextEditingController();
+  final maxDiscountController = TextEditingController();
+  String? selectedDiscountType;
 
   String selectedWeightUnit = "g";
   String? selectedCategoryId;
@@ -42,6 +44,8 @@ class _VendorAddProductScreenState extends State<VendorAddProductScreen> {
     super.initState();
     categoryController.loadCategories(userId: CacheService.userId);
   }
+
+
 
   void _handleSave() {
     if (selectedCategoryId == null || selectedSubCategoryId == null) {
@@ -61,6 +65,25 @@ class _VendorAddProductScreenState extends State<VendorAddProductScreen> {
       return;
     }
 
+
+
+    final String discountValRaw = discountValueController.text.trim();
+    final double discountAmount = double.tryParse(discountValRaw) ?? 0.0;
+    final double maxAmount = double.tryParse(maxDiscountController.text.trim()) ?? 0.0;
+
+    if (discountAmount > 0 && selectedDiscountType == null) {
+      Get.snackbar("Error", "Please select a discount type (Flat or %)");
+      return;
+    }
+
+    // If user sets a max amount, they MUST have a type and a discount value
+    if (maxAmount > 0 && (selectedDiscountType == null || discountAmount <= 0)) {
+      Get.snackbar("Error", "Max Amount requires a Discount Value and Type");
+      return;
+    }
+
+    final bool hasDiscount = discountAmount > 0;
+
     final productData = VendorAddProductPostBody(
       images: productController.selectedImages,
       name: nameController.text.trim(),
@@ -71,7 +94,12 @@ class _VendorAddProductScreenState extends State<VendorAddProductScreen> {
       weightValue: double.tryParse(weightValueController.text) ?? 0.0,
       weightUnit: selectedWeightUnit,
       stock: int.tryParse(stockController.text),
-      variants: productController.selectedVariants, // ✅ ARRAY
+      variants: productController.selectedVariants,
+
+      // Pass null if no discount, so the toJson() can skip them
+      discountType: hasDiscount ? selectedDiscountType : null,
+      discountValue: hasDiscount ? discountAmount : null,
+      discountMaxAmount: (hasDiscount && maxAmount > 0) ? maxAmount : null,
     );
 
     productController.addProduct(productData);
@@ -136,9 +164,26 @@ class _VendorAddProductScreenState extends State<VendorAddProductScreen> {
                     SizedBox(height: 15.h),
                     _buildWeightRow(),
 
+                    // SizedBox(height: 15.h),
+                    // _buildLabel("Price"),
+                    // _buildPriceField(),
+
                     SizedBox(height: 15.h),
-                    _buildLabel("Price"),
-                    _buildPriceField(),
+                    _buildPriceAndDiscountRow(),
+
+                    SizedBox(height: 15.h),
+                    _buildLabel("Max Discount Amount (Optional)"),
+                    _buildInputWrapper(
+                      child: TextField(
+                        controller: maxDiscountController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                            hintText: "e.g. 50.0 (Cap the discount)",
+                            border: InputBorder.none,
+                            icon: Icon(Icons.gavel, size: 20, color: Color(0xFF1D3826))
+                        ),
+                      ),
+                    ),
 
                     SizedBox(height: 15.h),
                     _buildLabel("Stock Quantity"),
@@ -420,23 +465,6 @@ class _VendorAddProductScreenState extends State<VendorAddProductScreen> {
     );
   }
 
-  Widget _buildDropdownField(List<String> items) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w),
-      decoration: BoxDecoration(
-        border: Border.all(color: const Color(0xFF1D3826)),
-        borderRadius: BorderRadius.circular(8.r),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF1D3826)),
-          items: items.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
-          onChanged: (v) {},
-        ),
-      ),
-    );
-  }
 
   Widget _buildWeightRow() {
     return Column(
@@ -487,15 +515,6 @@ class _VendorAddProductScreenState extends State<VendorAddProductScreen> {
     );
   }
 
-  Widget _buildPriceField() {
-    return _buildInputWrapper(
-      child: TextField(
-        controller: priceController,
-        keyboardType: TextInputType.number,
-        decoration: const InputDecoration(border: InputBorder.none, icon: Icon(Icons.attach_money)),
-      ),
-    );
-  }
 
   Widget _buildInputWrapper({required Widget child}) {
     return Container(
@@ -543,6 +562,94 @@ class _VendorAddProductScreenState extends State<VendorAddProductScreen> {
       ),
     ));
   }
+
+
+  Widget _buildPriceAndDiscountRow() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // --- Price Field ---
+        Expanded(
+          flex: 2,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildLabel("Price"),
+              _buildInputWrapper(
+                child: TextField(
+                  controller: priceController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    hintText: "0.0",
+                    border: InputBorder.none,
+                    prefixIcon: Icon(Icons.attach_money, size: 18),
+                    prefixIconConstraints: BoxConstraints(minWidth: 25),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(width: 10.w),
+
+        // --- Discount Section ---
+        Expanded(
+          flex: 3,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildLabel("Discount"),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildInputWrapper(
+                      child: TextField(
+                        controller: discountValueController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          hintText: "Val",
+                          border: InputBorder.none,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 5.w),
+                  // --- Updated Dropdown with Hint ---
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 8.w),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        // Visual feedback: border turns red if value exists but type is missing
+                        color: (double.tryParse(discountValueController.text) ?? 0) > 0
+                            && selectedDiscountType == null
+                            ? Colors.red
+                            : const Color(0xFF1D3826),
+                      ),
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: selectedDiscountType,
+                        hint: Text("Type", style: TextStyle(fontSize: 12.sp)), // Initial Hint
+                        items: [
+                          const DropdownMenuItem(value: "flat", child: Text("Flat")),
+                          const DropdownMenuItem(value: "%", child: Text("%")),
+                        ],
+                        onChanged: (v) {
+                          setState(() => selectedDiscountType = v);
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
 
   Widget _buildSliverAppBar() {
     return SliverAppBar(

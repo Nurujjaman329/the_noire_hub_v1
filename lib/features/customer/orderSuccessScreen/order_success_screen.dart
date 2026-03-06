@@ -10,6 +10,14 @@ class OrderSuccessScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 1. Grab data passed from the Payment WebView
+    // Expecting a Map or Object containing delivery details
+    final dynamic data = Get.arguments;
+
+    // Example keys based on common API responses
+    final String deliveryTime = data?['deliveryTime'] ?? "Oct 15 2020 - Oct 19 2020";
+    final String orderId = data?['orderId']?.toString() ?? "";
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: Container(
@@ -23,7 +31,7 @@ class OrderSuccessScreen extends StatelessWidget {
               height: 120.r,
               width: 120.r,
               decoration: const BoxDecoration(
-                color: Color(0XFF1D3826), // Dark green background
+                color: Color(0XFF1D3826),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -37,27 +45,34 @@ class OrderSuccessScreen extends StatelessWidget {
 
             // 2. Confirmation Text
             CustomText(
-              text: "Order Confirmed !",
+              text: "Order Confirmed!",
               fontSize: 32.sp,
               fontWeight: FontWeight.bold,
               color: Colors.black,
             ),
 
+            if (orderId.isNotEmpty) ...[
+              SizedBox(height: 5.h),
+              CustomText(
+                text: "Order ID: #$orderId",
+                fontSize: 14.sp,
+                color: Colors.grey,
+              ),
+            ],
+
             SizedBox(height: 20.h),
 
             // 3. Subtext with "View Order" link
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+            Wrap(
+              alignment: WrapAlignment.center,
               children: [
                 CustomText(
                   text: "Your order has been placed successfully. ",
                   fontSize: 12.sp,
-                  color: Color(0xB2000000),
+                  color: const Color(0xB2000000),
                 ),
                 GestureDetector(
-                  onTap: () {
-                    Get.toNamed(RouteConstants.customerOrdersScreen);
-                  },
+                  onTap: () => Get.toNamed(RouteConstants.customerOrdersScreen),
                   child: CustomText(
                     text: "View Order",
                     fontSize: 12.sp,
@@ -70,8 +85,9 @@ class OrderSuccessScreen extends StatelessWidget {
 
             SizedBox(height: 15.h),
 
-            // 4. Estimated Delivery Info
+            // 4. DYNAMIC Estimated Delivery Info
             RichText(
+              textAlign: TextAlign.center,
               text: TextSpan(
                 style: TextStyle(
                   fontSize: 12.sp,
@@ -81,8 +97,10 @@ class OrderSuccessScreen extends StatelessWidget {
                 children: [
                   const TextSpan(text: "Estimated Delivery by "),
                   TextSpan(
-                    text: "Oct 15 2020 - Oct 19 2020",
-                    style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xB2000000),
+                    text: deliveryTime,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xB2000000),
                     ),
                   ),
                 ],
@@ -92,13 +110,14 @@ class OrderSuccessScreen extends StatelessWidget {
             SizedBox(height: 15.h),
 
             // 5. Track My Order Link
-            // 5. Track My Order Link
             GestureDetector(
               onTap: () {
                 Get.defaultDialog(
                   title: "Tracking Status",
                   titleStyle: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
-                  middleText: "Tracking Number not available right now, Please Contact Vendor.",
+                  middleText: orderId.isNotEmpty
+                      ? "Tracking for #$orderId is being processed. Please contact vendor for real-time updates."
+                      : "Tracking Number not available right now, Please Contact Vendor.",
                   middleTextStyle: TextStyle(fontSize: 14.sp),
                   backgroundColor: Colors.white,
                   radius: 10,
@@ -125,15 +144,11 @@ class OrderSuccessScreen extends StatelessWidget {
             CustomButton(
               text: "Continue Shopping",
               onTap: () {
-                // Navigate to customer main container and set index to 0
-                Get.offAllNamed(RouteConstants.customerMainContainer);
-                // After navigation, set the index to 0
-                Future.delayed(Duration.zero, () {
-                  Get.offAllNamed(
-                    RouteConstants.customerMainContainer,
-                    arguments: {'initialTab': 0},
-                  );
-                });
+                // Return to home and reset tab
+                Get.offAllNamed(
+                  RouteConstants.customerMainContainer,
+                  arguments: {'initialTab': 0},
+                );
               },
             ),
           ],

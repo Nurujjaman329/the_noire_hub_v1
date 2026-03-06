@@ -11,6 +11,9 @@ class VendorUpdateProductFormBody {
   final String? subcategory;
   final double? weightValue;
   final String? weightUnit;
+  final double? discountValue;
+  final String? discountType;
+  final double? discountMaxAmount;
   final int? stock;
   final bool? isActive;
   final List<EditProductVariantBody>? variants;
@@ -24,6 +27,9 @@ class VendorUpdateProductFormBody {
     this.subcategory,
     this.weightValue,
     this.weightUnit,
+    this.discountValue,
+    this.discountType,
+    this.discountMaxAmount,
     this.stock,
     this.isActive,
     this.variants,
@@ -32,25 +38,31 @@ class VendorUpdateProductFormBody {
   Future<FormData> toFormData() async {
     final Map<String, dynamic> dataMap = {};
 
-    // Add only provided fields
+    // Standard fields
     if (name != null) dataMap['name'] = name;
     if (price != null) dataMap['price'] = price.toString();
-    if (discount != null) dataMap['discount'] = discount.toString();
     if (description != null) dataMap['description'] = description;
     if (subcategory != null) dataMap['subcategory'] = subcategory;
     if (stock != null) dataMap['stock'] = stock.toString();
     if (isActive != null) dataMap['isActive'] = isActive.toString();
 
-    if (weightValue != null) {
-      dataMap['weight[value]'] = weightValue.toString();
-    }
-    if (weightUnit != null) {
-      dataMap['weight[unit]'] = weightUnit;
-    }
+    if (weightValue != null) dataMap['weight[value]'] = weightValue.toString();
+    if (weightUnit != null) dataMap['weight[unit]'] = weightUnit;
 
     if (variants != null && variants!.isNotEmpty) {
-      dataMap['variants'] =
-          jsonEncode(variants!.map((v) => v.toJson()).toList());
+      dataMap['variants'] = jsonEncode(variants!.map((v) => v.toJson()).toList());
+    }
+
+    // ✅ Corrected Discount Logic for Update
+    // Only send discount info if a valid value AND type are provided
+    if (discountValue != null && discountValue! > 0 && discountType != null) {
+      dataMap['discount[value]'] = discountValue.toString();
+      dataMap['discount[type]'] = discountType;
+
+      // Only send maxAmount if it exists and is valid
+      if (discountMaxAmount != null && discountMaxAmount! > 0) {
+        dataMap['discount[maxAmount]'] = discountMaxAmount.toString();
+      }
     }
 
     if (newImages != null && newImages!.isNotEmpty) {
@@ -66,7 +78,9 @@ class VendorUpdateProductFormBody {
 
     return FormData.fromMap(dataMap);
   }
+
 }
+
 class EditProductVariantBody {
   final String? id;
   final String color;
