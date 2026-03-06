@@ -78,7 +78,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
   @override
   Widget build(BuildContext context) {
     return TextFormField(
-      focusNode: _focusNode, // 🔥 FIX: Attach the managed node
+      focusNode: _focusNode,
       maxLines: widget.maxLines,
       onTap: widget.onTab,
       readOnly: widget.readOnly ?? false,
@@ -105,7 +105,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
         hintStyle: TextStyle(
             color: const Color(0xFF000000),
             fontSize: 14.sp,
-            fontWeight: FontWeight.bold
+            // fontWeight: FontWeight.bold
         ),
         prefixIcon: widget.prefixIcon != null
             ? Icon(

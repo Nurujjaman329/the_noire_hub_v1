@@ -34,7 +34,7 @@ class VendorProductDetailsScreen extends GetView<VendorProductDetailsController>
         return CustomScrollView(
           slivers: [
             SliverAppBar(
-              expandedHeight: 380.h,
+              expandedHeight: 450.h,
               pinned: true,
               elevation: 0,
               backgroundColor: Colors.white,
@@ -47,39 +47,42 @@ class VendorProductDetailsScreen extends GetView<VendorProductDetailsController>
               ),
               centerTitle: true,
               flexibleSpace: FlexibleSpaceBar(
-                background: Column(
-                  children: [
-                    SizedBox(height: 100.h),
-                    Stack( // Added Stack to show Discount Badge on Detail Image
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(25.r),
-                          child: CustomNetworkImage(
-                            imageUrl: product.images.isNotEmpty
-                                ? "${ApiConstants.baseImageUrl}${product.images[0]}"
-                                : "",
-                            height: 300.h,
-                            width: 340.w,
-                            fit: BoxFit.cover,
+                background: SafeArea(
+                  bottom: false,
+                  child: Column(
+                    children: [
+                      SizedBox(height: 100.h),
+                      Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(25.r),
+                            child: CustomNetworkImage(
+                              imageUrl: product.images.isNotEmpty
+                                  ? "${ApiConstants.baseImageUrl}${product.images[0]}"
+                                  : "",
+                              height: 300.h,
+                              width: 340.w,
+                              fit: BoxFit.cover,
+                            ),
                           ),
-                        ),
-                        if (hasDiscount)
-                          Positioned(
-                            top: 15.h,
-                            right: 15.w,
-                            child: _buildDiscountBadge(product),
-                          ),
-                      ],
-                    ),
-                    SizedBox(height: 15.h),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: List.generate(
-                        product.images.isEmpty ? 1 : product.images.length,
-                            (index) => _buildDot(isActive: index == 0),
+                          if (hasDiscount)
+                            Positioned(
+                              top: 15.h,
+                              right: 15.w,
+                              child: _buildDiscountBadge(product),
+                            ),
+                        ],
                       ),
-                    ),
-                  ],
+                      SizedBox(height: 15.h),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(
+                          product.images.isEmpty ? 1 : product.images.length,
+                              (index) => _buildDot(isActive: index == 0),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

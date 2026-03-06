@@ -1,6 +1,8 @@
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter/material.dart';
+import 'package:the_noire_hub_v1/core/constants/app_colors.dart';
+import 'package:the_noire_hub_v1/core/widgets/custom_text_field.dart';
 
 import '../../../../../core/widgets/custom_text.dart';
 import '../../data/feedback_response_model.dart';
@@ -28,24 +30,15 @@ class FeedbackScreen extends GetView<FeedbackController> {
             // --- INPUT SECTION ---
             CustomText(text: "Subject", fontWeight: FontWeight.w600),
             SizedBox(height: 8.h),
-            TextFormField(
-              controller: controller.subjectController,
-              decoration: InputDecoration(
-                hintText: "Issue subject...",
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.r)),
-              ),
-            ),
+            CustomTextField(controller: controller.subjectController,
+              hintText: "Issue subject...",),
+
+
             SizedBox(height: 15.h),
             CustomText(text: "Message", fontWeight: FontWeight.w600),
             SizedBox(height: 8.h),
-            TextFormField(
-              controller: controller.messageController,
-              maxLines: 4,
-              decoration: InputDecoration(
-                hintText: "Enter your message...",
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.r)),
-              ),
-            ),
+            CustomTextField(controller: controller.messageController, maxLines: 4,hintText: "Enter your message...",),
+
             SizedBox(height: 20.h),
 
             // --- SUBMIT BUTTON ---
@@ -58,7 +51,7 @@ class FeedbackScreen extends GetView<FeedbackController> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
                 ),
                 onPressed: () => controller.submitFeedback(),
-                child: Obx(() => controller.isLoading.value
+                child: Obx(() => controller.isSubmitting.value
                     ? SizedBox(
                   height: 20.r,
                   width: 20.r,
@@ -76,8 +69,8 @@ class FeedbackScreen extends GetView<FeedbackController> {
 
             // --- HISTORY LIST (Replaced Expanded with Obx) ---
             Obx(() {
-              if (controller.isLoading.value && controller.feedbackList.isEmpty) {
-                return const Center(child: CircularProgressIndicator());
+              if (controller.isFetching.value && controller.feedbackList.isEmpty) {
+                return Center(child: CircularProgressIndicator(color: AppColors.primary,));
               }
               if (controller.feedbackList.isEmpty) {
                 return Padding(

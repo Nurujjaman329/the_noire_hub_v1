@@ -12,7 +12,9 @@ class FeedbackController extends GetxController {
   final subjectController = TextEditingController();
   final messageController = TextEditingController();
 
-  var isLoading = false.obs;
+  var isFetching = false.obs;
+  var isSubmitting = false.obs;
+
   var feedbackList = <FeedbackItem>[].obs;
 
   @override
@@ -22,12 +24,12 @@ class FeedbackController extends GetxController {
   }
 
   Future<void> fetchFeedbacks() async {
-    isLoading.value = true;
+    isFetching.value = true;
     try {
       final response = await _service.getMyFeedbacks();
       feedbackList.assignAll(response.data?.results ?? []);
     } finally {
-      isLoading.value = false;
+      isFetching.value = false;
     }
   }
 
@@ -37,7 +39,8 @@ class FeedbackController extends GetxController {
       return;
     }
 
-    isLoading.value = true;
+    isSubmitting.value = true;
+
     bool success = await _service.sendFeedback(
       subjectController.text,
       messageController.text,
@@ -46,11 +49,12 @@ class FeedbackController extends GetxController {
     if (success) {
       subjectController.clear();
       messageController.clear();
-      fetchFeedbacks(); // Refresh list
+      await fetchFeedbacks();
       Get.snackbar("Success", "Feedback sent to admin");
     } else {
       Get.snackbar("Error", "Failed to send feedback");
     }
-    isLoading.value = false;
+
+    isSubmitting.value = false;
   }
 }
