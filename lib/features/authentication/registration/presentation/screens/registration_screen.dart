@@ -1,11 +1,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import '../../../../../core/constants/app_assets.dart';
 import '../../../../../core/constants/app_colors.dart';
-import '../../../../../core/constants/app_icons.dart';
 import '../../../../../core/constants/route_constants.dart';
 import '../../../../../core/widgets/custom_button.dart';
 import '../../../../../core/widgets/custom_text.dart';
@@ -169,24 +167,4 @@ class RegistrationScreen extends GetView<RegistrationController> {
     );
   }
 
-  Widget _socialButton(String label, String iconPath) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 10.h),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F1F1),
-        borderRadius: BorderRadius.circular(12.r),
-      ),
-      child: Row(
-        children: [
-          SvgPicture.asset(iconPath, width: 18.w, height: 18.w),
-          CustomText(
-            text: label,
-            fontSize: 12.sp,
-            fontWeight: FontWeight.w500,
-            left: 8.w,
-          ),
-        ],
-      ),
-    );
-  }
 }

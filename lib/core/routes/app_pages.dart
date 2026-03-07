@@ -76,7 +76,6 @@ import '../../features/customer/customerProducts/presentation/bindings/customer_
 import '../../features/customer/customerProducts/presentation/customer_products_screen.dart';
 import '../../features/customer/customerServiceProductDetails/presentation/customer_service_product_details_screen.dart';
 import '../../features/customer/customerServices/presentation/customer_service_screen.dart';
-import '../../features/customer/dealsPromos/presentation/service_deals_promos_screen.dart';
 import '../../features/customer/dealsPromos/presentation/screens/customer_deals_promos_screen.dart';
 import '../../features/customer/dealsPromosHistory/presentation/deals_promos_history_screen.dart';
 import '../../features/customer/favourite/presentation/favourites_screen.dart';

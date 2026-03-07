@@ -58,29 +58,29 @@ class CustomerDealsPromosScreen extends StatelessWidget {
               ),
 
               // 2. History Section
-              GestureDetector(
-                onTap: () => Get.toNamed(RouteConstants.dealsPromosHistory),
-                child: _buildWhiteCard(
-                  margin: EdgeInsets.only(left: 25.w, right: 25.w, bottom: 20.h, top: 20.h),
-                  child: ListTile(
-                    leading: Container(
-                      padding: EdgeInsets.all(8.r),
-                      decoration: const BoxDecoration(
-                          color: Colors.black, shape: BoxShape.circle),
-                      child: Icon(Icons.percent, color: Colors.white, size: 20.sp),
-                    ),
-                    title: CustomText(
-                        text: "History",
-                        fontSize: 15.sp,
-                        fontWeight: FontWeight.bold),
-                    subtitle: CustomText(
-                        text: "Your Used Promos & Deals",
-                        fontSize: 11.sp,
-                        color: Colors.grey),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                  ),
-                ),
-              ),
+              // GestureDetector(
+              //   onTap: () => Get.toNamed(RouteConstants.dealsPromosHistory),
+              //   child: _buildWhiteCard(
+              //     margin: EdgeInsets.only(left: 25.w, right: 25.w, bottom: 20.h, top: 20.h),
+              //     child: ListTile(
+              //       leading: Container(
+              //         padding: EdgeInsets.all(8.r),
+              //         decoration: const BoxDecoration(
+              //             color: Colors.black, shape: BoxShape.circle),
+              //         child: Icon(Icons.percent, color: Colors.white, size: 20.sp),
+              //       ),
+              //       title: CustomText(
+              //           text: "History",
+              //           fontSize: 15.sp,
+              //           fontWeight: FontWeight.bold),
+              //       subtitle: CustomText(
+              //           text: "Your Used Promos & Deals",
+              //           fontSize: 11.sp,
+              //           color: Colors.grey),
+              //       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              //     ),
+              //   ),
+              // ),
 
               // 3. Available Promos List
               Padding(
@@ -164,39 +164,81 @@ class CustomerDealsPromosScreen extends StatelessWidget {
   }
 
   Widget _promoTile(String title, String code, String date) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      title: Row(
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 8.h),
+      child: Row(
         children: [
-          CustomText(text: title, fontSize: 15.sp, fontWeight: FontWeight.bold),
-          SizedBox(width: 8.w),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(4.r),
+          // 1. Title and Subtitle Info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    // Wrap text in Flexible to prevent overflow
+                    Flexible(
+                      child: CustomText(
+                        text: title,
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.bold,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    SizedBox(width: 8.w),
+                    // The Code Tag
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(6.r),
+                        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+                      ),
+                      child: CustomText(
+                        text: code,
+                        fontSize: 10.sp,
+                        color: AppColors.background,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 4.h),
+                CustomText(
+                  text: "Exp: $date",
+                  fontSize: 11.sp,
+                  color: Colors.grey.shade600,
+                ),
+              ],
             ),
-            child: CustomText(text: code, fontSize: 11.sp, color: Colors.black54),
+          ),
+
+          // 2. Action Button
+          SizedBox(width: 10.w),
+          GestureDetector(
+            onTap: () => _showSuccessDialog(title),
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
+              decoration: BoxDecoration(
+                  color: const Color(0xFF9BB575),
+                  borderRadius: BorderRadius.circular(12.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF9BB575).withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    )
+                  ]
+              ),
+              child: CustomText(
+                text: "Apply",
+                fontSize: 11.sp,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
-      ),
-      subtitle: CustomText(
-          text: "Available till $date", fontSize: 12.sp, color: Colors.grey),
-      trailing: GestureDetector(
-        onTap: () => _showSuccessDialog(title),
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-          decoration: BoxDecoration(
-            color: const Color(0xFF9BB575),
-            borderRadius: BorderRadius.circular(20.r),
-          ),
-          child: CustomText(
-            text: "Apply Promo",
-            fontSize: 10.sp,
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
       ),
     );
   }

@@ -403,37 +403,4 @@ class WalletScreen extends StatelessWidget {
       },
     );
   }
-  Widget _buildBankSelectRow({
-    required int index,
-    required int selectedIndex,
-    required String bankName,
-    required String accNumber,
-    required Function(int?) onChanged,
-  }) {
-    return Row(
-      children: [
-        CircleAvatar(
-          backgroundColor: const Color(0xFF1D3826),
-          radius: 18.r,
-          child: Icon(Icons.credit_card, color: Colors.white, size: 18.sp),
-        ),
-        SizedBox(width: 12.w),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CustomText(text: "Bank Name : $bankName", fontSize: 12.sp, fontWeight: FontWeight.w600),
-              CustomText(text: "AC Number : $accNumber", fontSize: 11.sp, color: Colors.grey),
-            ],
-          ),
-        ),
-        Radio<int>(
-          value: index,
-          groupValue: selectedIndex,
-          activeColor: const Color(0xFF1D3826),
-          onChanged: onChanged,
-        ),
-      ],
-    );
-  }
 }

@@ -2,17 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import '../../../../../../core/constants/route_constants.dart';
 import '../../../../../../core/widgets/custom_network_image.dart';
 import '../../../../../../core/widgets/custom_text.dart';
 import '../../../data/beautician_booking_history_response_model.dart';
 import '../../controller/beautician_booking_history_controller.dart';
 
-
-import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 
 class BeauticiansBookingHistoryCard extends StatelessWidget {
   final BeauticianBookingDoc booking;
