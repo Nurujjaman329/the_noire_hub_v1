@@ -56,7 +56,10 @@ class ServiceDetailsAttributes {
   Beautician? beautician;
   Category? category;
   Subcategory? subcategory;
-  WorkingHoursDetails? workingHours;
+
+  /// UPDATED HERE
+  List<WorkingSlot> workingSlots;
+
   List<ServiceVariant> variants;
 
   ServiceDetailsAttributes({
@@ -82,7 +85,7 @@ class ServiceDetailsAttributes {
     this.beautician,
     this.category,
     this.subcategory,
-    this.workingHours,
+    this.workingSlots = const [],
     this.variants = const [],
   });
 
@@ -94,9 +97,8 @@ class ServiceDetailsAttributes {
       originalPrice: json['originalPrice'] ?? 0,
       discountedPrice: json['discountedPrice'] ?? 0,
       description: json['description'] ?? '',
-      // Safer list parsing
-      images: (json['images'] as List?)?.map((item) => item.toString()).toList() ?? [],
-      availableDates: (json['availableDates'] as List?)?.map((item) => item.toString()).toList() ?? [],
+      images: (json['images'] as List?)?.map((e) => e.toString()).toList() ?? [],
+      availableDates: (json['availableDates'] as List?)?.map((e) => e.toString()).toList() ?? [],
       isRecurring: json['isRecurring'] ?? false,
       isActive: json['isActive'] ?? false,
       isDeleted: json['isDeleted'] ?? false,
@@ -111,26 +113,38 @@ class ServiceDetailsAttributes {
       beautician: json['beautician'] != null ? Beautician.fromJson(json['beautician']) : null,
       category: json['category'] != null ? Category.fromJson(json['category']) : null,
       subcategory: json['subcategory'] != null ? Subcategory.fromJson(json['subcategory']) : null,
-      workingHours: json['workingHours'] != null ? WorkingHoursDetails.fromJson(json['workingHours']) : null,
+
+      /// UPDATED HERE
+      workingSlots: (json['workingSlots'] as List?)
+          ?.map((e) => WorkingSlot.fromJson(e))
+          .toList() ??
+          [],
+
       variants: (json['variants'] as List?)
-          ?.map((v) => ServiceVariant.fromJson(v))
-          .toList() ?? [],
+          ?.map((e) => ServiceVariant.fromJson(e))
+          .toList() ??
+          [],
     );
   }
 }
 
-class WorkingHoursDetails {
+
+class WorkingSlot {
+  String id;
   String startTime;
   String endTime;
-  String id;
 
-  WorkingHoursDetails({this.startTime = '', this.endTime = '', this.id = ''});
+  WorkingSlot({
+    this.id = '',
+    this.startTime = '',
+    this.endTime = '',
+  });
 
-  factory WorkingHoursDetails.fromJson(Map<String, dynamic> json) {
-    return WorkingHoursDetails(
+  factory WorkingSlot.fromJson(Map<String, dynamic> json) {
+    return WorkingSlot(
+      id: json['_id'] ?? '',
       startTime: json['startTime'] ?? '',
       endTime: json['endTime'] ?? '',
-      id: json['_id'] ?? '',
     );
   }
 }
@@ -154,18 +168,24 @@ class ServiceVariant {
       variantName: json['variantName'] ?? '',
       description: json['description'] ?? '',
       subVariants: (json['subVariants'] as List?)
-          ?.map((v) => SubVariant.fromJson(v))
-          .toList() ?? [],
+          ?.map((e) => SubVariant.fromJson(e))
+          .toList() ??
+          [],
     );
   }
 }
+
 
 class SubVariant {
   String id;
   String name;
   num price;
 
-  SubVariant({this.id = '', this.name = '', this.price = 0});
+  SubVariant({
+    this.id = '',
+    this.name = '',
+    this.price = 0,
+  });
 
   factory SubVariant.fromJson(Map<String, dynamic> json) {
     return SubVariant(
