@@ -12,6 +12,7 @@ import 'package:the_noire_hub_v1/features/common/walletScreen/presentation/bindi
 import 'package:the_noire_hub_v1/features/customer/checkOut/presentation/bindings/check_out_bindings.dart';
 import 'package:the_noire_hub_v1/features/customer/customerOrderScreen/presentation/bindings/customer_orders_bindings.dart';
 import 'package:the_noire_hub_v1/features/customer/customerServices/presentation/bindings/customer_service_bindings.dart';
+import 'package:the_noire_hub_v1/features/customer/dealsPromos/presentation/bindings/customer_deals_promos_bindings.dart';
 import 'package:the_noire_hub_v1/features/customer/favourite/presentation/bindings/favorites_bindings.dart';
 import 'package:the_noire_hub_v1/features/customer/productDetailsScreen/presentation/bindings/product_details_bindings.dart';
 import 'package:the_noire_hub_v1/features/vendor/orderFullFillment/presentation/bindings/order_full_fillment_bindings.dart';
@@ -76,7 +77,7 @@ import '../../features/customer/customerProducts/presentation/customer_products_
 import '../../features/customer/customerServiceProductDetails/presentation/customer_service_product_details_screen.dart';
 import '../../features/customer/customerServices/presentation/customer_service_screen.dart';
 import '../../features/customer/dealsPromos/presentation/service_deals_promos_screen.dart';
-import '../../features/customer/dealsPromos/presentation/screens/deals_promos_screen.dart';
+import '../../features/customer/dealsPromos/presentation/screens/customer_deals_promos_screen.dart';
 import '../../features/customer/dealsPromosHistory/presentation/deals_promos_history_screen.dart';
 import '../../features/customer/favourite/presentation/favourites_screen.dart';
 import '../../features/customer/multiVendorCartScreen/presentation/bindings/multi_vendor_cart_bindings.dart';
@@ -279,14 +280,15 @@ class AppPages {
       page: () => const AboutUsScreen(),
       transition: Transition.cupertino,
     ),
-    GetPage(
-      name: RouteConstants.serviceDealsPromos,
-      page: () => const ServiceDealsPromosScreen(),
-      transition: Transition.cupertino,
-    ),
+    // GetPage(
+    //   name: RouteConstants.serviceDealsPromos,
+    //   page: () => const ServiceDealsPromosScreen(),
+    //   transition: Transition.cupertino,
+    // ),
     GetPage(
       name: RouteConstants.dealsPromos,
-      page: () => const DealsPromosScreen(),
+      page: () => const CustomerDealsPromosScreen(),
+      binding: CustomerDealsPromosBindings(),
       transition: Transition.cupertino,
     ),
     GetPage(
