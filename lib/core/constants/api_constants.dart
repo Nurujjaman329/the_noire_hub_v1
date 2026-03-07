@@ -29,6 +29,9 @@ class ApiConstants {
   static const String feedback = "feedback";
   static const String inviteLink = "invite/link";
   static const String cart = "cart";
+  static const String wallet = "wallet";
+  static const String walletWithDraw = "wallet/withdraw";
+  static const String withdrawHistory = "wallet/withdrawals";
 
 
 

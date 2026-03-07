@@ -1,13 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:the_noire_hub_v1/features/beautician/beauticiansBookingHistory/presentation/screens/widget/beauticians_booking_history_card.dart';
-import 'package:the_noire_hub_v1/features/beautician/beauticiansBookingHistory/presentation/screens/widget/beauticians_cancel_booking_list.dart';
-import 'package:the_noire_hub_v1/features/beautician/beauticiansBookingHistory/presentation/screens/widget/beauticians_complete_booking_list.dart';
-import 'package:the_noire_hub_v1/features/beautician/beauticiansBookingHistory/presentation/screens/widget/beauticians_inProgress_booking_list.dart';
-import 'package:the_noire_hub_v1/features/beautician/beauticiansBookingHistory/presentation/screens/widget/beauticians_pending_booking_list.dart';
 import '../../../../../core/constants/app_colors.dart';
-import '../../../../../core/constants/route_constants.dart';
-import '../../../../../core/widgets/custom_app_bar.dart';
 import '../../../../../core/widgets/custom_text.dart';
 import 'package:get/get.dart';
 
@@ -105,13 +99,10 @@ class BeauticianBookingHistoryScreen extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(20.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CustomText(text: "My Bookings", fontSize: 24.sp, fontWeight: FontWeight.bold),
-          GestureDetector(
-            onTap: () => Get.offAllNamed(RouteConstants.customerMainContainer, arguments: {'initialTab': 0}),
-            child: CustomText(text: "Start New Booking", fontSize: 12.sp, color: const Color(0xFFC4C99A), fontWeight: FontWeight.w600),
-          ),
+
         ],
       ),
     );

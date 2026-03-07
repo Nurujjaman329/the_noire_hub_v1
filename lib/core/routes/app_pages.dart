@@ -8,6 +8,7 @@ import 'package:the_noire_hub_v1/features/beautician/serviceDetailsScreen/presen
 import 'package:the_noire_hub_v1/features/common/businessDocument/presentation/bindings/business_documents_bindings.dart';
 import 'package:the_noire_hub_v1/features/common/changePassword/presentation/bindings/change_password_bindings.dart';
 import 'package:the_noire_hub_v1/features/common/inviteFriends/presentation/bindings/invite_friends_bindings.dart';
+import 'package:the_noire_hub_v1/features/common/walletScreen/presentation/bindings/wallet_info_bindings.dart';
 import 'package:the_noire_hub_v1/features/customer/checkOut/presentation/bindings/check_out_bindings.dart';
 import 'package:the_noire_hub_v1/features/customer/customerOrderScreen/presentation/bindings/customer_orders_bindings.dart';
 import 'package:the_noire_hub_v1/features/customer/customerServices/presentation/bindings/customer_service_bindings.dart';
@@ -346,6 +347,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.walletScreen,
       page: () => const WalletScreen(),
+      binding: WalletInfoBindings(),
       transition: Transition.cupertino,
     ),
     GetPage(
