@@ -30,6 +30,7 @@ import '../../features/beautician/beauticanStoreScreen/presentation/bindings/bea
 import '../../features/beautician/beauticanStoreScreen/presentation/screens/beautician_store_screen.dart';
 import '../../features/beautician/beauticianAddService/presentation/bindings/beauticians_create_service_bindings.dart';
 import '../../features/beautician/beauticianAvailabiltySection/presentation/screens/beautician_availability_section.dart';
+import '../../features/beautician/beauticiansBookingHistory/presentation/bindings/beautician_booking_history_bindings.dart';
 import '../../features/beautician/beauticiansBookingHistory/presentation/screens/beauticians_bookings_history_screen.dart';
 import '../../features/beautician/editServiceScreen/presentation/bindings/beauticians_update_service_bindings.dart';
 import '../../features/beautician/editServiceScreen/presentation/edit_service_screen.dart';
@@ -360,6 +361,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.beauticiansBookingHistoryScreen,
       page: () => const BeauticianBookingHistoryScreen(),
+      binding: BeauticianBookingHistoryBindings(),
       transition: Transition.cupertino,
     ),
     GetPage(
