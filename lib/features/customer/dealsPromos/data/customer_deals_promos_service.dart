@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:the_noire_hub_v1/core/constants/api_constants.dart';
 
 import '../../../../core/api/api_client.dart';
@@ -9,13 +8,13 @@ class CustomerDealsPromosService {
   final ApiClient _apiClient;
   CustomerDealsPromosService(this._apiClient);
 
-
-  /// Fetch all promos optionally filtered by creator ID
   Future<CustomerDealsPromosResponseModel> fetchPromos({String? createdBy}) async {
     try {
       String endpoint = ApiConstants.promoCodeCustomer;
+      // example: promo-codes/all
+
       if (createdBy != null && createdBy.isNotEmpty) {
-        endpoint += "?createdBy=$createdBy";
+        endpoint = "$endpoint?createdBy=$createdBy";
       }
 
       if (kDebugMode) {
@@ -26,7 +25,7 @@ class CustomerDealsPromosService {
 
       return CustomerDealsPromosResponseModel.fromJson(response.data);
     } catch (e) {
-      debugPrint("❌ DealsPromosService fetchPromos error: $e");
+      debugPrint("❌ CustomerDealsPromosService error: $e");
       rethrow;
     }
   }

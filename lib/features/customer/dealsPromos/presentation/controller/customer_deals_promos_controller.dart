@@ -7,9 +7,10 @@ class CustomerDealsPromosController extends GetxController {
   final CustomerDealsPromosService _service;
   CustomerDealsPromosController(this._service);
 
-  // State
   var promoList = <CustomerPromoCodeModel>[].obs;
   var isListLoading = false.obs;
+
+  String? createdBy;
 
   @override
   void onInit() {
@@ -17,11 +18,14 @@ class CustomerDealsPromosController extends GetxController {
     fetchPromos();
   }
 
-  /// Fetch promos (optionally filtered by user role / createdBy)
+  /// fetch promos (with or without createdBy)
   Future<void> fetchPromos({String? createdBy}) async {
     try {
       isListLoading.value = true;
-      final response = await _service.fetchPromos(createdBy: createdBy);
+
+      final response = await _service.fetchPromos(
+        createdBy: createdBy ?? this.createdBy,
+      );
 
       if (response.data?.attributes != null) {
         promoList.value = response.data!.attributes!.results;
@@ -37,7 +41,12 @@ class CustomerDealsPromosController extends GetxController {
     }
   }
 
-  /// Remove promo locally
+  /// used when screen provides createdBy
+  void loadByCreator(String id) {
+    createdBy = id;
+    fetchPromos(createdBy: id);
+  }
+
   void removePromo(String id) {
     promoList.removeWhere((promo) => promo.id == id);
   }
