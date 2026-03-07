@@ -13,38 +13,49 @@ class OrderFullFillmentController extends GetxController {
   var isLoading = false.obs;
   var isSaving = false.obs;
 
-  // Observable to hold the fetched data
+  // We use two different variables to prevent data from flickering
+  // between "General" and "Vendor-Specific" views.
+  var vendorFulfillmentData = Rxn<GetOrderFulfillmentAttributes>();
+  var generalFulfillmentData = Rxn<GetOrderFulfillmentAttributes>();
+
+  // Helper getter to decide which data to show if you use one variable
   var fulfillmentData = Rxn<GetOrderFulfillmentAttributes>();
 
   @override
   void onInit() {
     super.onInit();
-    fetchSettings();
+    // Only call this here if you want general settings pre-loaded
+    // fetchSettings();
   }
 
-  /// GET: Fetch current settings
+  /// GET: Fetch settings
   Future<void> fetchSettings({String? vendorId}) async {
     isLoading.value = true;
     try {
       final response = await _service.getFulfillmentSettings(vendorId: vendorId);
-      fulfillmentData.value = response.data.attributes;
+
+      // Update the specific observable based on whether an ID was provided
+      if (vendorId != null && vendorId.isNotEmpty && vendorId != "null") {
+        vendorFulfillmentData.value = response.data.attributes;
+        fulfillmentData.value = response.data.attributes; // For shared UI
+      } else {
+        generalFulfillmentData.value = response.data.attributes;
+        fulfillmentData.value = response.data.attributes; // For shared UI
+      }
     } on AppException catch (e) {
-      // AppSnackbar.error(e.message);
       debugPrint("Error fetching fulfillment: ${e.message}");
     } finally {
       isLoading.value = false;
     }
   }
 
-  /// POST: Save updated settings
   Future<void> updateSettings(OrderFullFillmentPostBody body) async {
     isSaving.value = true;
     try {
       final success = await _service.saveFulfillmentSettings(body);
-
       if (success) {
         AppSnackbar.success("Fulfillment settings updated successfully!");
-        // Optionally refresh data
+        // Refresh without ID (General settings)
         await fetchSettings();
       }
     } on AppException catch (e) {

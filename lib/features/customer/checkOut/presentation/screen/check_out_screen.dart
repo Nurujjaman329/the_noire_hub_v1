@@ -274,6 +274,30 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               SizedBox(height: 15.h),
               _buildSummaryRow(Icons.storefront, "${vendorData.vendor.businessName} | ${vendorData.itemCount} items"),
 
+
+
+              // --- TIP SECTION ---
+              SizedBox(height: 25.h),
+              CustomText(text: "Add a Tip", fontSize: 16.sp, fontWeight: FontWeight.bold),
+              SizedBox(height: 12.h),
+              Obx(() => SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _tipOption(0, "Flat \$5", 5.0, true),
+                    SizedBox(width: 10.w),
+                    _tipOption(1, "Flat \$10", 10.0, true),
+                    SizedBox(width: 10.w),
+                    _tipOption(2, "5%", 0.05, false),
+                    SizedBox(width: 10.w),
+                    _tipOption(3, "10%", 0.10, false),
+                    SizedBox(width: 10.w),
+                    _tipOption(4, "Custom", 0.0, true, isCustom: true),
+                  ],
+                ),
+              )),
+
+              SizedBox(height: 30.h),
               // --- 6. PRICE DETAILS ---
               SizedBox(height: 25.h),
               _priceRow("Subtotal", vendorData.subtotal.toStringAsFixed(2)),
@@ -353,16 +377,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _buildTotalSection() {
-    double total = vendorData.subtotal + _getSelectedDeliveryPrice();
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        CustomText(text: "Total", fontSize: 18.sp, fontWeight: FontWeight.bold),
-        CustomText(text: "\$${total.toStringAsFixed(2)}", fontSize: 18.sp, fontWeight: FontWeight.bold),
-      ],
-    );
-  }
 
   void _handleOrderPlacement() {
     final List<Map<String, dynamic>> apiItems = vendorData.items.map((item) {
@@ -399,7 +413,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         }
       },
       instructions: instructionController.text.trim(),
-      // tip: 3.80,
+      tip: _getCalculatedTip(),
       // promoCode: "EID77",
     );
   }
@@ -430,6 +444,215 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           CustomText(text: label, fontSize: 12.sp, color: const Color(0XFF4E5760)),
           CustomText(text: "\$$price", fontSize: 12.sp, fontWeight: FontWeight.w600, color: const Color(0XFF4E5760)),
         ],
+      ),
+    );
+  }
+
+
+  // Helper to calculate tip based on type
+  double _getCalculatedTip() {
+    if (checkoutController.isFlatTip.value) {
+      return checkoutController.tipValue.value;
+    } else {
+      // Percentage calculation: subtotal * percentage
+      return vendorData.subtotal * checkoutController.tipValue.value;
+    }
+  }
+
+// Updated Total Section
+  Widget _buildTotalSection() {
+    double tip = _getCalculatedTip();
+    double total = vendorData.subtotal + _getSelectedDeliveryPrice() + tip;
+
+    return Column(
+      children: [
+        if (tip > 0) _priceRow("Driver Tip", tip.toStringAsFixed(2)),
+        SizedBox(height: 10.h),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            CustomText(text: "Total", fontSize: 18.sp, fontWeight: FontWeight.bold),
+            CustomText(text: "\$${total.toStringAsFixed(2)}", fontSize: 18.sp, fontWeight: FontWeight.bold),
+          ],
+        ),
+      ],
+    );
+  }
+
+// Tip Card Widget
+  Widget _tipOption(int index, String label, double value, bool isFlat, {bool isCustom = false}) {
+    bool isSelected = checkoutController.selectedTipIndex.value == index;
+    return GestureDetector(
+      onTap: () {
+        if (isCustom) {
+          _showCustomTipDialog();
+        } else {
+          checkoutController.setTip(value, isFlat, index);
+        }
+      },
+      child: Container(
+        width: 75.w, // Matching speed card logic
+        padding: EdgeInsets.symmetric(vertical: 12.h),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.surfaceVariant : Colors.white,
+          borderRadius: BorderRadius.circular(15.r),
+          border: Border.all(
+              color: isSelected ? AppColors.chipActive : Colors.grey.shade200,
+              width: 1.5
+          ),
+          boxShadow: isSelected ? [] : [
+            BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 4, offset: const Offset(0, 2))
+          ],
+        ),
+        child: Column(
+          children: [
+            Icon(
+              isCustom ? Icons.edit_note : Icons.volunteer_activism_outlined,
+              size: 16.sp,
+              color: isSelected ? AppColors.primary : Colors.grey,
+            ),
+            SizedBox(height: 4.h),
+            CustomText(
+              text: label,
+              fontSize: 11.sp,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+              color: isSelected ? AppColors.textPrimary : Colors.black54,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showCustomTipDialog() {
+    final TextEditingController customTipC = TextEditingController();
+    RxBool isFlatSelected = true.obs;
+
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24.r)),
+        backgroundColor: AppColors.white,
+        child: Padding(
+          padding: EdgeInsets.all(24.r),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header
+              CustomText(
+                text: "Custom Tip",
+                fontSize: 20.sp,
+                fontWeight: FontWeight.bold,
+                bottom: 8.h,
+              ),
+              CustomText(
+                text: "How much would you like to tip the driver?",
+                fontSize: 13.sp,
+                color: Colors.grey,
+                bottom: 24.h,
+              ),
+
+              // Segmented Toggle (Modern look)
+              Container(
+                padding: EdgeInsets.all(4.r),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceVariant.withOpacity(0.5),
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                child: Obx(() => Row(
+                  children: [
+                    _buildToggleItem("Flat (\$)", isFlatSelected.value, () => isFlatSelected.value = true),
+                    _buildToggleItem("Percent (%)", !isFlatSelected.value, () => isFlatSelected.value = false),
+                  ],
+                )),
+              ),
+
+              SizedBox(height: 24.h),
+
+              // Modern Input Field
+              Obx(() => TextField(
+                controller: customTipC,
+                autofocus: true,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+                decoration: InputDecoration(
+                  hintText: "0.00",
+                  prefixText: isFlatSelected.value ? "\$ " : null,
+                  suffixText: isFlatSelected.value ? null : " %",
+                  prefixStyle: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 18.sp),
+                  suffixStyle: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 18.sp),
+                  filled: true,
+                  fillColor: AppColors.surfaceVariant.withOpacity(0.3),
+                  contentPadding: EdgeInsets.symmetric(vertical: 18.h),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15.r),
+                    borderSide: BorderSide(color: AppColors.primary.withOpacity(0.1)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15.r),
+                    borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                  ),
+                ),
+              )),
+
+              SizedBox(height: 24.h),
+
+              // Action Buttons
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Get.back(),
+                      child: CustomText(text: "Cancel", color: Colors.grey, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: CustomButton(
+                      text: "Apply",
+                      onTap: () {
+                        double val = double.tryParse(customTipC.text) ?? 0.0;
+                        if (val > 0) {
+                          double finalVal = isFlatSelected.value ? val : (val / 100);
+                          checkoutController.setTip(finalVal, isFlatSelected.value, 4);
+                        }
+                        Get.back();
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+// Helper widget for the toggle items
+  Widget _buildToggleItem(String label, bool isSelected, VoidCallback onTap) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: EdgeInsets.symmetric(vertical: 10.h),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.white : Colors.transparent,
+            borderRadius: BorderRadius.circular(10.r),
+            boxShadow: isSelected
+                ? [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4, offset: const Offset(0, 2))]
+                : [],
+          ),
+          child: Center(
+            child: CustomText(
+              text: label,
+              fontSize: 12.sp,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+              color: isSelected ? AppColors.primary : Colors.grey,
+            ),
+          ),
+        ),
       ),
     );
   }

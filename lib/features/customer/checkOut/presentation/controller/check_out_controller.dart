@@ -9,6 +9,10 @@ class CheckOutController extends GetxController with MapSearchMixin {
 
   var isPlacingOrder = false.obs;
 
+  var selectedTipIndex = (-1).obs;
+  var tipValue = 0.0.obs;
+  var isFlatTip = true.obs;
+
   @override
   void onInit() {
     super.onInit();
@@ -53,5 +57,21 @@ class CheckOutController extends GetxController with MapSearchMixin {
     } finally {
       isPlacingOrder.value = false;
     }
+  }
+
+
+  double get calculatedTipAmount {
+    if (tipValue.value <= 0) return 0.0;
+
+    // If it's a percentage, we calculate it based on the subtotal
+    // This will be handled in the UI context or passed here.
+    return tipValue.value;
+  }
+
+  // Helper to reset tip
+  void setTip(double value, bool isFlat, int index) {
+    tipValue.value = value;
+    isFlatTip.value = isFlat;
+    selectedTipIndex.value = index;
   }
 }
