@@ -46,9 +46,18 @@ class _OrderFulfillmentScreenState extends State<OrderFulfillmentScreen> {
   @override
   void initState() {
     super.initState();
+
+    // 1. Start fetching data immediately (no vendorId passed = general settings)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.fetchSettings();
+    });
+
+    // 2. Keep your listener to update local state maps when data arrives
     ever(controller.fulfillmentData, (data) {
       if (data != null) _populateData(data);
     });
+
+    // 3. Populate if data already exists in the controller
     if (controller.fulfillmentData.value != null) {
       _populateData(controller.fulfillmentData.value!);
     }
@@ -227,16 +236,20 @@ class _OrderFulfillmentScreenState extends State<OrderFulfillmentScreen> {
     return SizedBox(
       width: double.infinity,
       height: 55.h,
-      child: ElevatedButton(
+      child: Obx(() => ElevatedButton( // Wrap with Obx to see loading state
         onPressed: controller.isSaving.value ? null : _handleSave,
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF1E3020),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.r)),
         ),
         child: controller.isSaving.value
-            ? const CircularProgressIndicator(color: Colors.white)
+            ? const SizedBox(
+            height: 20,
+            width: 20,
+            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+        )
             : CustomText(text: "Save", color: AppColors.white, fontSize: 18.sp, fontWeight: FontWeight.bold),
-      ),
+      )),
     );
   }
 
