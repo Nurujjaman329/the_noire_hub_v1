@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../../../core/constants/app_assets.dart';
 import '../../../../../core/constants/app_colors.dart';
+import '../../../../../core/services/cache_service.dart';
 import '../../../../../core/widgets/custom_button.dart';
 import '../../../../../core/widgets/custom_network_image.dart';
 import '../../../../../core/widgets/custom_text.dart';
@@ -297,14 +298,17 @@ class AddDealsPomosScreen extends StatelessWidget {
                               description: descController.text,
                             ));
                           } else {
-                            promoController.addPromo(AddDealsPromosPostBody(
-                              code: codeController.text,
-                              title: titleController.text,
-                              discountPercentage: int.tryParse(percentController.text) ?? 0,
-                              description: descController.text,
-                              expiryDate: dateController.text,
-                              maxUsageCount: int.tryParse(usageController.text) ?? 1,
-                            ));
+                            promoController.addPromo(
+                              AddDealsPromosPostBody(
+                                code: codeController.text,
+                                title: titleController.text,
+                                discountPercentage: int.tryParse(percentController.text) ?? 0,
+                                description: descController.text,
+                                expiryDate: dateController.text,
+                                maxUsageCount: int.tryParse(usageController.text) ?? 1,
+                                applicableFor: CacheService.applicableFor,
+                              ),
+                            );
                           }
                         },
                       )),

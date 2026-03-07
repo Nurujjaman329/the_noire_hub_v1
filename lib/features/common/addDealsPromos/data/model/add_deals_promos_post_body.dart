@@ -4,6 +4,7 @@ class AddDealsPromosPostBody {
   final int discountPercentage;
   final String description;
   final String expiryDate;
+  final String applicableFor;
   final int maxUsageCount;
 
   AddDealsPromosPostBody({
@@ -12,6 +13,7 @@ class AddDealsPromosPostBody {
     required this.discountPercentage,
     required this.description,
     required this.expiryDate,
+    required this.applicableFor,
     required this.maxUsageCount,
   });
 
@@ -22,6 +24,7 @@ class AddDealsPromosPostBody {
       "discountPercentage": discountPercentage,
       "description": description,
       "expiryDate": expiryDate,
+      "applicableFor": applicableFor,
       "maxUsageCount": maxUsageCount,
     };
   }
