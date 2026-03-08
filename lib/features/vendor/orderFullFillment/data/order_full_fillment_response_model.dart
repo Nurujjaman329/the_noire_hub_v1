@@ -36,6 +36,7 @@ class GetOrderFulfillmentAttributes {
   final GetShippingMethodConfig shippingMethod;
   final GetDeliveryMethodConfig deliveryMethod;
   final GetCostsAndFeesConfig costsAndFees;
+  final GetRestrictedCountries restrictedCountries;
   final bool isActive;
   final DateTime createdAt;
 
@@ -46,6 +47,7 @@ class GetOrderFulfillmentAttributes {
     required this.shippingMethod,
     required this.deliveryMethod,
     required this.costsAndFees,
+    required this.restrictedCountries,
     required this.isActive,
     required this.createdAt,
   });
@@ -61,12 +63,36 @@ class GetOrderFulfillmentAttributes {
       GetDeliveryMethodConfig.fromJson(json['deliveryMethod'] ?? {}),
       costsAndFees:
       GetCostsAndFeesConfig.fromJson(json['costsAndFees'] ?? {}),
+      restrictedCountries:
+      GetRestrictedCountries.fromJson(json['restrictedCountries'] ?? {}),
       isActive: json['isActive'] ?? false,
       createdAt: DateTime.tryParse(json['createdAt'] ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0),
     );
   }
 }
+
+
+class GetRestrictedCountries {
+  final bool enabled;
+  final List<String> countries;
+
+  GetRestrictedCountries({
+    required this.enabled,
+    required this.countries,
+  });
+
+  factory GetRestrictedCountries.fromJson(Map<String, dynamic> json) {
+    return GetRestrictedCountries(
+      enabled: json['enabled'] ?? false,
+      countries: json['countries'] != null
+          ? List<String>.from(json['countries'])
+          : [],
+    );
+  }
+}
+
+
 class GetShippingMethodConfig {
   final String id;
   final GetMethodOption turbo;

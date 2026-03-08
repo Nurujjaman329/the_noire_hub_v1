@@ -2,19 +2,39 @@ class OrderFullFillmentPostBody {
   final ShippingMethodConfig? shippingMethod;
   final DeliveryMethodConfig? deliveryMethod;
   final CostsAndFeesConfig? costsAndFees;
+  final RestrictedCountriesConfig? restrictedCountries;
 
   OrderFullFillmentPostBody({
     this.shippingMethod,
     this.deliveryMethod,
     this.costsAndFees,
+    this.restrictedCountries,
   });
 
   Map<String, dynamic> toJson() => {
     if (shippingMethod != null) 'shippingMethod': shippingMethod!.toJson(),
     if (deliveryMethod != null) 'deliveryMethod': deliveryMethod!.toJson(),
     if (costsAndFees != null) 'costsAndFees': costsAndFees!.toJson(),
+    if (restrictedCountries != null) 'restrictedCountries': restrictedCountries!.toJson(),
   };
 }
+
+class RestrictedCountriesConfig {
+  final bool? enabled;
+  final List<String>? countries;
+
+  RestrictedCountriesConfig({
+    this.enabled,
+    this.countries,
+  });
+
+  Map<String, dynamic> toJson() => {
+    if (enabled != null) 'enabled': enabled,
+    if (countries != null) 'countries': countries,
+  };
+}
+
+
 class ShippingMethodConfig {
   final MethodOption? turbo;
   final MethodOption? standard;
