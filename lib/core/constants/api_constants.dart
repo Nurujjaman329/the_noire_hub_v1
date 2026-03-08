@@ -44,6 +44,8 @@ class ApiConstants {
   static const String customerFavorites = "favorites";
   static const String cartItems = "cart/items";
   static const String productOrders = "product-orders";
+  static const String serviceRating = "reviews/booking/";
+  static const String productRating = "product-reviews/";
 
 
 
@@ -51,7 +53,6 @@ class ApiConstants {
 
   static const String beauticianServiceList = "services/my-services";
   static const String serviceRoute = "services";
-  static const String serviceRating = "reviews/booking/";
 
 
   //vendor

@@ -196,28 +196,34 @@ class CustomerProductsScreen extends StatelessWidget {
   }
 
   Widget _buildProductCard(CustomerProduct product) {
+    final controller = Get.find<CustomerProductsController>();
     final imageUrl = product.images.isNotEmpty ? product.images.first : '';
     final fullImageUrl = "${ApiConstants.baseImageUrl}$imageUrl";
-
-    // --- GET DISTANCE DIRECTLY FROM MODEL ---
-    // Using toStringAsFixed(1) to handle decimals like 2.3 or 7.0
     String distanceText = "${product.distance.toStringAsFixed(1)} km away";
 
-    return _popularCard(
-      product.name,
-      product.price.toString(),
-      distanceText, // Direct use of the distance from your model
-      product.rating.toString(),
-      product.images.isNotEmpty
-          ? fullImageUrl
-          : "https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=500",
-      onTap: () {
-        Get.toNamed(
-          RouteConstants.productDetailsScreen,
-          arguments: product,
-        );
-      },
-    );
+    return Obx(() {
+      // Check if THIS specific product is currently hitting the favorite API
+      final isProcessing = controller.favoriteLoadingState[product.id] ?? false;
+
+      return _popularCard(
+        product.name,
+        product.price.toString(),
+        distanceText,
+        product.rating.toString(),
+        product.images.isNotEmpty
+            ? fullImageUrl
+            : "https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=500",
+        isFavorite: product.isFavorite ?? false,
+        isFavoriteLoading: isProcessing, // Pass loading state to UI
+        onTap: () {
+          Get.toNamed(RouteConstants.productDetailsScreen, arguments: product);
+        },
+        onFavoriteTap: () {
+          // HIT THE POST HERE
+          controller.toggleProductFavorite(product.id);
+        },
+      );
+    });
   }
 
   Widget _buildPopularNearYouSection() {
@@ -949,7 +955,10 @@ class CustomerProductsScreen extends StatelessWidget {
       String distance,
       String rating,
       String imageUrl, {
+        bool isFavorite = false,
         VoidCallback? onTap,
+        VoidCallback? onFavoriteTap,
+        bool isFavoriteLoading = false,
       }) {
     return GestureDetector(
       onTap: onTap ?? () {
@@ -992,20 +1001,30 @@ class CustomerProductsScreen extends StatelessWidget {
                     topRight: Radius.circular(30.r),
                   ),
                 ),
-                Positioned(
-                  top: 12.h,
-                  right: 12.w,
-                  child: CircleAvatar(
-                    radius: 18.r,
-                    backgroundColor: const Color(0xFF1D3826).withValues(alpha:0.8),
-                    child: Icon(
-                      Icons.favorite,
-                      color: const Color(0xFFF1F0B2),
-                      size: 18.sp,
-                    ),
-                  ),
-                ),
-              ],
+        Positioned(
+          top: 12.h,
+          right: 12.w,
+          child: GestureDetector(
+            onTap: onFavoriteTap, // 👈 Trigger the API call
+            child: CircleAvatar(
+              radius: 18.r,
+              backgroundColor: const Color(0xFF1D3826).withValues(alpha: 0.8),
+              child: isFavoriteLoading
+                  ? SizedBox(
+                  height: 15.h,
+                  width: 15.h,
+                  child: const CircularProgressIndicator(color: Color(0xFFF1F0B2), strokeWidth: 2)
+              )
+                  : Icon(
+                isFavorite ? Icons.favorite : Icons.favorite_border,
+                color: const Color(0xFFF1F0B2),
+                size: 18.sp,
+              ),
+            ),
+          ),
+        ),
+        ],
+
             ),
 
             // 2. Info Section (Fixed for Overflow)

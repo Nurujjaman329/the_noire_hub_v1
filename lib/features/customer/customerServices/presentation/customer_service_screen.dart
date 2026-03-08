@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
@@ -201,14 +202,13 @@ class CustomerServiceScreen extends StatelessWidget {
   // --- Helper Methods ---
 
   Widget _buildServiceCard(CustomerService service) {
+    final controller = Get.find<CustomerServiceController>();
     final imageUrl = service.images.isNotEmpty ? service.images.first : '';
     final fullImageUrl = "${ApiConstants.baseImageUrl}$imageUrl";
 
     // --- CALCULATE DISTANCE ---
     String distanceText = "Distance unknown";
 
-    // CacheService.lat/lon are user coordinates
-    // service.location.coordinates[1] is Latitude, [0] is Longitude (GeoJSON standard)
     if (CacheService.lat != 0.0 && service.location.coordinates.length >= 2) {
       double distanceInMeters = Geolocator.distanceBetween(
         CacheService.lat,
@@ -218,28 +218,36 @@ class CustomerServiceScreen extends StatelessWidget {
       );
 
       double distanceInKm = distanceInMeters / 1000;
-
-      // Format to 1 decimal place (e.g., 2.5 km) or whole number if preferred
       distanceText = "${distanceInKm.toStringAsFixed(1)} km away";
     }
 
-    return _popularCard(
-      service.name,
-      service.price.toString(),
-      distanceText, // Use the dynamic text here
-      service.rating.toString(),
-      service.images.isNotEmpty
-          ? fullImageUrl
-          : "https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=500",
-      onTap: () {
-        Get.toNamed(
-          RouteConstants.customerServiceBookingScreen,
-          arguments: service,
-        );
-      },
-    );
-  }
+    return Obx(() {
+      // 1. Check if this specific service is currently processing a favorite toggle
+      final isProcessing = controller.favoriteLoadingState[service.id] ?? false;
 
+      return _popularCard(
+        service.name,
+        service.price.toString(),
+        distanceText,
+        service.rating.toString(),
+        service.images.isNotEmpty
+            ? fullImageUrl
+            : "https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=500",
+        isFavorite: service.isFavorite ?? false,
+        isFavoriteLoading: isProcessing, // 2. Pass the loading state
+        onTap: () {
+          Get.toNamed(
+            RouteConstants.customerServiceBookingScreen,
+            arguments: service,
+          );
+        },
+        onFavoriteTap: () {
+          // 3. HIT THE POST HERE for Service
+          controller.toggleServiceFavorite(service.id);
+        },
+      );
+    });
+  }
 
   Widget _buildPopularNearYouSection() {
     return SingleChildScrollView(
@@ -975,19 +983,13 @@ class CustomerServiceScreen extends StatelessWidget {
       String distance,
       String rating,
       String imageUrl, {
+        bool isFavorite = false,
         VoidCallback? onTap,
+        VoidCallback? onFavoriteTap,
+        bool isFavoriteLoading = false,
       }) {
     return GestureDetector(
-      onTap: onTap ?? () {
-        Get.toNamed(
-          RouteConstants.customerServiceBookingScreen, // Ensure this matches your route name
-          arguments: {
-            'title': name,
-            'price': price,
-            'image': imageUrl,
-          },
-        );
-      },
+      onTap: onTap,
       child: Container(
         width: 220.w,
         margin: EdgeInsets.only(right: 20.w, bottom: 10.h),
@@ -996,7 +998,7 @@ class CustomerServiceScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(30.r),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha:0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 10,
               offset: const Offset(0, 5),
             ),
@@ -1004,7 +1006,7 @@ class CustomerServiceScreen extends StatelessWidget {
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min, // Prevents vertical overflow
+          mainAxisSize: MainAxisSize.min,
           children: [
             // 1. Image Section
             Stack(
@@ -1021,20 +1023,37 @@ class CustomerServiceScreen extends StatelessWidget {
                 Positioned(
                   top: 12.h,
                   right: 12.w,
-                  child: CircleAvatar(
-                    radius: 18.r,
-                    backgroundColor: const Color(0xFF1D3826).withValues(alpha:0.8),
-                    child: Icon(
-                      Icons.favorite,
-                      color: const Color(0xFFF1F0B2),
-                      size: 18.sp,
+                  child: GestureDetector(
+                    onTap: () {
+                      if (!isFavoriteLoading && onFavoriteTap != null) {
+                        HapticFeedback.mediumImpact(); // Added for better UX
+                        onFavoriteTap();
+                      }
+                    },
+                    child: CircleAvatar(
+                      radius: 18.r,
+                      backgroundColor: const Color(0xFF1D3826).withValues(alpha: 0.8),
+                      child: isFavoriteLoading
+                          ? SizedBox(
+                        height: 15.h,
+                        width: 15.h,
+                        child: const CircularProgressIndicator(
+                          color: Color(0xFFF1F0B2),
+                          strokeWidth: 2,
+                        ),
+                      )
+                          : Icon(
+                        isFavorite ? Icons.favorite : Icons.favorite_border,
+                        color: const Color(0xFFF1F0B2),
+                        size: 18.sp,
+                      ),
                     ),
                   ),
                 ),
               ],
             ),
 
-            // 2. Info Section (Fixed for Overflow)
+            // 2. Info Section
             Padding(
               padding: EdgeInsets.all(12.w),
               child: Column(
@@ -1042,15 +1061,14 @@ class CustomerServiceScreen extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      // Expanded ensures the name doesn't push the category off screen
                       Expanded(
                         flex: 2,
                         child: CustomText(
                           text: name,
                           fontWeight: FontWeight.bold,
-                          fontSize: 13.sp, // Reduced size for better fit
+                          fontSize: 13.sp,
                           color: const Color(0xFF000000),
-                          maxLines: 1, // Prevents text from wrapping to new line
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -1074,7 +1092,6 @@ class CustomerServiceScreen extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      // Wrap the left column in Expanded to give space to the Price
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1095,10 +1112,9 @@ class CustomerServiceScreen extends StatelessWidget {
                           ],
                         ),
                       ),
-                      // Price remains fixed size but shouldn't overflow
                       CustomText(
                         text: "\$$price",
-                        fontSize: 20.sp, // Slightly smaller to prevent overlap
+                        fontSize: 20.sp,
                         fontWeight: FontWeight.bold,
                         color: const Color(0xFF000000),
                       ),

@@ -42,7 +42,10 @@ class CustomerProductAttributes {
   });
 
   CustomerProductAttributes.fromJson(Map<String, dynamic> json)
-      : results = (json['results'] as List?)?.map((v) => CustomerProduct.fromJson(v)).toList() ?? [],
+      : results = (json['results'] as List?)
+      ?.map((v) => CustomerProduct.fromJson(v as Map<String, dynamic>))
+      .toList() ??
+      [],
         page = json['page'] ?? 1,
         limit = json['limit'] ?? 10,
         totalPages = json['totalPages'] ?? 0,
@@ -70,6 +73,10 @@ class CustomerProduct {
   List<Variant> variants;
   bool isActive;
   String createdAt;
+  bool isDeleted;
+  bool isApproved;
+  bool isFavorite;
+  String updatedAt;
 
   CustomerProduct({
     this.id = '',
@@ -92,6 +99,10 @@ class CustomerProduct {
     this.variants = const [],
     this.isActive = false,
     this.createdAt = '',
+    this.isDeleted = false,
+    this.isApproved = false,
+    this.isFavorite = false,
+    this.updatedAt = '',
   });
 
   factory CustomerProduct.fromJson(Map<String, dynamic> json) {
@@ -116,6 +127,10 @@ class CustomerProduct {
       location: Location.fromJson(json['location'] ?? {}),
       discount: _parseDiscount(json['discount']),
       variants: (json['variants'] as List?)?.map((v) => Variant.fromJson(v)).toList() ?? [],
+      isDeleted: json['isDeleted'] ?? false,
+      isApproved: json['isApproved'] ?? false,
+      isFavorite: json['isFavorite'] ?? false,
+      updatedAt: json['updatedAt'] ?? '',
     );
   }
 
@@ -143,15 +158,16 @@ class Weight {
 class Discount {
   num value;
   String type;
-  num maxAmount;
+  num? maxAmount;
 
-  Discount({this.value = 0, this.type = '', this.maxAmount = 0});
+  Discount({this.value = 0, this.type = '', this.maxAmount});
 
   Discount.fromJson(Map<String, dynamic> json)
       : value = json['value'] ?? 0,
         type = json['type'] ?? '',
-        maxAmount = json['maxAmount'] ?? 0;
+        maxAmount = json['maxAmount'];
 }
+
 
 class Location {
   String type;
@@ -161,8 +177,12 @@ class Location {
 
   Location.fromJson(Map<String, dynamic> json)
       : type = json['type'] ?? '',
-        coordinates = (json['coordinates'] as List?)?.cast<double>() ?? [];
+        coordinates = (json['coordinates'] as List?)
+            ?.map((e) => (e as num).toDouble())
+            .toList() ??
+            [];
 }
+
 
 class Vendor {
   String id;

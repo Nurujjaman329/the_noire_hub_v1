@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import '../../../../../core/api/api_exception.dart';
 import '../../../../../core/services/cache_service.dart';
 import '../../data/customer_products_response_model.dart';
 import '../../data/customer_products_service.dart';
@@ -11,6 +12,7 @@ class CustomerProductsController extends GetxController {
   final searchController = TextEditingController();
   var isLoading = false.obs;
   var productList = <CustomerProduct>[].obs;
+  var favoriteLoadingState = <String, bool>{}.obs;
 
   int currentPage = 1;
   bool hasMore = true;
@@ -98,6 +100,39 @@ class CustomerProductsController extends GetxController {
       Get.snackbar("Error", e.toString());
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<void> toggleProductFavorite(String productId) async {
+    try {
+      favoriteLoadingState[productId] = true;
+
+      // itemType is "Product" as per your requirement
+      final success = await _service.toggleFavorite(productId, "Product");
+
+      if (success) {
+        // Find the product in the local list and toggle its 'isFavorite' status
+        // to update UI instantly without a full refresh
+        int index = productList.indexWhere((p) => p.id == productId);
+        if (index != -1) {
+          // Assuming your CustomerProduct model has an 'isFavorite' bool field
+          // If it's a final model, you might need to copyWith or refetch
+          // productList[index].isFavorite = !(productList[index].isFavorite ?? false);
+          // productList.refresh();
+        }
+
+        Get.snackbar(
+          "Success",
+          "Favorites updated",
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: const Color(0xFF1D3826),
+          colorText: Colors.white,
+        );
+      }
+    } on AppException catch (e) {
+      Get.snackbar("Error", e.message, snackPosition: SnackPosition.BOTTOM);
+    } finally {
+      favoriteLoadingState[productId] = false;
     }
   }
 

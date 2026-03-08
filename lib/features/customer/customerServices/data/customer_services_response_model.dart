@@ -55,21 +55,35 @@ class CustomerService {
   num price;
   num originalPrice;
   num discountedPrice;
-  num distance;
   String description;
   List<String> images;
-  num rating;
-  int totalReviews;
-  int stock;
-  Weight weight;
+
   Discount discount;
   Location location;
-  Vendor vendor;
+
+  Beautician beautician;
+
   String category;
   String subcategory;
-  List<Variant> variants;
+
+  List<String> availableDates;
+  bool isRecurring;
+
+  List<WorkingSlot> workingSlots;
+
+  List<ServiceVariant> variants;
+
+  num rating;
+  int totalReviews;
+
   bool isActive;
+  bool isDeleted;
+  bool isApproved;
+  bool homeService;
+  bool isFavorite;
+
   String createdAt;
+  String updatedAt;
 
   CustomerService({
     this.id = '',
@@ -77,21 +91,26 @@ class CustomerService {
     this.price = 0,
     this.originalPrice = 0,
     this.discountedPrice = 0,
-    this.distance = 0,
     this.description = '',
     this.images = const [],
-    this.rating = 0,
-    this.totalReviews = 0,
-    this.stock = 0,
-    required this.weight,
     required this.discount,
     required this.location,
-    required this.vendor,
+    required this.beautician,
     this.category = '',
     this.subcategory = '',
+    this.availableDates = const [],
+    this.isRecurring = false,
+    this.workingSlots = const [],
     this.variants = const [],
+    this.rating = 0,
+    this.totalReviews = 0,
     this.isActive = false,
+    this.isDeleted = false,
+    this.isApproved = false,
+    this.homeService = false,
+    this.isFavorite = false,
     this.createdAt = '',
+    this.updatedAt = '',
   });
 
   factory CustomerService.fromJson(Map<String, dynamic> json) {
@@ -101,33 +120,116 @@ class CustomerService {
       price: json['price'] ?? 0,
       originalPrice: json['originalPrice'] ?? 0,
       discountedPrice: json['discountedPrice'] ?? 0,
-      distance: json['distance'] ?? 0,
       description: json['description'] ?? '',
       images: (json['images'] as List?)?.cast<String>() ?? [],
-      rating: json['rating'] ?? 0,
-      totalReviews: json['totalReviews'] ?? 0,
-      stock: json['stock'] ?? 0,
-      isActive: json['isActive'] ?? false,
-      createdAt: json['createdAt'] ?? '',
       category: json['category'] ?? '',
       subcategory: json['subcategory'] ?? '',
-      weight: Weight.fromJson(json['weight'] ?? {}),
-      vendor: Vendor.fromJson(json['vendor'] ?? {}),
+      availableDates:
+      (json['availableDates'] as List?)?.map((e) => e.toString()).toList() ??
+          [],
+      isRecurring: json['isRecurring'] ?? false,
+      workingSlots: (json['workingSlots'] as List?)
+          ?.map((v) => WorkingSlot.fromJson(v))
+          .toList() ??
+          [],
+      variants: (json['variants'] as List?)
+          ?.map((v) => ServiceVariant.fromJson(v))
+          .toList() ??
+          [],
+      rating: json['rating'] ?? 0,
+      totalReviews: json['totalReviews'] ?? 0,
+      isActive: json['isActive'] ?? false,
+      isDeleted: json['isDeleted'] ?? false,
+      isApproved: json['isApproved'] ?? false,
+      homeService: json['homeService'] ?? false,
+      isFavorite: json['isFavorite'] ?? false,
+      createdAt: json['createdAt'] ?? '',
+      updatedAt: json['updatedAt'] ?? '',
+      discount: Discount.fromJson(json['discount'] ?? {}),
       location: Location.fromJson(json['location'] ?? {}),
-      discount: _parseDiscount(json['discount']),
-      variants: (json['variants'] as List?)?.map((v) => Variant.fromJson(v)).toList() ?? [],
+      beautician: Beautician.fromJson(json['beautician'] ?? {}),
     );
   }
+}
 
-  static Discount _parseDiscount(dynamic discountJson) {
-    if (discountJson == null) return Discount();
-    if (discountJson is Map<String, dynamic>) {
-      return Discount.fromJson(discountJson);
-    }
-    // If it's just a number (like 0 in your JSON)
-    return Discount(value: (discountJson as num).toDouble(), type: "flat");
+class Beautician {
+  String id;
+
+  Beautician({this.id = ''});
+
+  factory Beautician.fromJson(Map<String, dynamic> json) {
+    return Beautician(
+      id: json['_id'] ?? '',
+    );
   }
 }
+
+class WorkingSlot {
+  String id;
+  String startTime;
+  String endTime;
+
+  WorkingSlot({
+    this.id = '',
+    this.startTime = '',
+    this.endTime = '',
+  });
+
+  factory WorkingSlot.fromJson(Map<String, dynamic> json) {
+    return WorkingSlot(
+      id: json['_id'] ?? '',
+      startTime: json['startTime'] ?? '',
+      endTime: json['endTime'] ?? '',
+    );
+  }
+}
+
+class ServiceVariant {
+  String id;
+  String variantName;
+  String description;
+  List<SubVariant> subVariants;
+
+  ServiceVariant({
+    this.id = '',
+    this.variantName = '',
+    this.description = '',
+    this.subVariants = const [],
+  });
+
+  factory ServiceVariant.fromJson(Map<String, dynamic> json) {
+    return ServiceVariant(
+      id: json['_id'] ?? '',
+      variantName: json['variantName'] ?? '',
+      description: json['description'] ?? '',
+      subVariants: (json['subVariants'] as List?)
+          ?.map((v) => SubVariant.fromJson(v))
+          .toList() ??
+          [],
+    );
+  }
+}
+
+class SubVariant {
+  String id;
+  String name;
+  num price;
+
+  SubVariant({
+    this.id = '',
+    this.name = '',
+    this.price = 0,
+  });
+
+  factory SubVariant.fromJson(Map<String, dynamic> json) {
+    return SubVariant(
+      id: json['_id'] ?? '',
+      name: json['name'] ?? '',
+      price: json['price'] ?? 0,
+    );
+  }
+}
+
 
 class Weight {
   num value;

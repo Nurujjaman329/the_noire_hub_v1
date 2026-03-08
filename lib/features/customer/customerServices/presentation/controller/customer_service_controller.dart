@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:the_noire_hub_v1/features/customer/customerServices/data/customer_services_response_model.dart';
+import '../../../../../core/api/api_exception.dart';
 import '../../../../../core/services/cache_service.dart';
 import 'package:flutter/material.dart';
 
@@ -15,6 +16,8 @@ class CustomerServiceController extends GetxController {
   var isLoading = false.obs;          // For initial/filter loading
   var isMoreLoading = false.obs;      // For pagination loading (bottom spinner)
   var serviceList = <CustomerService>[].obs;
+  var favoriteLoadingState = <String, bool>{}.obs;
+
 
   // --- Pagination State ---
   int currentPage = 1;
@@ -101,6 +104,40 @@ class CustomerServiceController extends GetxController {
       isLoading.value = false;
     }
   }
+
+  Future<void> toggleServiceFavorite(String productId) async {
+    try {
+      favoriteLoadingState[productId] = true;
+
+      // itemType is "Product" as per your requirement
+      final success = await _service.toggleFavorite(productId, "Service");
+
+      if (success) {
+        // Find the product in the local list and toggle its 'isFavorite' status
+        // to update UI instantly without a full refresh
+        int index = serviceList.indexWhere((p) => p.id == productId);
+        if (index != -1) {
+          // Assuming your CustomerProduct model has an 'isFavorite' bool field
+          // If it's a final model, you might need to copyWith or refetch
+          // productList[index].isFavorite = !(productList[index].isFavorite ?? false);
+          // productList.refresh();
+        }
+
+        Get.snackbar(
+          "Success",
+          "Favorites updated",
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: const Color(0xFF1D3826),
+          colorText: Colors.white,
+        );
+      }
+    } on AppException catch (e) {
+      Get.snackbar("Error", e.message, snackPosition: SnackPosition.BOTTOM);
+    } finally {
+      favoriteLoadingState[productId] = false;
+    }
+  }
+
 
   Future<void> loadMore() async {
     // Guard clause: don't load if already loading or no more pages
