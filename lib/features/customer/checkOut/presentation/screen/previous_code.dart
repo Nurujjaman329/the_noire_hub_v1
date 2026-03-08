@@ -10,6 +10,19 @@
 //   bool isDelivery = true;
 //   String selectedSpeed = "Standard";
 //   int selectedDateIndex = 2; // Default to Oct 10 as per design
+
+
+// double _getSelectedDeliveryPrice() {
+//   final methods = fulfillmentController.fulfillmentData.value?.deliveryMethod;
+//   if (methods == null || selectedSpeed == null) return 0.0;
+//
+//   switch (selectedSpeed) {
+//     case "Turbo": return methods.turbo.price.toDouble();
+//     case "Basic": return methods.basic.price.toDouble();
+//     case "Pickup": return methods.pickup.price.toDouble();
+//     default: return methods.standard.price.toDouble();
+//   }
+// }
 //
 //   @override
 //   Widget build(BuildContext context) {
