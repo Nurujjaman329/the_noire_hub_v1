@@ -55,21 +55,32 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final attr = fulfillmentController.fulfillmentData.value;
     if (attr == null) return;
 
-    final methods = attr.deliveryMethod;
     bool isIntl = _isInternationalOrder();
+    String? defaultMethod;
 
     setState(() {
-      if (methods.standard.enabled) {
-        selectedSpeed = "Standard";
-      } else if (methods.turbo.enabled) {
-        selectedSpeed = "Turbo";
-      } else if (methods.basic.enabled) {
-        selectedSpeed = "Basic";
-      } else if (methods.pickup.enabled && !isIntl) { // Added !isIntl check
-        selectedSpeed = "Pickup";
+      if (isIntl) {
+        // For international orders, check shippingMethod
+        if (attr.shippingMethod.standard.enabled) {
+          defaultMethod = "Standard";
+        } else if (attr.shippingMethod.turbo.enabled) {
+          defaultMethod = "Turbo";
+        } else if (attr.shippingMethod.basic.enabled) {
+          defaultMethod = "Basic";
+        }
       } else {
-        selectedSpeed = null;
+        // For domestic orders, check deliveryMethod
+        if (attr.deliveryMethod.standard.enabled) {
+          defaultMethod = "Standard";
+        } else if (attr.deliveryMethod.turbo.enabled) {
+          defaultMethod = "Turbo";
+        } else if (attr.deliveryMethod.basic.enabled) {
+          defaultMethod = "Basic";
+        } else if (attr.deliveryMethod.pickup.enabled) {
+          defaultMethod = "Pickup";
+        }
       }
+      selectedSpeed = defaultMethod;
     });
   }
 
@@ -111,6 +122,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
         final attr = fulfillmentController.fulfillmentData.value;
         final methods = attr?.deliveryMethod;
+        final shippingMethods = attr?.shippingMethod;
 
         final restrictedData = attr?.restrictedCountries;
         bool isRestricted = false;
@@ -125,10 +137,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               .contains(userCountry);
         }
 
-        bool hasAnyMethod = (methods?.turbo.enabled ?? false) ||
-            (methods?.standard.enabled ?? false) ||
-            (methods?.basic.enabled ?? false) ||
-            (methods?.pickup.enabled ?? false);
+        bool isIntl = _isInternationalOrder();
+        bool hasAnyMethod = isIntl
+            ? ((shippingMethods?.turbo.enabled ?? false) ||
+                (shippingMethods?.standard.enabled ?? false) ||
+                (shippingMethods?.basic.enabled ?? false))
+            : ((methods?.turbo.enabled ?? false) ||
+                (methods?.standard.enabled ?? false) ||
+                (methods?.basic.enabled ?? false) ||
+                (methods?.pickup.enabled ?? false));
 
         return SingleChildScrollView(
           padding: EdgeInsets.symmetric(horizontal: 20.w),
@@ -285,42 +302,43 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   children: [
                     if (attr != null) ...[
                       // Logic: Pick the correct display data based on international status
+                      // Use the pre-calculated isIntl variable for consistency
 
                       // 1. TURBO
-                      if (_isInternationalOrder()
+                      if (isIntl
                           ? attr.shippingMethod.turbo.enabled
                           : attr.deliveryMethod.turbo.enabled)
                         _speedCard(
                           "Turbo",
-                          _isInternationalOrder() ? attr.shippingMethod.turbo.deliveryTime : attr.deliveryMethod.turbo.deliveryTime,
-                          "\$${_isInternationalOrder() ? attr.shippingMethod.turbo.price : attr.deliveryMethod.turbo.price}",
+                          isIntl ? attr.shippingMethod.turbo.deliveryTime : attr.deliveryMethod.turbo.deliveryTime,
+                          "\$${isIntl ? attr.shippingMethod.turbo.price : attr.deliveryMethod.turbo.price}",
                           true,
                         ),
 
                       // 2. STANDARD
-                      if (_isInternationalOrder()
+                      if (isIntl
                           ? attr.shippingMethod.standard.enabled
                           : attr.deliveryMethod.standard.enabled)
                         _speedCard(
                           "Standard",
-                          _isInternationalOrder() ? attr.shippingMethod.standard.deliveryTime : attr.deliveryMethod.standard.deliveryTime,
-                          "\$${_isInternationalOrder() ? attr.shippingMethod.standard.price : attr.deliveryMethod.standard.price}",
+                          isIntl ? attr.shippingMethod.standard.deliveryTime : attr.deliveryMethod.standard.deliveryTime,
+                          "\$${isIntl ? attr.shippingMethod.standard.price : attr.deliveryMethod.standard.price}",
                           false,
                         ),
 
                       // 3. BASIC
-                      if (_isInternationalOrder()
+                      if (isIntl
                           ? attr.shippingMethod.basic.enabled
                           : attr.deliveryMethod.basic.enabled)
                         _speedCard(
                           "Basic",
-                          _isInternationalOrder() ? attr.shippingMethod.basic.deliveryTime : attr.deliveryMethod.basic.deliveryTime,
-                          "\$${_isInternationalOrder() ? attr.shippingMethod.basic.price : attr.deliveryMethod.basic.price}",
+                          isIntl ? attr.shippingMethod.basic.deliveryTime : attr.deliveryMethod.basic.deliveryTime,
+                          "\$${isIntl ? attr.shippingMethod.basic.price : attr.deliveryMethod.basic.price}",
                           false,
                         ),
 
                       // 4. PICKUP (Hidden if International)
-                      if (!_isInternationalOrder() && attr.deliveryMethod.pickup.enabled)
+                      if (!isIntl && attr.deliveryMethod.pickup.enabled)
                         _speedCard(
                           "Pickup",
                           "Collect in store",
@@ -330,6 +348,35 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     ],
                   ],
                 ),
+                
+                // Show warning if Standard method is not enabled but other methods are
+                if (selectedSpeed == null) ...[
+                  SizedBox(height: 15.h),
+                  Container(
+                    padding: EdgeInsets.all(12.r),
+                    decoration: BoxDecoration(
+                      color: AppColors.warning.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12.r),
+                      border: Border.all(color: AppColors.warning.withValues(alpha: 0.3)),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.info_outline, color: AppColors.warning, size: 20.sp),
+                        SizedBox(width: 12.w),
+                        Expanded(
+                          child: CustomText(
+                            text: isIntl 
+                                ? "No international shipping methods available for this vendor."
+                                : "No delivery methods available for this vendor.",
+                            fontSize: 12.sp,
+                            color: AppColors.warning,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
 
               SizedBox(height: 30.h),
@@ -453,15 +500,25 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   // --- UI Component Helpers ---
 
   Widget _buildEstimatedTimeHeader(GetDeliveryMethodConfig? methods) {
+    final attr = fulfillmentController.fulfillmentData.value;
+    bool isIntl = _isInternationalOrder();
     String timeRange = "";
+
     if (selectedSpeed == "Turbo") {
-      timeRange = methods?.turbo.deliveryTime ?? "";
-    } else if (selectedSpeed == "Basic") {timeRange = methods?.basic.deliveryTime ?? "";}
-    else if (selectedSpeed == "Pickup") {
+      timeRange = isIntl 
+          ? (attr?.shippingMethod.turbo.deliveryTime ?? "")
+          : (methods?.turbo.deliveryTime ?? "");
+    } else if (selectedSpeed == "Basic") {
+      timeRange = isIntl 
+          ? (attr?.shippingMethod.basic.deliveryTime ?? "")
+          : (methods?.basic.deliveryTime ?? "");
+    } else if (selectedSpeed == "Pickup") {
       timeRange = "Ready for pickup";
-    }
-    else {
-      timeRange = methods?.standard.deliveryTime ?? "";
+    } else {
+      // Standard or default
+      timeRange = isIntl 
+          ? (attr?.shippingMethod.standard.deliveryTime ?? "")
+          : (methods?.standard.deliveryTime ?? "");
     }
 
     return Row(
@@ -471,10 +528,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           children: [
             Icon(Icons.access_time, size: 20.sp, color: Colors.black),
             SizedBox(width: 8.w),
-            CustomText(text: "Estimated Delivery Time", fontSize: 14.sp, fontWeight: FontWeight.w600),
+            CustomText(text: "Estimated Delivery Time", fontSize: 12.sp, fontWeight: FontWeight.w600),
           ],
         ),
-        CustomText(text: timeRange, fontSize: 14.sp, fontWeight: FontWeight.bold),
+        CustomText(text: timeRange, fontSize: 12.sp, fontWeight: FontWeight.bold),
       ],
     );
   }
@@ -995,13 +1052,24 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   double _getFreeShippingDiscount() {
     if (!_isFreeShippingApplied()) return 0.0;
 
-    final methods = fulfillmentController.fulfillmentData.value?.deliveryMethod;
-    if (methods == null || selectedSpeed == null) return 0.0;
+    final attr = fulfillmentController.fulfillmentData.value;
+    if (attr == null || selectedSpeed == null) return 0.0;
+
+    bool isIntl = _isInternationalOrder();
 
     switch (selectedSpeed) {
-      case "Turbo": return methods.turbo.price.toDouble();
-      case "Basic": return methods.basic.price.toDouble();
-      default: return methods.standard.price.toDouble();
+      case "Turbo":
+        return isIntl
+            ? attr.shippingMethod.turbo.price.toDouble()
+            : attr.deliveryMethod.turbo.price.toDouble();
+      case "Basic":
+        return isIntl
+            ? attr.shippingMethod.basic.price.toDouble()
+            : attr.deliveryMethod.basic.price.toDouble();
+      default: // Standard
+        return isIntl
+            ? attr.shippingMethod.standard.price.toDouble()
+            : attr.deliveryMethod.standard.price.toDouble();
     }
   }
 
