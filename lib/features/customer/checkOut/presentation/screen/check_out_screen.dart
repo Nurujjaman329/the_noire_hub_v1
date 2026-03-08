@@ -7,6 +7,8 @@ import '../../../../../core/widgets/custom_text.dart';
 import '../../../../../core/widgets/custom_text_field.dart';
 import '../../../../vendor/orderFullFillment/data/order_full_fillment_response_model.dart';
 import '../../../../vendor/orderFullFillment/presentation/controller/order_full_fillment_controller.dart';
+import '../../../dealsPromos/data/customer_deals_promos_response_model.dart';
+import '../../../dealsPromos/presentation/controller/customer_deals_promos_controller.dart';
 import '../../../multiVendorCartScreen/data/multi_vendor_cart_response_model.dart';
 import '../controller/check_out_controller.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -23,16 +25,21 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final CartVendor vendorData = Get.arguments;
   final checkoutController = Get.find<CheckOutController>();
   final fulfillmentController = Get.find<OrderFullFillmentController>();
+  final promoController = Get.find<CustomerDealsPromosController>();
 
   final TextEditingController instructionController = TextEditingController();
 
   // Nullable to handle initial state and 'all disabled' case
   String? selectedSpeed;
+  CustomerPromoCodeModel? selectedPromo;
 
   @override
   void initState() {
     super.initState();
     _initializeSettings();
+
+    /// fetch promos for this vendor
+    promoController.fetchPromos(createdBy: vendorData.vendor.id);
   }
 
   Future<void> _initializeSettings() async {
@@ -274,6 +281,77 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               SizedBox(height: 15.h),
               _buildSummaryRow(Icons.storefront, "${vendorData.vendor.businessName} | ${vendorData.itemCount} items"),
 
+              SizedBox(height: 25.h),
+
+              Obx(() {
+                if (promoController.isListLoading.value) {
+                  return const SizedBox();
+                }
+
+                if (promoController.promoList.isEmpty) {
+                  return const SizedBox();
+                }
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomText(
+                      text: "Available Promo",
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
+
+                    SizedBox(height: 10.h),
+
+                    ...promoController.promoList.map((promo) {
+                      bool isSelected = selectedPromo?.id == promo.id;
+
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            selectedPromo = promo;
+                          });
+                        },
+                        child: Container(
+                          margin: EdgeInsets.only(bottom: 8.h),
+                          padding: EdgeInsets.all(12.r),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12.r),
+                            border: Border.all(
+                              color: isSelected
+                                  ? AppColors.primary
+                                  : Colors.grey.shade300,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  CustomText(
+                                    text: promo.code,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  CustomText(
+                                    text: "${promo.discountPercentage}% Discount",
+                                    fontSize: 11.sp,
+                                    color: Colors.grey,
+                                  ),
+                                ],
+                              ),
+
+                              if (isSelected)
+                                const Icon(Icons.check_circle,
+                                    color: AppColors.primary)
+                            ],
+                          ),
+                        ),
+                      );
+                    }),
+                  ],
+                );
+              }),
 
 
               // --- TIP SECTION ---
@@ -414,7 +492,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       },
       instructions: instructionController.text.trim(),
       tip: _getCalculatedTip(),
-      // promoCode: "EID77",
+      promoCode: selectedPromo?.code,
     );
   }
 

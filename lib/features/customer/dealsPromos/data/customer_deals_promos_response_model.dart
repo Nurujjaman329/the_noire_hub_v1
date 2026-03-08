@@ -80,12 +80,15 @@ class DealsPromosAttributes {
 }
 
 class CustomerPromoCodeModel {
-  String createdBy;
+  CreatedByModel? createdBy;
+  List<String> usedBy;
+
   String code;
   String title;
   int discountPercentage;
   String description;
   String expiryDate;
+  String applicableFor;
   int minPurchaseAmount;
   int maxUsageCount;
   int currentUsageCount;
@@ -94,12 +97,14 @@ class CustomerPromoCodeModel {
   String id;
 
   CustomerPromoCodeModel({
-    required this.createdBy,
+    this.createdBy,
+    required this.usedBy,
     required this.code,
     required this.title,
     required this.discountPercentage,
     required this.description,
     required this.expiryDate,
+    required this.applicableFor,
     required this.minPurchaseAmount,
     required this.maxUsageCount,
     required this.currentUsageCount,
@@ -110,12 +115,20 @@ class CustomerPromoCodeModel {
 
   factory CustomerPromoCodeModel.fromJson(Map<String, dynamic> json) {
     return CustomerPromoCodeModel(
-      createdBy: json['createdBy'] ?? '',
+      createdBy: json['createdBy'] != null
+          ? CreatedByModel.fromJson(json['createdBy'])
+          : null,
+
+      usedBy: json['usedBy'] != null
+          ? List<String>.from(json['usedBy'])
+          : [],
+
       code: json['code'] ?? '',
       title: json['title'] ?? '',
       discountPercentage: json['discountPercentage'] ?? 0,
       description: json['description'] ?? '',
       expiryDate: json['expiryDate'] ?? '',
+      applicableFor: json['applicableFor'] ?? '',
       minPurchaseAmount: json['minPurchaseAmount'] ?? 0,
       maxUsageCount: json['maxUsageCount'] ?? 0,
       currentUsageCount: json['currentUsageCount'] ?? 0,
@@ -126,17 +139,49 @@ class CustomerPromoCodeModel {
   }
 
   Map<String, dynamic> toJson() => {
-    "createdBy": createdBy,
+    "createdBy": createdBy?.toJson(),
+    "usedBy": usedBy,
     "code": code,
     "title": title,
     "discountPercentage": discountPercentage,
     "description": description,
     "expiryDate": expiryDate,
+    "applicableFor": applicableFor,
     "minPurchaseAmount": minPurchaseAmount,
     "maxUsageCount": maxUsageCount,
     "currentUsageCount": currentUsageCount,
     "isActive": isActive,
     "createdAt": createdAt,
+    "id": id,
+  };
+}
+
+class CreatedByModel {
+  String fullName;
+  String businessName;
+  String phoneNumber;
+  String id;
+
+  CreatedByModel({
+    required this.fullName,
+    required this.businessName,
+    required this.phoneNumber,
+    required this.id,
+  });
+
+  factory CreatedByModel.fromJson(Map<String, dynamic> json) {
+    return CreatedByModel(
+      fullName: json['fullName'] ?? '',
+      businessName: json['businessName'] ?? '',
+      phoneNumber: json['phoneNumber'] ?? '',
+      id: json['id'] ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    "fullName": fullName,
+    "businessName": businessName,
+    "phoneNumber": phoneNumber,
     "id": id,
   };
 }

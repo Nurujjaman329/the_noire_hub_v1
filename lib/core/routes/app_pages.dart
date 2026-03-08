@@ -202,7 +202,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.checkOutScreen,
       page: () => const CheckoutScreen(),
-      bindings: [ CheckOutBindings(),OrderFullFillmentBindings()],
+      bindings: [ CheckOutBindings(),OrderFullFillmentBindings(),CustomerDealsPromosBindings()],
       transition: Transition.cupertino,
     ),
     GetPage(
