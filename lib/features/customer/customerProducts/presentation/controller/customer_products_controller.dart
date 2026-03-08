@@ -94,7 +94,8 @@ class CustomerProductsController extends GetxController {
         hasOffer: hasOffer.value ? true : null,
       );
 
-      productList.assignAll(response.data?.attributes?.results ?? []);
+      final results = response.data?.attributes?.results ?? <CustomerProduct>[];
+      productList.assignAll(results.cast<CustomerProduct>());
       hasMore = currentPage < (response.data?.attributes?.totalPages ?? 1);
     } catch (e) {
       Get.snackbar("Error", e.toString());
@@ -115,19 +116,20 @@ class CustomerProductsController extends GetxController {
         // to update UI instantly without a full refresh
         int index = productList.indexWhere((p) => p.id == productId);
         if (index != -1) {
-          // Assuming your CustomerProduct model has an 'isFavorite' bool field
-          // If it's a final model, you might need to copyWith or refetch
-          // productList[index].isFavorite = !(productList[index].isFavorite ?? false);
-          // productList.refresh();
+          // Toggle the isFavorite status and replace the item in the list
+          final updatedProduct = productList[index];
+          updatedProduct.isFavorite = !updatedProduct.isFavorite;
+          // Replace the item at the same index to trigger UI update
+          productList[index] = updatedProduct;
         }
 
-        Get.snackbar(
-          "Success",
-          "Favorites updated",
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: const Color(0xFF1D3826),
-          colorText: Colors.white,
-        );
+        // Get.snackbar(
+        //   "Success",
+        //   "Favorites updated",
+        //   snackPosition: SnackPosition.BOTTOM,
+        //   backgroundColor: const Color(0xFF1D3826),
+        //   colorText: Colors.white,
+        // );
       }
     } on AppException catch (e) {
       Get.snackbar("Error", e.message, snackPosition: SnackPosition.BOTTOM);
@@ -158,9 +160,9 @@ class CustomerProductsController extends GetxController {
         hasOffer: hasOffer.value ? true : null,
       );
 
-      final newResults = response.data?.attributes?.results ?? [];
+      final newResults = response.data?.attributes?.results ?? <CustomerProduct>[];
       if (newResults.isNotEmpty) {
-        productList.addAll(newResults);
+        productList.addAll(newResults.cast<CustomerProduct>());
         // Update hasMore based on meta data
         hasMore = currentPage < (response.data?.attributes?.totalPages ?? 1);
       } else {
