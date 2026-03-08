@@ -66,6 +66,7 @@ class RouteConstants {
   static const String serviceDetailsScreen = '/serviceDetailsScreen';
   static const String beauticiansAddServiceScreen = '/beauticiansAddServiceScreen';
   static const String beauticiansStoreScreen = '/beauticiansStoreScreen';
+  static const String serviceRatingScreen = '/serviceRatingScreen';
 
 
 

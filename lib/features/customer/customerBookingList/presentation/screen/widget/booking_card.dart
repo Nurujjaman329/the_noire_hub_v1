@@ -357,7 +357,7 @@ class BookingCard extends StatelessWidget {
 
       case "Complete":
         return GestureDetector(
-          onTap: () => Get.toNamed(RouteConstants.rateServiceScreen, arguments: booking.id),
+          onTap: () => Get.toNamed(RouteConstants.serviceRatingScreen, arguments: booking),
           child: _statusBadge("Review", const Color(0xFF2D3E2F), const Color(0xFFC4C99A)),
         );
 

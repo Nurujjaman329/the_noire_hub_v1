@@ -51,6 +51,7 @@ class ApiConstants {
 
   static const String beauticianServiceList = "services/my-services";
   static const String serviceRoute = "services";
+  static const String serviceRating = "reviews/booking/";
 
 
   //vendor

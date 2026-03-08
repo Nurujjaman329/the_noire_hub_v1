@@ -87,6 +87,8 @@ import '../../features/customer/popularNearYou/presentation/service_popular_near
 import '../../features/customer/productDetailsScreen/presentation/product_details_screen.dart';
 import '../../features/customer/serviceBookingScreen/presentation/bindings/service_booking_details_bindings.dart';
 import '../../features/customer/serviceBookingScreen/presentation/screen/service_booking_screen.dart';
+import '../../features/customer/serviceRating/presentation/bindings/service_rating_bindings.dart';
+import '../../features/customer/serviceRating/presentation/service_rating_screen.dart';
 import '../../features/customer/vendorStoreList/presentation/screens/vendor_store_list_screen.dart';
 import '../../features/vendor/editProductDetails/presentation/edit_product_details_screen.dart';
 import '../../features/vendor/orderFullFillment/presentation/screen/order_full_fillment_screen.dart';
@@ -476,6 +478,12 @@ class AppPages {
       name: RouteConstants.feedbackScreen,
       page: () => const FeedbackScreen(),
       binding: FeedbackBindings(),
+      transition: Transition.cupertino,
+    ),
+    GetPage(
+      name: RouteConstants.serviceRatingScreen,
+      page: () => const ServiceRatingScreen(),
+      binding: ServiceRatingBindings(),
       transition: Transition.cupertino,
     ),
   ];
