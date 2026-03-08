@@ -48,10 +48,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _setDefaultSelection();
   }
 
+
+
   // Logic to auto-select the first available enabled delivery method
   void _setDefaultSelection() {
-    final methods = fulfillmentController.fulfillmentData.value?.deliveryMethod;
-    if (methods == null) return;
+    final attr = fulfillmentController.fulfillmentData.value;
+    if (attr == null) return;
+
+    final methods = attr.deliveryMethod;
+    bool isIntl = _isInternationalOrder();
 
     setState(() {
       if (methods.standard.enabled) {
@@ -60,7 +65,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         selectedSpeed = "Turbo";
       } else if (methods.basic.enabled) {
         selectedSpeed = "Basic";
-      } else if (methods.pickup.enabled) {
+      } else if (methods.pickup.enabled && !isIntl) { // Added !isIntl check
         selectedSpeed = "Pickup";
       } else {
         selectedSpeed = null;
@@ -274,15 +279,55 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 SizedBox(height: 25.h),
                 _buildEstimatedTimeHeader(methods),
                 SizedBox(height: 15.h),
-
                 // --- 5. SPEED CARDS ---
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    if (methods!.turbo.enabled) _speedCard("Turbo", methods.turbo.deliveryTime, "\$${methods.turbo.price}", true),
-                    if (methods.standard.enabled) _speedCard("Standard", methods.standard.deliveryTime, "\$${methods.standard.price}", false),
-                    if (methods.basic.enabled) _speedCard("Basic", methods.basic.deliveryTime, "\$${methods.basic.price}", false),
-                    if (methods.pickup.enabled) _speedCard("Pickup", "Collect in store", "\$${methods.pickup.price}", false),
+                    if (attr != null) ...[
+                      // Logic: Pick the correct display data based on international status
+
+                      // 1. TURBO
+                      if (_isInternationalOrder()
+                          ? attr.shippingMethod.turbo.enabled
+                          : attr.deliveryMethod.turbo.enabled)
+                        _speedCard(
+                          "Turbo",
+                          _isInternationalOrder() ? attr.shippingMethod.turbo.deliveryTime : attr.deliveryMethod.turbo.deliveryTime,
+                          "\$${_isInternationalOrder() ? attr.shippingMethod.turbo.price : attr.deliveryMethod.turbo.price}",
+                          true,
+                        ),
+
+                      // 2. STANDARD
+                      if (_isInternationalOrder()
+                          ? attr.shippingMethod.standard.enabled
+                          : attr.deliveryMethod.standard.enabled)
+                        _speedCard(
+                          "Standard",
+                          _isInternationalOrder() ? attr.shippingMethod.standard.deliveryTime : attr.deliveryMethod.standard.deliveryTime,
+                          "\$${_isInternationalOrder() ? attr.shippingMethod.standard.price : attr.deliveryMethod.standard.price}",
+                          false,
+                        ),
+
+                      // 3. BASIC
+                      if (_isInternationalOrder()
+                          ? attr.shippingMethod.basic.enabled
+                          : attr.deliveryMethod.basic.enabled)
+                        _speedCard(
+                          "Basic",
+                          _isInternationalOrder() ? attr.shippingMethod.basic.deliveryTime : attr.deliveryMethod.basic.deliveryTime,
+                          "\$${_isInternationalOrder() ? attr.shippingMethod.basic.price : attr.deliveryMethod.basic.price}",
+                          false,
+                        ),
+
+                      // 4. PICKUP (Hidden if International)
+                      if (!_isInternationalOrder() && attr.deliveryMethod.pickup.enabled)
+                        _speedCard(
+                          "Pickup",
+                          "Collect in store",
+                          "\$${attr.deliveryMethod.pickup.price}",
+                          false,
+                        ),
+                    ],
                   ],
                 ),
               ],
@@ -519,9 +564,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-
-
-
   // Helper to calculate tip based on type
   double _getCalculatedTip() {
     if (checkoutController.isFlatTip.value) {
@@ -531,8 +573,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       return vendorData.subtotal * checkoutController.tipValue.value;
     }
   }
-
-
 
   double _getDiscountAmount() {
     if (selectedPromo == null) return 0.0;
@@ -925,18 +965,29 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     return false;
   }
 
-// Updated Delivery Price Helper (shows 0.0 if free shipping applied)
   double _getSelectedDeliveryPrice() {
-    if (_isFreeShippingApplied()) return 0.0; // Return 0 if condition met
+    if (_isFreeShippingApplied()) return 0.0;
 
-    final methods = fulfillmentController.fulfillmentData.value?.deliveryMethod;
-    if (methods == null || selectedSpeed == null) return 0.0;
+    final attr = fulfillmentController.fulfillmentData.value;
+    if (attr == null || selectedSpeed == null) return 0.0;
+
+    bool isIntl = _isInternationalOrder();
 
     switch (selectedSpeed) {
-      case "Turbo": return methods.turbo.price.toDouble();
-      case "Basic": return methods.basic.price.toDouble();
-      case "Pickup": return methods.pickup.price.toDouble();
-      default: return methods.standard.price.toDouble();
+      case "Turbo":
+        return isIntl
+            ? attr.shippingMethod.turbo.price.toDouble()
+            : attr.deliveryMethod.turbo.price.toDouble();
+      case "Basic":
+        return isIntl
+            ? attr.shippingMethod.basic.price.toDouble()
+            : attr.deliveryMethod.basic.price.toDouble();
+      case "Pickup":
+        return attr.deliveryMethod.pickup.price.toDouble();
+      default: // Standard
+        return isIntl
+            ? attr.shippingMethod.standard.price.toDouble()
+            : attr.deliveryMethod.standard.price.toDouble();
     }
   }
 
@@ -953,4 +1004,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       default: return methods.standard.price.toDouble();
     }
   }
+
+  bool _isInternationalOrder() {
+    final attr = fulfillmentController.fulfillmentData.value;
+    if (attr == null) return false;
+
+    // Normalize both to uppercase for a safe comparison
+    String userCountry = checkoutController.selectedCountry.value.trim().toUpperCase();
+    String vendorCountry = attr.vendorCountry.trim().toUpperCase();
+
+    return userCountry != vendorCountry && vendorCountry.isNotEmpty;
+  }
+
+
 }
