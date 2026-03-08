@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+import 'package:shimmer/shimmer.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -79,10 +80,20 @@ class CustomerServiceScreen extends StatelessWidget {
                   // --- DYNAMIC Service SECTION ---
                   Obx(() {
                     if (controller.isLoading.value && controller.serviceList.isEmpty) {
-                      return const Center(
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(vertical: 40),
-                          child: CircularProgressIndicator(color: Color(0xFF1D3826)),
+                      return Shimmer.fromColors(
+                        baseColor: Colors.grey[300]!,
+                        highlightColor: Colors.grey[100]!,
+                        child: Column(
+                          children: List.generate(3, (index) => Padding(
+                            padding: EdgeInsets.only(bottom: 20.h),
+                            child: Row(
+                              children: [
+                                _skeletonServiceCard(),
+                                SizedBox(width: 15.w),
+                                _skeletonServiceCard(),
+                              ],
+                            ),
+                          )),
                         ),
                       );
                     }
@@ -121,6 +132,18 @@ class CustomerServiceScreen extends StatelessWidget {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _skeletonServiceCard() {
+    return Expanded(
+      child: Container(
+        height: 200.h,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20.r),
         ),
       ),
     );
@@ -383,44 +406,26 @@ class CustomerServiceScreen extends StatelessWidget {
                 fit: BoxFit.contain,
               ),
             ),
-
-            CustomText(
+            const CustomText(
               text: "Beauty",
               fontWeight: FontWeight.bold,
             ),
           ],
         ),
-        Row(
-          children: [
-            CustomText(text: CacheService.formattedLocation, fontSize: 12.sp, color: AppColors.textHint),
-          ],
+        CustomText(
+            text: CacheService.formattedLocation,
+            fontSize: 12.sp,
+            color: AppColors.textHint
         ),
-
         GestureDetector(
           onTap: () => Get.toNamed(RouteConstants.profileScreen),
-          child: Container(
+          child: CustomNetworkImage(
+            imageUrl: imageUrl,
             height: 44.r,
             width: 44.r,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: const Color(0xFF1D3826).withValues(alpha: 0.1),
-            ),
-            child: ClipOval(
-              child: imageUrl.isNotEmpty // Use the parameter here
-                  ? CachedNetworkImage(
-                imageUrl: imageUrl,
-                fit: BoxFit.cover,
-                placeholder: (context, url) => const Center(
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-                errorWidget: (context, url, error) => Icon(
-                  Icons.person,
-                  size: 25.sp,
-                  color: const Color(0xFF1D3826),
-                ),
-              )
-                  : Icon(Icons.person, size: 25.sp, color: const Color(0xFF1D3826)),
-            ),
+            boxShape: BoxShape.circle,
+            // If the image is empty, your internal _buildErrorWidget
+            // already handles the Icons.person fallback.
           ),
         )
       ],
@@ -469,26 +474,32 @@ class CustomerServiceScreen extends StatelessWidget {
   Widget _buildSpecialtiesList(
       CategoryController catCtrl,
       SubCategoryController subCtrl,
-      CustomerServiceController serviceCtrl
-      ) {
+      CustomerServiceController serviceCtrl) {
     return Obx(() {
-      if (catCtrl.isLoading.value) return const LinearProgressIndicator();
+      if (catCtrl.isLoading.value) {
+        return Shimmer.fromColors(
+          baseColor: Colors.grey[300]!,
+          highlightColor: Colors.grey[100]!,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: List.generate(5, (index) => _buildSkeletonCard()),
+            ),
+          ),
+        );
+      }
 
       return SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
           children: catCtrl.categories.map((category) {
-            // Check selection from serviceController for persistent filtering UI
             bool isSelected = serviceCtrl.selectedCategoryId.value == category.id;
-
             return _specialtyCard(
               category.name,
               "${ApiConstants.baseImageUrl}${category.image}",
               isSelected,
                   () {
-                // 1. Fetch subcategories for the UI
                 subCtrl.fetchSubCategories(categoryId: category.id);
-                // 2. Filter the service list
                 serviceCtrl.filterByCategory(category.id);
               },
             );
@@ -496,6 +507,26 @@ class CustomerServiceScreen extends StatelessWidget {
         ),
       );
     });
+  }
+
+  Widget _buildSkeletonCard() {
+    return Padding(
+      padding: EdgeInsets.only(right: 15.w, left: 5.w),
+      child: Column(
+        children: [
+          Container(
+            width: 90.w,
+            height: 90.w,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20.r),
+            ),
+          ),
+          SizedBox(height: 8.h),
+          Container(width: 60.w, height: 12.h, color: Colors.white),
+        ],
+      ),
+    );
   }
 
   // 2. Updated Card Method

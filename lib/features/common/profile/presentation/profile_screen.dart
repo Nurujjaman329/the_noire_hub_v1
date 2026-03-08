@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/route_constants.dart';
@@ -225,6 +226,7 @@ class ProfileScreen extends StatelessWidget {
     final List<Map<String, dynamic>> menuItems = [
       {"icon": Icons.person_outline, "label": "Personal Info"},
       {"icon": Icons.group_add_outlined, "label": "Invite Friends"},
+      {"icon": Icons.message_outlined, "label": "Message to Admin"},
       {"icon": Icons.local_offer_outlined, "label": "Deals & Promos"},
       {"icon": Icons.local_offer_outlined, "label": "Add Promo Code"},
       {"icon": Icons.feedback_outlined, "label": "Admin Feedback"},
@@ -234,9 +236,8 @@ class ProfileScreen extends StatelessWidget {
       {"icon": Icons.password_outlined, "label": "Change Password"},
     ];
 
-    // 2. Filter list: Remove 'Invite Friends' if user is NOT a customer
     final filteredItems = menuItems.where((item) {
-      if (item['label'] == "Invite Friends") return isCustomer;
+      if (item['label'] == "Message to Admin") return isCustomer;
       if (item['label'] == "Deals & Promos") return isCustomer;
       if (item['label'] == "Add Promo Code") return !isCustomer;
       if (item['label'] == "Admin Feedback") return !isCustomer;
@@ -246,13 +247,36 @@ class ProfileScreen extends StatelessWidget {
     return Column(
       children: filteredItems.map((item) {
         return InkWell(
-          onTap: () {
+          onTap: () async {
             switch (item['label']) {
               case "Personal Info":
                 Get.toNamed(RouteConstants.personalInfoScreen);
                 break;
               case "Invite Friends":
                 Get.toNamed(RouteConstants.inviteScreens);
+                break;
+              case "Message to Admin":
+                final Uri emailLaunchUri = Uri(
+                  scheme: 'mailto',
+                  path: 'tonmoysds110@gmail.com',
+                  query: encodeQueryParameters(<String, String>{
+                    'subject': 'Support Request - ${CacheService.userFullName}',
+                    'body': 'Hello Admin,\n\n',
+                  }),
+                );
+
+                // Attempt to launch the email app
+                try {
+                  await launchUrl(emailLaunchUri);
+                } catch (e) {
+                  Get.snackbar(
+                    "Error",
+                    "Could not open email app",
+                    snackPosition: SnackPosition.BOTTOM,
+                    backgroundColor: Colors.redAccent,
+                    colorText: Colors.white,
+                  );
+                }
                 break;
               case "About":
                 Get.toNamed(RouteConstants.aboutUsScreen);
@@ -299,6 +323,13 @@ class ProfileScreen extends StatelessWidget {
         );
       }).toList(),
     );
+  }
+
+  String? encodeQueryParameters(Map<String, String> params) {
+    return params.entries
+        .map((MapEntry<String, String> e) =>
+    '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+        .join('&');
   }
 
   Widget _buildSignOutSection() {
