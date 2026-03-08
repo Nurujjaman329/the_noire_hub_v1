@@ -213,7 +213,7 @@ class CustomerProductsScreen extends StatelessWidget {
         product.images.isNotEmpty
             ? fullImageUrl
             : "https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=500",
-        isFavorite: product.isFavorite ?? false,
+        isFavorite: product.isFavorite,
         isFavoriteLoading: isProcessing, // Pass loading state to UI
         onTap: () {
           Get.toNamed(RouteConstants.productDetailsScreen, arguments: product);

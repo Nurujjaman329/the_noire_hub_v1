@@ -10,20 +10,22 @@ class ProductRatingService {
 
   /// ✅ POST: Submit Service Rating/Review
   Future<bool> submitRating({
-    required String bookingId,
+    required String productId, // 👈 Product ID for the URL
+    required String orderId,   // 👈 Order ID for the Body
     required int rating,
     required String comment,
   }) async {
     try {
-      final String url = '${ApiConstants.productRating}$bookingId';
+      final String url = '${ApiConstants.productRating}$productId';
 
       final Map<String, dynamic> body = {
+        "orderId": orderId, // 👈 Added orderId to body
         "rating": rating,
         "comment": comment,
       };
 
       // ✅ Debug Request Details
-      debugPrint('🚀 [POST] Submitting Rating');
+      debugPrint('🚀 [POST] Submitting Product Rating');
       debugPrint('🔗 URL: $url');
       debugPrint('📦 BODY: $body');
 
@@ -38,7 +40,6 @@ class ProductRatingService {
 
       return response.statusCode == 200 || response.statusCode == 201;
     } on AppException catch (e) {
-      // ✅ This catches the processed error from your ApiClient's _handleDioError
       debugPrint("🛑 [AppException] Message: ${e.message}");
       rethrow;
     } catch (e) {

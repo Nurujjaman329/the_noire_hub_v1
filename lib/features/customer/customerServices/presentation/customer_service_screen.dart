@@ -233,7 +233,7 @@ class CustomerServiceScreen extends StatelessWidget {
         service.images.isNotEmpty
             ? fullImageUrl
             : "https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=500",
-        isFavorite: service.isFavorite ?? false,
+        isFavorite: service.isFavorite,
         isFavoriteLoading: isProcessing, // 2. Pass the loading state
         onTap: () {
           Get.toNamed(

@@ -8,66 +8,48 @@ class ProductRatingController extends GetxController {
   final ProductRatingService _ratingService;
   ProductRatingController(this._ratingService);
 
-  // Loading state for the submit button
   var isLoading = false.obs;
-
-  // UI States (Optional: helps manage the rating dialog internally)
   var selectedRating = 5.obs;
   final TextEditingController commentController = TextEditingController();
 
-  /// ✅ Submit the review to the backend
-  Future<void> submitServiceReview({
-    required String bookingId,
+  /// ✅ Submit the product review
+  Future<void> submitProductReview({
+    required String productId,
+    required String orderId,
     int? rating,
     String? comment,
   }) async {
-    if (bookingId.isEmpty) {
-      Get.snackbar("Error", "Invalid booking reference.");
+    if (productId.isEmpty || orderId.isEmpty) {
+      Get.snackbar("Error", "Missing product or order reference.");
       return;
     }
 
     isLoading.value = true;
 
     try {
-      // Use passed values or fall back to controller's internal state
       final bool success = await _ratingService.submitRating(
-        bookingId: bookingId,
+        productId: productId,
+        orderId: orderId,
         rating: rating ?? selectedRating.value,
         comment: comment ?? commentController.text.trim(),
       );
 
       if (success) {
-        // Clear internal state on success
         _resetForm();
-
-        // Close dialog/bottomsheet if open
         if (Get.isOverlaysOpen) Get.back();
 
         Get.snackbar(
           "Success",
-          "Thank you for your feedback!",
+          "Product review submitted!",
           backgroundColor: const Color(0xFF1D3826),
           colorText: Colors.white,
           snackPosition: SnackPosition.BOTTOM,
-          margin: const EdgeInsets.all(15),
         );
       }
     } on AppException catch (e) {
-      // Catches ServerException, NoInternetException, etc., from your ApiClient
-      Get.snackbar(
-        "Rating Failed",
-        e.message,
-        backgroundColor: Colors.redAccent,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      Get.snackbar("Failed", e.message, backgroundColor: Colors.redAccent, colorText: Colors.white);
     } catch (e) {
-      Get.snackbar(
-        "Error",
-        "An unexpected error occurred while saving your review.",
-        backgroundColor: Colors.redAccent,
-        colorText: Colors.white,
-      );
+      Get.snackbar("Error", "Unexpected error occurred.", backgroundColor: Colors.redAccent, colorText: Colors.white);
     } finally {
       isLoading.value = false;
     }
@@ -76,11 +58,5 @@ class ProductRatingController extends GetxController {
   void _resetForm() {
     selectedRating.value = 5;
     commentController.clear();
-  }
-
-  @override
-  void onClose() {
-    commentController.dispose();
-    super.onClose();
   }
 }

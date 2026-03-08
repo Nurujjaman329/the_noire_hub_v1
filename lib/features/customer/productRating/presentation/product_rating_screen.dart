@@ -9,7 +9,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_network_image.dart';
 import '../../../../core/widgets/custom_text.dart';
-import '../../customerBookingList/data/customer_booking_list_response_model.dart';
+import '../../customerOrderScreen/data/customer_orders_response_model.dart';
 import 'controller/product_rating_controller.dart';
 
 class ProductRatingScreen extends StatefulWidget {
@@ -20,27 +20,27 @@ class ProductRatingScreen extends StatefulWidget {
 }
 
 class _ProductRatingScreenState extends State<ProductRatingScreen> {
-  // Inject the controller
   final ratingController = Get.find<ProductRatingController>();
 
-  // Get bookingId passed from BookingCard arguments
-  late final BookingDoc bookingData;
+  // Use OrderDoc instead of BookingDoc
+  late final OrderDoc orderData;
+  late final OrderItem? firstItem;
 
   @override
   void initState() {
     super.initState();
-    // Initialize bookingData from arguments
-    bookingData = Get.arguments;
+    // Initialize orderData from arguments passed in OrderHistoryCard
+    orderData = Get.arguments;
+    firstItem = orderData.items.isNotEmpty ? orderData.items.first : null;
     ratingController.selectedRating.value = 5;
   }
 
   @override
   Widget build(BuildContext context) {
-
-    String formattedDate = bookingData.appointmentDate != null
-        ? DateFormat('MMMM dd, yyyy').format(bookingData.appointmentDate!)
+    // Format the creation date of the order
+    String formattedDate = orderData.createdAt.isNotEmpty
+        ? DateFormat('MMMM dd, yyyy').format(DateTime.parse(orderData.createdAt))
         : "N/A";
-
 
     return Scaffold(
       backgroundColor: AppColors.primaryDark,
@@ -57,8 +57,7 @@ class _ProductRatingScreenState extends State<ProductRatingScreen> {
                     bottomRight: Radius.circular(35.r),
                   ),
                   child: CustomNetworkImage(
-                    // Use the actual service image
-                    imageUrl: bookingData.service?.image ?? "",
+                    imageUrl: firstItem?.productImage ?? "",
                     height: 300.h,
                     width: double.infinity,
                   ),
@@ -123,7 +122,10 @@ class _ProductRatingScreenState extends State<ProductRatingScreen> {
                 text: ratingController.isLoading.value ? "Submitting..." : "Submit",
                 onTap: ratingController.isLoading.value
                     ? null
-                    : () => ratingController.submitServiceReview(bookingId: bookingData.id),
+                    : () => ratingController.submitProductReview(
+                  productId: firstItem?.product ?? "",
+                  orderId: orderData.id,
+                ),
               )),
             ),
             SizedBox(height: 50.h),
@@ -144,32 +146,24 @@ class _ProductRatingScreenState extends State<ProductRatingScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           CustomText(
-            text: "Give Feedback",
+            text: "Rate Product",
             fontSize: 20.sp,
             fontWeight: FontWeight.bold,
             color: AppColors.textPrimary,
           ),
           SizedBox(height: 15.h),
 
-          // Dynamic Vendor and Service Info
-          Wrap(
-            alignment: WrapAlignment.center,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              // Note: Since BookingDoc currently only has beautician as a String,
-              // we show the Service Name as the primary title.
-              CustomText(
-                text: bookingData.service?.name ?? "Service",
-                fontSize: 18.sp,
-                fontWeight: FontWeight.bold,
-              ),
-            ],
+          CustomText(
+            text: firstItem?.productName ?? "Product",
+            fontSize: 18.sp,
+            fontWeight: FontWeight.bold,
+            textAlign: TextAlign.center,
           ),
 
           SizedBox(height: 4.h),
 
           CustomText(
-            text: "Booking ID: #${bookingData.id.substring(bookingData.id.length - 6).toUpperCase()}",
+            text: "Order ID: #${orderData.id.substring(orderData.id.length - 6).toUpperCase()}",
             fontSize: 11.sp,
             color: Colors.grey,
           ),
@@ -192,7 +186,6 @@ class _ProductRatingScreenState extends State<ProductRatingScreen> {
                   return GestureDetector(
                     onTap: () {
                       ratingController.selectedRating.value = index + 1;
-                      // Haptic feedback is a nice touch for rating
                       HapticFeedback.lightImpact();
                     },
                     child: Icon(
@@ -208,7 +201,6 @@ class _ProductRatingScreenState extends State<ProductRatingScreen> {
             ],
           ),
 
-          // Optional: Dynamic Rating Text
           Obx(() => Padding(
             padding: EdgeInsets.only(top: 8.h),
             child: CustomText(
@@ -225,7 +217,6 @@ class _ProductRatingScreenState extends State<ProductRatingScreen> {
     );
   }
 
-// Helper to provide visual feedback based on stars
   String _getRatingText(int rating) {
     switch (rating) {
       case 1: return "Poor";
@@ -235,4 +226,5 @@ class _ProductRatingScreenState extends State<ProductRatingScreen> {
       case 5: return "Excellent";
       default: return "";
     }
-  }}
+  }
+}
