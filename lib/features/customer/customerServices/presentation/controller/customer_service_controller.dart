@@ -95,7 +95,8 @@ class CustomerServiceController extends GetxController {
       );
 
       final attributes = response.data?.attributes;
-      serviceList.assignAll(attributes?.results ?? []);
+      final results = attributes?.results ?? <CustomerService>[];
+      serviceList.assignAll(results.cast<CustomerService>());
       totalPages = attributes?.totalPages ?? 1;
 
     } catch (e) {
@@ -109,27 +110,28 @@ class CustomerServiceController extends GetxController {
     try {
       favoriteLoadingState[productId] = true;
 
-      // itemType is "Product" as per your requirement
+      // itemType is "Service" as per your requirement
       final success = await _service.toggleFavorite(productId, "Service");
 
       if (success) {
-        // Find the product in the local list and toggle its 'isFavorite' status
+        // Find the service in the local list and toggle its 'isFavorite' status
         // to update UI instantly without a full refresh
         int index = serviceList.indexWhere((p) => p.id == productId);
         if (index != -1) {
-          // Assuming your CustomerProduct model has an 'isFavorite' bool field
-          // If it's a final model, you might need to copyWith or refetch
-          // productList[index].isFavorite = !(productList[index].isFavorite ?? false);
-          // productList.refresh();
+          // Toggle the isFavorite status and replace the item in the list
+          final updatedService = serviceList[index];
+          updatedService.isFavorite = !updatedService.isFavorite;
+          // Replace the item at the same index to trigger UI update
+          serviceList[index] = updatedService;
         }
 
-        Get.snackbar(
-          "Success",
-          "Favorites updated",
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: const Color(0xFF1D3826),
-          colorText: Colors.white,
-        );
+        // Get.snackbar(
+        //   "Success",
+        //   "Favorites updated",
+        //   snackPosition: SnackPosition.BOTTOM,
+        //   backgroundColor: const Color(0xFF1D3826),
+        //   colorText: Colors.white,
+        // );
       }
     } on AppException catch (e) {
       Get.snackbar("Error", e.message, snackPosition: SnackPosition.BOTTOM);
@@ -162,9 +164,9 @@ class CustomerServiceController extends GetxController {
         homeService: homeService.value ? true : null,
       );
 
-      final newResults = response.data?.attributes?.results ?? [];
+      final newResults = response.data?.attributes?.results ?? <CustomerService>[];
       if (newResults.isNotEmpty) {
-        serviceList.addAll(newResults);
+        serviceList.addAll(newResults.cast<CustomerService>());
       }
     } catch (e) {
       currentPage--; // Rollback page on failure
