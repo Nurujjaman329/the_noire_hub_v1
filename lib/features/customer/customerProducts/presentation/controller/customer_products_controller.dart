@@ -176,6 +176,8 @@ class CustomerProductsController extends GetxController {
     }
   }
 
+  Future<void> onRefresh() async => await fetchProducts();
+
 
   void clearRating() {
     selectedRating.value = 0.0;

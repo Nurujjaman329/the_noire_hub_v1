@@ -34,105 +34,117 @@ class CustomerProductsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          // 1. Attached the controller here
-          controller: controller.scrollController,
-          padding: EdgeInsets.symmetric(horizontal: 20.w),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 10.h),
-              _buildHeader(fullImageUrl),
-              SizedBox(height: 20.h),
-              _buildSearchField(),
-              SizedBox(height: 25.h),
-              const CustomText(
-                text: "Our Specialties",
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0XFF000000),
+        child: RefreshIndicator(
+          onRefresh: () => controller.onRefresh(),
+          color: const Color(0xFF1D3826),
+          child: NotificationListener<ScrollNotification>(
+            onNotification: (ScrollNotification scrollInfo) {
+              if (scrollInfo.metrics.pixels >= scrollInfo.metrics.maxScrollExtent - 200) {
+                controller.loadMore();
+              }
+              return false; // Let the notification continue to RefreshIndicator
+            },
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+              // 1. Attached the controller here
+              controller: controller.scrollController,
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 10.h),
+                  _buildHeader(fullImageUrl),
+                  SizedBox(height: 20.h),
+                  _buildSearchField(),
+                  SizedBox(height: 25.h),
+                  const CustomText(
+                    text: "Our Specialties",
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0XFF000000),
+                  ),
+                  SizedBox(height: 15.h),
+                  _buildSpecialtiesList(categoryController, subCategoryController, controller),
+                  SizedBox(height: 20.h),
+                  _buildFilterChips(),
+                  SizedBox(height: 20.h),
+                  _buildSubCategoryList(subCategoryController, controller),
+                  SizedBox(height: 30.h),
+
+                  // --- DYNAMIC PRODUCT SECTION ---
+                  Obx(() {
+                    if (controller.isLoading.value && controller.productList.isEmpty) {
+                      return Shimmer.fromColors(
+                        baseColor: Colors.grey[300]!,
+                        highlightColor: Colors.grey[100]!,
+                        child: Column(
+                          children: List.generate(3, (index) => Padding(
+                            padding: EdgeInsets.only(bottom: 20.h),
+                            child: Row(
+                              children: [
+                                _skeletonServiceCard(),
+                                SizedBox(width: 15.w),
+                                _skeletonServiceCard(),
+                              ],
+                            ),
+                          )),
+                        ),
+                      );
+                    }
+
+                    if (controller.productList.isEmpty) {
+                      return _buildEmptyState(controller);
+                    }
+
+                    // 2. Build the Grid
+                    List<Widget> productRows = [];
+                    for (int i = 0; i < controller.productList.length; i += 2) {
+                      List<Widget> rowItems = [];
+                      rowItems.add(_buildProductCard(controller.productList[i]));
+                      if (i + 1 < controller.productList.length) {
+                        rowItems.add(_buildProductCard(controller.productList[i + 1]));
+                      }
+                      productRows.add(_buildHorizontalList(rowItems));
+                      productRows.add(SizedBox(height: 20.h));
+                    }
+
+                    return Column(
+                      children: [
+                        ...productRows,
+
+                        // 3. PAGINATION LOADER INDICATOR
+                        if (controller.isMoreLoading.value)
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: 20.h),
+                            child: const Center(
+                              child: CircularProgressIndicator(
+                                color: Color(0xFF1D3826),
+                                strokeWidth: 3,
+                              ),
+                            ),
+                          ),
+
+                        // 4. Optional: Show message when no more products
+                        if (!controller.hasMore && controller.productList.isNotEmpty)
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: 20.h),
+                            child: const Center(
+                              child: CustomText(
+                                text: "No more products to show",
+                                color: Colors.grey,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  }),
+
+                  _buildPopularNearYouSection(),
+                  SizedBox(height: 50.h),
+                ],
               ),
-              SizedBox(height: 15.h),
-              _buildSpecialtiesList(categoryController, subCategoryController, controller),
-              SizedBox(height: 20.h),
-              _buildFilterChips(),
-              SizedBox(height: 20.h),
-              _buildSubCategoryList(subCategoryController, controller),
-              SizedBox(height: 30.h),
-
-              // --- DYNAMIC PRODUCT SECTION ---
-              Obx(() {
-                if (controller.isLoading.value && controller.productList.isEmpty) {
-                  return Shimmer.fromColors(
-                    baseColor: Colors.grey[300]!,
-                    highlightColor: Colors.grey[100]!,
-                    child: Column(
-                      children: List.generate(3, (index) => Padding(
-                        padding: EdgeInsets.only(bottom: 20.h),
-                        child: Row(
-                          children: [
-                            _skeletonServiceCard(),
-                            SizedBox(width: 15.w),
-                            _skeletonServiceCard(),
-                          ],
-                        ),
-                      )),
-                    ),
-                  );
-                }
-
-                if (controller.productList.isEmpty) {
-                  return _buildEmptyState(controller);
-                }
-
-                // 2. Build the Grid
-                List<Widget> productRows = [];
-                for (int i = 0; i < controller.productList.length; i += 2) {
-                  List<Widget> rowItems = [];
-                  rowItems.add(_buildProductCard(controller.productList[i]));
-                  if (i + 1 < controller.productList.length) {
-                    rowItems.add(_buildProductCard(controller.productList[i + 1]));
-                  }
-                  productRows.add(_buildHorizontalList(rowItems));
-                  productRows.add(SizedBox(height: 20.h));
-                }
-
-                return Column(
-                  children: [
-                    ...productRows,
-
-                    // 3. PAGINATION LOADER INDICATOR
-                    if (controller.isMoreLoading.value)
-                      Padding(
-                        padding: EdgeInsets.symmetric(vertical: 20.h),
-                        child: const Center(
-                          child: CircularProgressIndicator(
-                            color: Color(0xFF1D3826),
-                            strokeWidth: 3,
-                          ),
-                        ),
-                      ),
-
-                    // 4. Optional: Show message when no more products
-                    if (!controller.hasMore && controller.productList.isNotEmpty)
-                      Padding(
-                        padding: EdgeInsets.symmetric(vertical: 20.h),
-                        child: const Center(
-                          child: CustomText(
-                            text: "No more products to show",
-                            color: Colors.grey,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                  ],
-                );
-              }),
-
-              _buildPopularNearYouSection(),
-              SizedBox(height: 50.h),
-            ],
+            ),
           ),
         ),
       ),
