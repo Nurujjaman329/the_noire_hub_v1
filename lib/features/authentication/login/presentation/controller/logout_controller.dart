@@ -11,9 +11,8 @@ class LogoutController extends GetxController {
   Future<void> logout() async {
     try {
       await _loginService.logout();
-      
+
       // Navigate to login screen
-      await Future.delayed(const Duration(milliseconds: 50)); // safe delay
       Get.offAllNamed(RouteConstants.login);
     } catch (e) {
       AppSnackbar.error("Logout failed");

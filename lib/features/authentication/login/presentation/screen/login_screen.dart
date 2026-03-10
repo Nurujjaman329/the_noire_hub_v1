@@ -11,8 +11,32 @@ import '../../../../../core/widgets/custom_text_field.dart';
 import '../controller/login_controller.dart';
 
 
-class LoginScreen extends GetView<LoginController> {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  late final TextEditingController _emailController;
+  late final TextEditingController _passwordController;
+  late final LoginController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _emailController = TextEditingController();
+    _passwordController = TextEditingController();
+    controller = Get.find<LoginController>();
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,13 +96,13 @@ class LoginScreen extends GetView<LoginController> {
 
                     // --- TextFields ---
                     CustomTextField(
-                      controller: controller.emailController,
+                      controller: _emailController,
                       labelText: "Email",
                       prefixIcon: Icons.email_outlined,
                     ),
                     SizedBox(height: 25.h),
                     CustomTextField(
-                      controller: controller.passwordController,
+                      controller: _passwordController,
                       labelText: "Password",
                       isPassword: true,
                       prefixIcon: Icons.lock_outline,
@@ -94,7 +118,10 @@ class LoginScreen extends GetView<LoginController> {
                       text: "Sign in",
                       color: const Color(0XFF1D3826),
                       loading: controller.isLoading.value,
-                      onTap: controller.login,
+                      onTap: () => controller.login(
+                        _emailController.text.trim(),
+                        _passwordController.text.trim(),
+                      ),
                     )),
 
                     SizedBox(height: 20.h),
@@ -109,18 +136,6 @@ class LoginScreen extends GetView<LoginController> {
                         fontSize: 14.sp,
                       ),
                     ),
-
-                    // _buildSocialDivider(),
-                    //
-                    // // --- Social Buttons ---
-                    // Row(
-                    //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    //   children: [
-                    //     _socialButton("Google", AppIcons.googleIcon),
-                    //     _socialButton("Facebook", AppIcons.fbIcon),
-                    //     _socialButton("Apple", AppIcons.appleIcon),
-                    //   ],
-                    // ),
 
                     SizedBox(height: 40.h),
                   ],
@@ -161,7 +176,6 @@ class LoginScreen extends GetView<LoginController> {
 
   // --- Options Row ---
   Widget _buildOptionsRow() {
-    // final controller = Get.find<LoginController>();
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -185,46 +199,4 @@ class LoginScreen extends GetView<LoginController> {
       ],
     );
   }
-
-  // // --- Divider ---
-  // Widget _buildSocialDivider() {
-  //   return Padding(
-  //     padding: EdgeInsets.symmetric(vertical: 25.h),
-  //     child: Row(
-  //       children: [
-  //         const Expanded(child: Divider()),
-  //         CustomText(
-  //           text: "Or Continue With",
-  //           color: const Color(0x4D000000),
-  //           fontSize: 12.sp,
-  //           left: 10.w,
-  //           right: 10.w,
-  //         ),
-  //         const Expanded(child: Divider()),
-  //       ],
-  //     ),
-  //   );
-  // }
-  //
-  // // --- Social Button ---
-  // Widget _socialButton(String label, String iconPath) {
-  //   return Container(
-  //     padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
-  //     decoration: BoxDecoration(
-  //       color: AppColors.surfaceVariant,
-  //       borderRadius: BorderRadius.circular(10.r),
-  //     ),
-  //     child: Row(
-  //       children: [
-  //         SvgPicture.asset(iconPath, width: 20.w, height: 20.w),
-  //         CustomText(
-  //           text: label,
-  //           fontSize: 12.sp,
-  //           fontWeight: FontWeight.w500,
-  //           left: 8.w,
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
 }

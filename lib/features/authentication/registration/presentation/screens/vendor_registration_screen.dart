@@ -125,7 +125,7 @@ class VendorRegistrationScreen extends GetView<RegistrationController> {
                             color: AppColors.textPrimary,
                           ),
                           GestureDetector(
-                            onTap: () => Get.offAllNamed(RouteConstants.login),
+                            onTap: () => Get.until((route) => route.settings.name == RouteConstants.login),
                             child: CustomText(
                               text: "Login",
                               fontSize: 13.sp,
