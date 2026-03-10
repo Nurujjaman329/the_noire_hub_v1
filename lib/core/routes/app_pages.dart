@@ -159,6 +159,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.vendorMainContainer,
       page: () => const VendorMainContainer(),
+      binding: InitialBinding(),
       transition: Transition.cupertino,
     ),
     GetPage(
