@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:shimmer/shimmer.dart';
 import '../../../../../core/constants/app_assets.dart';
 import '../../../../../core/widgets/custom_button.dart';
 import '../../../../../core/widgets/custom_network_image.dart';
@@ -13,11 +14,10 @@ class WalletScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Initialize or find your controller
     final controller = Get.find<WalletInfoController>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFF2D3E2F), // primaryDark
+      backgroundColor: const Color(0xFF2D3E2F),
       body: RefreshIndicator(
         onRefresh: () => controller.onRefresh(),
         child: CustomScrollView(
@@ -29,24 +29,25 @@ class WalletScreen extends StatelessWidget {
                 offset: Offset(0, -0.5.r),
                 child: Container(
                   width: double.infinity,
+                  constraints: BoxConstraints(minHeight: Get.height * 0.7),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(50.r),
-                      topRight: Radius.circular(50.r),
-                    ),
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(50.r)),
                   ),
                   child: Padding(
                     padding: EdgeInsets.fromLTRB(25.w, 30.h, 25.w, 25.h),
                     child: Obx(() {
+                      // Unified loading check
+                      if (controller.isLoading.value) {
+                        return _buildWalletShimmer();
+                      }
+
                       final wallet = controller.walletAttributes.value;
 
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           SizedBox(height: 30.h),
-
-                          // 4. Balance Cards using real data
                           _buildBalanceCard(
                               "Total Balance",
                               "\$${wallet.balance.toStringAsFixed(2)}",
@@ -58,64 +59,20 @@ class WalletScreen extends StatelessWidget {
                               "\$${wallet.totalWithdrawn.toStringAsFixed(2)}",
                               isPrimary: false
                           ),
-
                           SizedBox(height: 30.h),
-
-                          // 5. Transaction History Header
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              CustomText(
-                                text: "Transactions History",
-                                fontSize: 16.sp,
-                                fontWeight: FontWeight.bold,
-                                color: const Color(0xFF1D3826),
-                              ),
-                              GestureDetector(
-                                onTap: () {},
-                                child: CustomText(
-                                  text: "See all",
-                                  fontSize: 12.sp,
-                                  color: Colors.grey,
-                                  textDecoration: TextDecoration.underline,
-                                ),
-                              ),
-                            ],
-                          ),
+                          _buildHistoryHeader(),
                           SizedBox(height: 15.h),
 
-                          // 6. Static Transaction List (As requested)
-                          Obx(() {
-                            if (controller.historyLoading.value) {
-                              return const Center(child: CircularProgressIndicator());
-                            }
-
-                            if (controller.withdrawHistory.isEmpty) {
-                              return Padding(
-                                padding: EdgeInsets.symmetric(vertical: 20.h),
-                                child: Center(
-                                  child: CustomText(
-                                    text: "No transactions yet",
-                                    fontSize: 13.sp,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              );
-                            }
-
-                            return Column(
-                              children: controller.withdrawHistory
-                                  .map((item) => _buildTransactionTile(item))
-                                  .toList(),
-                            );
-                          }),
+                          // Transaction List Logic
+                          if (controller.withdrawHistory.isEmpty)
+                            _buildEmptyState()
+                          else
+                            ...controller.withdrawHistory.map((item) => _buildTransactionTile(item)),
 
                           SizedBox(height: 40.h),
 
-                          // 7. Withdraw Button
-                          controller.isLoading.value
-                              ? const Center(child: CircularProgressIndicator())
-                              : CustomButton(
+                          // Clean Button (No internal spinner)
+                          CustomButton(
                             text: "Withdraw balance",
                             onTap: () => showWithdrawalSheet(context, controller),
                           ),
@@ -134,6 +91,54 @@ class WalletScreen extends StatelessWidget {
   }
 
   // --- Header logic ---
+
+
+  Widget _buildHistoryHeader() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        CustomText(text: "Transactions History", fontSize: 16.sp, fontWeight: FontWeight.bold, color: const Color(0xFF1D3826)),
+        GestureDetector(
+          onTap: () {},
+          child: CustomText(text: "See all", fontSize: 12.sp, color: Colors.grey, textDecoration: TextDecoration.underline),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 30.h),
+      child: Center(child: CustomText(text: "No transactions yet", fontSize: 13.sp, color: Colors.grey)),
+    );
+  }
+
+  Widget _buildWalletShimmer() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: Column(
+        children: [
+          SizedBox(height: 30.h),
+          Container(height: 120.h, width: double.infinity, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20.r))),
+          SizedBox(height: 15.h),
+          Container(height: 120.h, width: double.infinity, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20.r))),
+          SizedBox(height: 40.h),
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            Container(height: 20.h, width: 150.w, color: Colors.white),
+            Container(height: 20.h, width: 50.w, color: Colors.white),
+          ]),
+          SizedBox(height: 20.h),
+          ...List.generate(3, (index) => Padding(
+            padding: EdgeInsets.only(bottom: 12.h),
+            child: Container(height: 90.h, width: double.infinity, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(15.r))),
+          )),
+        ],
+      ),
+    );
+  }
+
+
   Widget _buildSliverAppBar() {
     return SliverAppBar(
       expandedHeight: 180.h,
