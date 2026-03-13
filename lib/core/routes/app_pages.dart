@@ -39,6 +39,7 @@ import '../../features/beautician/editServiceScreen/presentation/bindings/beauti
 import '../../features/beautician/editServiceScreen/presentation/edit_service_screen.dart';
 import '../../features/beautician/serviceDetailsScreen/presentation/service_details_screen.dart';
 import '../../features/common/aboutUS/presentation/about_us_screen.dart';
+import '../../features/common/aboutUS/presentation/bindings/about_us_bindings.dart';
 import '../../features/common/addBank/presentation/add_bank_screen.dart';
 import '../../features/common/addDealsPromos/presentation/bindings/deals_promos_bindings.dart';
 import '../../features/common/addDealsPromos/presentation/screen/add_deals_pomos_screen.dart';
@@ -285,6 +286,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.aboutUsScreen,
       page: () => const AboutUsScreen(),
+      binding: AboutUsBindings(),
       transition: Transition.cupertino,
     ),
     // GetPage(

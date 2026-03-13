@@ -36,6 +36,7 @@ class ApiConstants {
   static const String withdrawHistory = "wallet/withdrawals";
   static const String evaluationsBase = "evaluation/";
   static const String termsOfService = "admin/content/terms-of-service";
+  static const String aboutUs = "admin/content/about";
 
 
 
