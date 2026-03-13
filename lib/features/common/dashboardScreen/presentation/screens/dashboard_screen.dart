@@ -3,6 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:shimmer/shimmer.dart';
 import '../../../../../core/constants/api_constants.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/route_constants.dart';
@@ -128,10 +129,19 @@ class DashboardScreen extends StatelessWidget {
                 _buildAddButton(isBeautician, isVendor, context),
 
                 if (isLoading)
-                  const Padding(
-                    padding: EdgeInsets.all(20.0),
-                    child: CircularProgressIndicator(color: Colors.white),
-                  )
+                  ...List.generate(3, (index) => Shimmer.fromColors(
+                    baseColor: Colors.white.withValues(alpha: 0.3),
+                    highlightColor: Colors.white.withValues(alpha: 0.1),
+                    child: Container(
+                      width: 100.w,
+                      height: 110.h,
+                      margin: EdgeInsets.symmetric(horizontal: 8.w),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(25.r),
+                      ),
+                    ),
+                  ))
                 else if (items.isEmpty)
                   Padding(
                     padding: EdgeInsets.all(20.r),
@@ -217,58 +227,30 @@ class DashboardScreen extends StatelessWidget {
           ),
           Row(
             children: [
-              Icon(
-                Icons.location_on,
-                size: 18.sp,
-                color: AppColors.textPrimary,
-              ),
+              Icon(Icons.location_on, size: 18.sp, color: AppColors.textPrimary),
               SizedBox(width: 5.w),
               CustomText(
                 text: CacheService.formattedLocation,
                 fontSize: 16.sp,
                 fontWeight: FontWeight.bold,
               ),
-
             ],
           ),
-
           GestureDetector(
             onTap: () => Get.toNamed(RouteConstants.profileScreen),
-            child: Container(
+            child: CustomNetworkImage(
+              imageUrl: fullImageUrl ?? '',
               height: 44.r,
               width: 44.r,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.primary.withValues(alpha: 0.1),
-              ),
-              child: ClipOval(
-                child: fullImageUrl != null && fullImageUrl.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: fullImageUrl,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => Center(
-                          child: SizedBox(
-                            width: 20.w,
-                            height: 20.h,
-                            child: const CircularProgressIndicator(
-                              strokeWidth: 2,
-                            ),
-                          ),
-                        ),
-                        errorWidget: (context, url, error) => Icon(
-                          Icons.person,
-                          size: 25.sp,
-                          color: AppColors.primary,
-                        ),
-                      )
-                    : Icon(Icons.person, size: 25.sp, color: AppColors.primary),
-              ),
+              boxShape: BoxShape.circle,
+              // If the image is empty, it will show the person icon automatically
             ),
           ),
         ],
       ),
     );
   }
+
 
   Widget _buildStoreBanner(String name) {
     // Logic for splitting name if it's too long
