@@ -60,6 +60,7 @@ import '../../features/common/profile/presentation/profile_screen.dart';
 import '../../features/common/rating/presentation/rating_screen.dart';
 import '../../features/common/selection/selection_screen.dart';
 import '../../features/common/splash/splash_screen.dart';
+import '../../features/common/termsOfService/presentation/bindings/terms_of_service_bindings.dart';
 import '../../features/common/termsOfService/presentation/screen/terms_of_service_screen.dart';
 import '../../features/common/walletScreen/presentation/screen/wallet_screen.dart';
 import '../../features/common/welcomeScreen/welcome_screen.dart';
@@ -278,6 +279,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.termsOfServiceScreen,
       page: () => const TermsOfServiceScreen(),
+      binding: TermsOfServiceBindings(),
       transition: Transition.cupertino,
     ),
     GetPage(
