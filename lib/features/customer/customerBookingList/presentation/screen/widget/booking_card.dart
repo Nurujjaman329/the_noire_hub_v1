@@ -103,6 +103,14 @@ class BookingCard extends StatelessWidget {
   void _showCancelDialog(BuildContext context, CustomerBookingListController controller) {
     final reasonController = TextEditingController();
 
+    // Formatting dates for the dialog
+    String todayDate = DateFormat('dd MMM, yyyy').format(DateTime.now());
+    String bookingDate = booking.appointmentDate != null
+        ? DateFormat('dd MMM, yyyy').format(booking.appointmentDate!)
+        : "N/A";
+
+    final noticeMessage = controller.getCancellationNotice(booking);
+
     Get.bottomSheet(
       isScrollControlled: true,
       Container(
@@ -122,79 +130,124 @@ class BookingCard extends StatelessWidget {
           children: [
             Center(
               child: Container(
-                width: 40.w,
-                height: 4.h,
+                width: 40.w, height: 4.h,
                 decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10.r)),
               ),
             ),
             SizedBox(height: 20.h),
             CustomText(text: "Cancel Booking", fontSize: 18.sp, fontWeight: FontWeight.bold),
-            SizedBox(height: 10.h),
-            CustomText(text: "Please provide a reason for canceling this appointment.", fontSize: 13.sp, color: Colors.grey),
-            SizedBox(height: 20.h),
+            SizedBox(height: 15.h),
 
+            // --- DATE COMPARISON BOX ---
+            Container(
+              padding: EdgeInsets.all(12.r),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF5F5F5),
+                borderRadius: BorderRadius.circular(12.r),
+              ),
+              child: Column(
+                children: [
+                  _dateRow("Today's Date:", todayDate, Colors.black54),
+                  SizedBox(height: 8.h),
+                  _dateRow("Booking Date:", bookingDate, const Color(0xFF3F592B)),
+                ],
+              ),
+            ),
+
+            // --- THE DYNAMIC NOTICE MESSAGE ---
+            Container(
+              margin: EdgeInsets.symmetric(vertical: 15.h),
+              padding: EdgeInsets.all(12.r),
+              decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(10.r),
+                  border: Border.all(color: Colors.red.withValues(alpha: 0.2))
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.warning_amber_rounded, color: Colors.red, size: 22.sp),
+                  SizedBox(width: 10.w),
+                  Expanded(
+                    child: CustomText(
+                      text: noticeMessage,
+                      fontSize: 13.sp,
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            CustomText(text: "Reason for cancellation", fontSize: 14.sp, fontWeight: FontWeight.w600),
+            SizedBox(height: 10.h),
             TextField(
               controller: reasonController,
-              maxLines: 3,
+              maxLines: 2,
               style: TextStyle(fontSize: 14.sp),
               decoration: InputDecoration(
-                hintText: "Enter reason here...",
-                hintStyle: TextStyle(fontSize: 13.sp, color: Colors.grey),
+                hintText: "Why are you canceling?",
                 filled: true,
                 fillColor: const Color(0xFFF5F5F5),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(15.r),
-                  borderSide: BorderSide.none,
-                ),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(15.r), borderSide: BorderSide.none),
               ),
             ),
             SizedBox(height: 25.h),
 
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: 15.h),
-                      side: const BorderSide(color: Colors.grey),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25.r)),
-                    ),
-                    onPressed: () => Get.back(),
-                    child: CustomText(text: "Back", color: Colors.black),
-                  ),
-                ),
-                SizedBox(width: 15.w),
-                Expanded(
-                  child: Obx(() => ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFF0000),
-                      padding: EdgeInsets.symmetric(vertical: 15.h),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25.r)),
-                    ),
-                    onPressed: controller.isCanceling.value
-                        ? null
-                        : () {
-                      if (reasonController.text.trim().isEmpty) {
-                        Get.snackbar("Required", "Please enter a reason", snackPosition: SnackPosition.BOTTOM);
-                        return;
-                      }
-                      Get.back(); // Close bottom sheet
-                      controller.cancelBooking(booking.id, reasonController.text.trim());
-                    },
-                    child: controller.isCanceling.value
-                        ? SizedBox(
-                        height: 20.h,
-                        width: 20.h,
-                        child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
-                    )
-                        : CustomText(text: "Confirm Cancel", color: Colors.white, fontWeight: FontWeight.bold),
-                  )),
-                ),
-              ],
-            ),
+            _buildDialogButtons(context, controller, reasonController),
           ],
         ),
       ),
+    );
+  }
+
+  // Helper widget for the date rows
+  Widget _dateRow(String label, String date, Color dateColor) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        CustomText(text: label, fontSize: 12.sp, color: Colors.grey[600]),
+        CustomText(text: date, fontSize: 13.sp, fontWeight: FontWeight.bold, color: dateColor),
+      ],
+    );
+  }
+
+  // Helper widget for buttons
+  Widget _buildDialogButtons(BuildContext context, CustomerBookingListController controller, TextEditingController reasonController) {
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              padding: EdgeInsets.symmetric(vertical: 15.h),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25.r)),
+            ),
+            onPressed: () => Get.back(),
+            child: CustomText(text: "Back", color: Colors.black),
+          ),
+        ),
+        SizedBox(width: 15.w),
+        Expanded(
+          child: Obx(() => ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFF0000),
+              padding: EdgeInsets.symmetric(vertical: 15.h),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25.r)),
+            ),
+            onPressed: controller.isCanceling.value ? null : () {
+              if (reasonController.text.trim().isEmpty) {
+                Get.snackbar("Required", "Please enter a reason");
+                return;
+              }
+              Get.back();
+              controller.cancelBooking(booking.id, reasonController.text.trim());
+            },
+            child: controller.isCanceling.value
+                ? SizedBox(height: 20.h, width: 20.h, child: const CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                : CustomText(text: "Confirm Cancel", color: Colors.white, fontWeight: FontWeight.bold),
+          )),
+        ),
+      ],
     );
   }
 
