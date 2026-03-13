@@ -53,6 +53,7 @@ import '../../features/common/editProfile/presentation/binding/edit_profile_bind
 import '../../features/common/editProfile/presentation/edit_profile_screen.dart';
 import '../../features/common/feedback/presentation/bindings/feedback_bindings.dart';
 import '../../features/common/feedback/presentation/screen/feedback_screen.dart';
+import '../../features/common/help/presentation/bindings/help_bindings.dart';
 import '../../features/common/help/presentation/help_screen.dart';
 import '../../features/common/inviteFriends/presentation/invite_friends_screen.dart';
 import '../../features/common/personalInfo/presentation/binding/personal_info_binding.dart';
@@ -308,6 +309,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.helpScreen,
       page: () => const HelpScreen(),
+      binding: HelpBindings(),
       transition: Transition.cupertino,
     ),
     GetPage(
