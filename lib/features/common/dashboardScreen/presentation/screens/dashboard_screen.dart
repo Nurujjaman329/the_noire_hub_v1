@@ -12,6 +12,7 @@ import '../../../../../core/widgets/custom_network_image.dart';
 import '../../../../../core/widgets/custom_text.dart';
 import '../../../../beautician/beauticanStoreScreen/presentation/controller/beautician_store_service_controller.dart';
 import '../../../../vendor/vendorStoreScreen/presentation/controller/vendor_product_controller.dart';
+import '../../../earning/presentation/controller/earning_controller.dart';
 import '../widget/dashboard_drawer.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -22,6 +23,7 @@ class DashboardScreen extends StatelessWidget {
   // Find both controllers
   final vendorController = Get.find<VendorProductController>();
   final beauticianController = Get.find<BeauticianStoreServiceController>();
+  final earningsController = Get.find<EarningsController>();
 
   @override
   Widget build(BuildContext context) {
@@ -48,9 +50,9 @@ class DashboardScreen extends StatelessWidget {
               await vendorController.refreshProducts();
             } else if (isBeautician) {
               await beauticianController.fetchServices(isRefresh: true);
-            } else {
-              debugPrint("⚠️ Unknown role: $role. No data to refresh.");
             }
+            // Refresh earnings for everyone
+            await earningsController.loadEarnings();
           },
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
@@ -402,84 +404,125 @@ class DashboardScreen extends StatelessWidget {
 
 
   Widget _buildRevenueSection() {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(20.r),
-      decoration: BoxDecoration(
-        color: const Color(0XFF3F592B),
-        borderRadius: BorderRadius.circular(25.r),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CustomText(
-            text: "This Week’s Revenue",
-            fontSize: 16.sp,
-            fontWeight: FontWeight.bold,
-            color: AppColors.white,
+    return Obx(() {
+      // Show a simple loader inside the card if loading
+      if (earningsController.isLoading.value && earningsController.chartData.isEmpty) {
+        return Container(
+          height: 250.h,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: const Color(0XFF3F592B),
+            borderRadius: BorderRadius.circular(25.r),
           ),
-          SizedBox(height: 30.h),
-          SizedBox(
-            height: 200.h,
-            child: LineChart(
-              LineChartData(
-                gridData: FlGridData(
-                  show: true,
-                  drawVerticalLine: false,
-                  getDrawingHorizontalLine: (value) => FlLine(
-                    color: AppColors.white.withValues(alpha: 0.1),
-                    strokeWidth: 1,
-                  ),
+          child: const Center(child: CircularProgressIndicator(color: Colors.white)),
+        );
+      }
+
+      // Convert API ChartData to FlSpots
+      final List<FlSpot> spots = earningsController.chartData.asMap().entries.map((entry) {
+        return FlSpot(entry.key.toDouble(), entry.value.amount.toDouble());
+      }).toList();
+
+      return Container(
+        width: double.infinity,
+        padding: EdgeInsets.all(20.r),
+        decoration: BoxDecoration(
+          color: const Color(0XFF3F592B),
+          borderRadius: BorderRadius.circular(25.r),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                CustomText(
+                  text: "This Week’s Revenue",
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.white,
                 ),
-                titlesData: FlTitlesData(
-                  show: true,
-                  rightTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
+                // Optional: Show the total from wallet
+                CustomText(
+                  text: "\$${earningsController.wallet.value.thisMonth}",
+                  fontSize: 14.sp,
+                  color: const Color(0XFFCADA9F),
+                  fontWeight: FontWeight.bold,
+                ),
+              ],
+            ),
+            SizedBox(height: 30.h),
+            SizedBox(
+              height: 200.h,
+              child: spots.isEmpty
+                  ? const Center(child: CustomText(text: "No revenue data", color: Colors.white60))
+                  : LineChart(
+                LineChartData(
+                  gridData: FlGridData(
+                    show: true,
+                    drawVerticalLine: false,
+                    getDrawingHorizontalLine: (value) => FlLine(
+                      color: AppColors.white.withValues(alpha: 0.1),
+                      strokeWidth: 1,
+                    ),
                   ),
-                  topTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      getTitlesWidget: (value, meta) => CustomText(
-                        text: '${value.toInt()}K',
-                        color: AppColors.white.withValues(alpha: 0.6),
-                        fontSize: 10.sp,
+                  titlesData: FlTitlesData(
+                    show: true,
+                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        getTitlesWidget: (value, meta) => CustomText(
+                          text: value >= 1000 ? '${(value / 1000).toStringAsFixed(1)}K' : '${value.toInt()}',
+                          color: AppColors.white.withValues(alpha: 0.6),
+                          fontSize: 10.sp,
+                        ),
+                        reservedSize: 35,
                       ),
-                      reservedSize: 30,
+                    ),
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        getTitlesWidget: (value, meta) {
+                          int index = value.toInt();
+                          if (index >= 0 && index < earningsController.chartData.length) {
+                            String label = earningsController.chartData[index].label;
+                            return Padding(
+                              padding: EdgeInsets.only(top: 8.h),
+                              child: CustomText(
+                                text: label.substring(0, 3), // e.g. "Mon"
+                                color: AppColors.white.withValues(alpha: 0.6),
+                                fontSize: 9.sp,
+                              ),
+                            );
+                          }
+                          return const SizedBox.shrink();
+                        },
+                      ),
                     ),
                   ),
-                  bottomTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
+                  borderData: FlBorderData(show: false),
+                  lineBarsData: [
+                    LineChartBarData(
+                      spots: spots,
+                      isCurved: true,
+                      color: const Color(0XFFCADA9F), // Using your brand light green
+                      barWidth: 3,
+                      dotData: const FlDotData(show: true),
+                      belowBarData: BarAreaData(
+                        show: true,
+                        color: const Color(0XFFCADA9F).withValues(alpha: 0.1),
+                      ),
+                    ),
+                  ],
                 ),
-                borderData: FlBorderData(show: false),
-                lineBarsData: [
-                  LineChartBarData(
-                    spots: [
-                      const FlSpot(0, 20),
-                      const FlSpot(2, 45),
-                      const FlSpot(4, 35),
-                      const FlSpot(6, 75),
-                      const FlSpot(8, 60),
-                      const FlSpot(10, 85),
-                    ],
-                    isCurved: true,
-                    color: AppColors.primary,
-                    barWidth: 3,
-                    dotData: const FlDotData(show: true),
-                    belowBarData: BarAreaData(
-                      show: true,
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                    ),
-                  ),
-                ],
               ),
             ),
-          ),
-        ],
-      ),
-    );
+          ],
+        ),
+      );
+    });
   }
+
 }

@@ -1,132 +1,121 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
+import 'package:get/get.dart';
 import '../../../../../../core/constants/app_colors.dart';
-import '../../../../../../core/widgets/custom_button.dart';
 import '../../../../../../core/widgets/custom_text.dart';
+import '../../../../earning/presentation/controller/earning_controller.dart';
 
 class BusinessEarningsTab extends StatelessWidget {
   const BusinessEarningsTab({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(20.w),
-      child: Column(
-        children: [
-          /// Withdraw Button
-          CustomButton(
-            onTap: () {},
-            text: "Withdraw Funds",
-            color: const Color(0XFF627E4C),
-            height: 50.h,
-          ),
+    // Access the controller
+    final controller = Get.find<EarningsController>();
 
-          SizedBox(height: 25.h),
+    return RefreshIndicator(
+      onRefresh: () => controller.onRefresh(),
+      child: SingleChildScrollView(
+        padding: EdgeInsets.all(20.w),
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Obx(() {
+          if (controller.isLoading.value && controller.transactions.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-          /// Stats Grid
-          GridView.count(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: 2,
-            mainAxisSpacing: 15.h,
-            crossAxisSpacing: 15.w,
-            childAspectRatio: 1.4,
+          final wallet = controller.wallet.value;
+
+          return Column(
             children: [
-              _buildStatCard("Available", "\$255.50"),
-              _buildStatCard("Pending", "\$125.50"),
-              _buildStatCard("This Month", "\$890.50"),
-              _buildStatCard("Total Earned", "\$5125.85"),
-            ],
-          ),
 
-          SizedBox(height: 30.h),
 
-          /// Chart Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              CustomText(
-                text: "Earnings",
-                fontSize: 16.sp,
-                fontWeight: FontWeight.bold,
-              ),
-              _buildSmallDropdown("Weekly"),
-            ],
-          ),
+              SizedBox(height: 25.h),
 
-          SizedBox(height: 20.h),
-
-          /// Bar Chart
-          Container(
-            height: 200.h,
-            padding: EdgeInsets.only(top: 20.h, right: 20.w),
-            child: BarChart(
-              BarChartData(
-                alignment: BarChartAlignment.spaceAround,
-                maxY: 100,
-                barTouchData: BarTouchData(enabled: false),
-
-                titlesData: FlTitlesData(
-                  show: true,
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      getTitlesWidget: (val, meta) {
-                        const days = [
-                          "Mon",
-                          "Tue",
-                          "Wed",
-                          "Thu",
-                          "Fri",
-                          "Sat",
-                          "Sun"
-                        ];
-                        return CustomText(
-                          text: days[val.toInt()],
-                          fontSize: 10.sp,
-                          color: AppColors.geryColor,
-                        );
-                      },
-                    ),
-                  ),
-                  leftTitles:
-                  const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  topTitles:
-                  const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  rightTitles:
-                  const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                ),
-
-                gridData: FlGridData(
-                  show: true,
-                  drawVerticalLine: false,
-                  horizontalInterval: 25,
-                ),
-
-                borderData: FlBorderData(show: false),
-
-                barGroups: [
-                  _makeGroupData(0, 45),
-                  _makeGroupData(1, 60),
-                  _makeGroupData(2, 85),
-                  _makeGroupData(3, 70),
-                  _makeGroupData(4, 55),
-                  _makeGroupData(5, 90),
-                  _makeGroupData(6, 75),
+              /// Stats Grid (Dynamic Data)
+              GridView.count(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                crossAxisCount: 2,
+                mainAxisSpacing: 15.h,
+                crossAxisSpacing: 15.w,
+                childAspectRatio: 1.4,
+                children: [
+                  _buildStatCard("Available", "\$${wallet.available}"),
+                  _buildStatCard("Pending", "\$${wallet.pendingBalance}"),
+                  _buildStatCard("This Month", "\$${wallet.thisMonth}"),
+                  _buildStatCard("Total Earned", "\$${wallet.totalEarned}"),
                 ],
               ),
-            ),
-          ),
-        ],
+
+              SizedBox(height: 30.h),
+
+              /// Chart Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  CustomText(
+                    text: "Earnings",
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  _buildSmallDropdown("Weekly"),
+                ],
+              ),
+
+              SizedBox(height: 20.h),
+
+              /// Dynamic Bar Chart
+              controller.chartData.isEmpty
+                  ? const SizedBox(height: 200, child: Center(child: Text("No data available")))
+                  : Container(
+                height: 200.h,
+                padding: EdgeInsets.only(top: 20.h, right: 20.w),
+                child: BarChart(
+                  BarChartData(
+                    alignment: BarChartAlignment.spaceAround,
+                    // Dynamic Max Y based on data
+                    maxY: controller.chartData.map((e) => e.amount).fold(100.0, (prev, curr) => curr > prev! ? curr.toDouble() : prev),
+                    barTouchData: BarTouchData(enabled: true),
+                    titlesData: FlTitlesData(
+                      show: true,
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          getTitlesWidget: (val, meta) {
+                            int index = val.toInt();
+                            if (index >= 0 && index < controller.chartData.length) {
+                              // Take first 3 letters of the label (e.g., "Monday" -> "Mon")
+                              String label = controller.chartData[index].label;
+                              return CustomText(
+                                text: label.length > 3 ? label.substring(0, 3) : label,
+                                fontSize: 10.sp,
+                                color: AppColors.geryColor,
+                              );
+                            }
+                            return const SizedBox.shrink();
+                          },
+                        ),
+                      ),
+                      leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    ),
+                    gridData: FlGridData(show: true, drawVerticalLine: false),
+                    borderData: FlBorderData(show: false),
+                    // Dynamic Bar Groups from API
+                    barGroups: controller.chartData.asMap().entries.map((entry) {
+                      return _makeGroupData(entry.key, entry.value.amount.toDouble());
+                    }).toList(),
+                  ),
+                ),
+              ),
+            ],
+          );
+        }),
       ),
     );
   }
-
-  /// -----------------------
-  /// Helper Widgets
-  /// -----------------------
 
   Widget _buildStatCard(String label, String value) {
     return Container(
@@ -161,14 +150,9 @@ class BusinessEarningsTab extends StatelessWidget {
       barRods: [
         BarChartRodData(
           toY: y,
-          color: AppColors.divider,
-          width: 25.w,
-          borderRadius: BorderRadius.circular(8.r),
-          backDrawRodData: BackgroundBarChartRodData(
-            show: true,
-            toY: 100,
-            color: AppColors.white,
-          ),
+          color: const Color(0XFF627E4C), // Use your theme green here
+          width: 20.w,
+          borderRadius: BorderRadius.circular(4.r),
         ),
       ],
     );
@@ -183,16 +167,8 @@ class BusinessEarningsTab extends StatelessWidget {
       ),
       child: Row(
         children: [
-          CustomText(
-            text: value,
-            color: AppColors.white,
-            fontSize: 10.sp,
-          ),
-          Icon(
-            Icons.arrow_drop_down,
-            color: AppColors.white,
-            size: 15.sp,
-          ),
+          CustomText(text: value, color: AppColors.white, fontSize: 10.sp),
+          Icon(Icons.arrow_drop_down, color: AppColors.white, size: 15.sp),
         ],
       ),
     );

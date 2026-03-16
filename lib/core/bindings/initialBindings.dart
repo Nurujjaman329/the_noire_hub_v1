@@ -4,6 +4,8 @@ import '../../features/beautician/beauticanStoreScreen/data/beautician_store_ser
 import '../../features/beautician/beauticanStoreScreen/presentation/controller/beautician_store_service_controller.dart';
 import '../../features/beautician/beauticiansBookingHistory/data/beautician_booking_history_service.dart';
 import '../../features/beautician/beauticiansBookingHistory/presentation/controller/beautician_booking_history_controller.dart';
+import '../../features/common/earning/data/earning_service.dart';
+import '../../features/common/earning/presentation/controller/earning_controller.dart';
 import '../../features/customer/customerBookingList/data/customer_booking_list_service.dart';
 import '../../features/customer/customerBookingList/presentation/controller/customer_booking_list_controller.dart';
 import '../../features/customer/customerProducts/data/customer_products_service.dart';
@@ -77,6 +79,9 @@ class InitialBinding extends Bindings {
 
     Get.lazyPut<BeauticianBookingHistoryService>(() => BeauticianBookingHistoryService(Get.find<ApiClient>()));
     Get.lazyPut<BeauticianBookingHistoryController>(() => BeauticianBookingHistoryController(Get.find<BeauticianBookingHistoryService>()));
+
+    Get.lazyPut<EarningService>(() => EarningService(Get.find<ApiClient>()));
+    Get.lazyPut<EarningsController>(() => EarningsController(Get.find<EarningService>()));
 
   }
 }

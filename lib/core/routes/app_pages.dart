@@ -49,6 +49,7 @@ import '../../features/common/bottomNavBar/vendor/vendor_main_container.dart';
 import '../../features/common/businessDocument/presentation/bindings/business_info_bindings.dart';
 import '../../features/common/businessDocument/presentation/screen/business_screen.dart';
 import '../../features/common/changePassword/presentation/screen/change_password_screen.dart';
+import '../../features/common/earning/presentation/bindings/earning_bindings.dart';
 import '../../features/common/editProfile/presentation/binding/edit_profile_binding.dart';
 import '../../features/common/editProfile/presentation/edit_profile_screen.dart';
 import '../../features/common/feedback/presentation/bindings/feedback_bindings.dart';
@@ -260,7 +261,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.businessScreen,
       page: () => const BusinessScreen(),
-      bindings: [BusinessInfoBindings(), BusinessDocumentsBindings()],
+      bindings: [BusinessInfoBindings(), BusinessDocumentsBindings(),EarningsBindings()],
       transition: Transition.cupertino,
     ),
 

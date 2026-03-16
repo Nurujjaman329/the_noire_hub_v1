@@ -38,6 +38,7 @@ class ApiConstants {
   static const String termsOfService = "admin/content/terms-of-service";
   static const String aboutUs = "admin/content/about";
   static const String helpContent = "admin/content/help";
+  static const String totalEarning = "wallet/earnings";
 
 
 
