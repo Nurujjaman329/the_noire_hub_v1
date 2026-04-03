@@ -3,7 +3,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:the_noire_hub_v1/core/constants/app_colors.dart';
-import '../../../../../../core/constants/route_constants.dart';
 import '../../../../../../core/widgets/custom_network_image.dart';
 import '../../../../../../core/widgets/custom_text.dart';
 import '../../../data/vendor_order_response_model.dart';
