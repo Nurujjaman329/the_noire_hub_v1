@@ -1,129 +1,144 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:shimmer/shimmer.dart';
 import '../../../../../core/constants/app_assets.dart';
-import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/widgets/custom_button.dart';
 import '../../../../../core/widgets/custom_network_image.dart';
 import '../../../../../core/widgets/custom_text.dart';
+import '../../data/withdraw_history_response_model.dart';
+import '../controller/wallet_info_controller.dart';
 
 class WalletScreen extends StatelessWidget {
   const WalletScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final controller = Get.find<WalletInfoController>();
+
     return Scaffold(
-      backgroundColor: AppColors.primaryDark,
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          // 1. Header with Logo (Pinned) - Reusing your moss green app bar
-          _buildSliverAppBar(),
-
-          // 2. Main Content Card
-          SliverToBoxAdapter(
-            child: Transform.translate(
-              offset: Offset(0, -0.5.r),
-              child: Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(50.r),
-                    topRight: Radius.circular(50.r),
+      backgroundColor: const Color(0xFF2D3E2F),
+      body: RefreshIndicator(
+        onRefresh: () => controller.onRefresh(),
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            _buildSliverAppBar(),
+            SliverToBoxAdapter(
+              child: Transform.translate(
+                offset: Offset(0, -0.5.r),
+                child: Container(
+                  width: double.infinity,
+                  constraints: BoxConstraints(minHeight: Get.height * 0.7),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(50.r)),
                   ),
-                ),
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(25.w, 30.h, 25.w, 25.h),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // 3. Add Bank Button
-                      // Center(
-                      //   child: GestureDetector(
-                      //     onTap: () {
-                      //      Get.toNamed(RouteConstants.addBankScreen);
-                      //     },
-                      //     child: Container(
-                      //       padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
-                      //       decoration: BoxDecoration(
-                      //         color: const Color(0XFFF1F0B2), // Light yellow
-                      //         borderRadius: BorderRadius.circular(10.r),
-                      //         border: Border.all(color: const Color(0xFF9BB575), width: 1),
-                      //       ),
-                      //       child: Row(
-                      //         mainAxisSize: MainAxisSize.min,
-                      //         children: [
-                      //           Icon(Icons.account_balance_wallet_outlined, size: 18.sp, color: const Color(0xFF1D3826)),
-                      //           SizedBox(width: 8.w),
-                      //           CustomText(
-                      //             text: "Add Bank",
-                      //             fontSize: 14.sp,
-                      //             fontWeight: FontWeight.bold,
-                      //             color: const Color(0xFF1D3826),
-                      //             textDecoration: TextDecoration.underline,
-                      //           ),
-                      //         ],
-                      //       ),
-                      //     ),
-                      //   ),
-                      // ),
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(25.w, 30.h, 25.w, 25.h),
+                    child: Obx(() {
+                      // Unified loading check
+                      if (controller.isLoading.value) {
+                        return _buildWalletShimmer();
+                      }
 
-                      SizedBox(height: 30.h),
+                      final wallet = controller.walletAttributes.value;
 
-                      // 4. Balance Cards
-                      _buildBalanceCard("Total Balance", "\$19.500.00", isPrimary: true),
-                      SizedBox(height: 15.h),
-                      _buildBalanceCard("Total Withdrawal Balance", "\$15.500.00", isPrimary: false),
-
-                      SizedBox(height: 30.h),
-
-                      // 5. Transaction History Header
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          CustomText(
-                            text: "Transactions History",
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFF1D3826),
+                          SizedBox(height: 30.h),
+                          _buildBalanceCard(
+                              "Total Balance",
+                              "\$${wallet.balance.toStringAsFixed(2)}",
+                              isPrimary: true
                           ),
-                          GestureDetector(
-                            onTap: () {}, // See all logic
-                            child: CustomText(
-                              text: "See all",
-                              fontSize: 12.sp,
-                              color: Colors.grey,
-                              textDecoration: TextDecoration.underline,
-                            ),
+                          SizedBox(height: 15.h),
+                          _buildBalanceCard(
+                              "Total Withdrawal Balance",
+                              "\$${wallet.totalWithdrawn.toStringAsFixed(2)}",
+                              isPrimary: false
                           ),
+                          SizedBox(height: 30.h),
+                          _buildHistoryHeader(),
+                          SizedBox(height: 15.h),
+
+                          // Transaction List Logic
+                          if (controller.withdrawHistory.isEmpty)
+                            _buildEmptyState()
+                          else
+                            ...controller.withdrawHistory.map((item) => _buildTransactionTile(item)),
+
+                          SizedBox(height: 40.h),
+
+                          // Clean Button (No internal spinner)
+                          CustomButton(
+                            text: "Withdraw balance",
+                            onTap: () => showWithdrawalSheet(context, controller),
+                          ),
+                          SizedBox(height: 20.h),
                         ],
-                      ),
-                      SizedBox(height: 15.h),
-
-                      // 6. Transaction List Item
-                      _buildTransactionTile(),
-
-                      SizedBox(height: 40.h),
-
-                      // 7. Withdraw Button
-                      CustomButton(
-                        text: "Withdraw balance",
-                        // onTap: () => showWithdrawalSheet(context),
-                      ),
-                      SizedBox(height: 20.h),
-                    ],
+                      );
+                    }),
                   ),
                 ),
               ),
             ),
-          ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // --- Header logic ---
+
+
+  Widget _buildHistoryHeader() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        CustomText(text: "Transactions History", fontSize: 16.sp, fontWeight: FontWeight.bold, color: const Color(0xFF1D3826)),
+        GestureDetector(
+          onTap: () {},
+          child: CustomText(text: "See all", fontSize: 12.sp, color: Colors.grey, textDecoration: TextDecoration.underline),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 30.h),
+      child: Center(child: CustomText(text: "No transactions yet", fontSize: 13.sp, color: Colors.grey)),
+    );
+  }
+
+  Widget _buildWalletShimmer() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: Column(
+        children: [
+          SizedBox(height: 30.h),
+          Container(height: 120.h, width: double.infinity, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20.r))),
+          SizedBox(height: 15.h),
+          Container(height: 120.h, width: double.infinity, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20.r))),
+          SizedBox(height: 40.h),
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            Container(height: 20.h, width: 150.w, color: Colors.white),
+            Container(height: 20.h, width: 50.w, color: Colors.white),
+          ]),
+          SizedBox(height: 20.h),
+          ...List.generate(3, (index) => Padding(
+            padding: EdgeInsets.only(bottom: 12.h),
+            child: Container(height: 90.h, width: double.infinity, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(15.r))),
+          )),
         ],
       ),
     );
   }
 
-  // --- Header/Sliver Logic (Reused) ---
+
   Widget _buildSliverAppBar() {
     return SliverAppBar(
       expandedHeight: 180.h,
@@ -149,8 +164,6 @@ class WalletScreen extends StatelessWidget {
     );
   }
 
-  // --- New Wallet UI Helpers ---
-
   Widget _buildBalanceCard(String title, String amount, {required bool isPrimary}) {
     return Container(
       width: double.infinity,
@@ -158,10 +171,10 @@ class WalletScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20.r),
-        border: Border.all(color: const Color(0xFF9BB575).withValues(alpha:0.5)),
+        border: Border.all(color: const Color(0xFF9BB575).withValues(alpha: 0.5)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha:0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           )
@@ -190,34 +203,62 @@ class WalletScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTransactionTile() {
+  Widget _buildTransactionTile(WithdrawalItem item) {
+    final isCompleted = item.status.toLowerCase() == "completed";
+
     return Container(
+      margin: EdgeInsets.only(bottom: 12.h),
       padding: EdgeInsets.all(15.r),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(15.r),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha:0.05), blurRadius: 10)
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+          )
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomText(text: "Withdrawal", fontSize: 14.sp, fontWeight: FontWeight.bold),
+          CustomText(
+            text: "Withdrawal",
+            fontSize: 14.sp,
+            fontWeight: FontWeight.bold,
+          ),
           const Divider(color: Colors.grey, height: 20),
+
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              CustomText(text: "Total Amount :", fontSize: 12.sp, color: Colors.grey),
-              CustomText(text: "Completed : \$100", fontSize: 12.sp, color: Colors.green, fontWeight: FontWeight.bold),
+              CustomText(
+                  text: "Total Amount :",
+                  fontSize: 12.sp,
+                  color: Colors.grey),
+              CustomText(
+                text: "${isCompleted ? "Completed" : "Pending"} : \$${item.amount}",
+                fontSize: 12.sp,
+                color: isCompleted ? Colors.green : Colors.orange,
+                fontWeight: FontWeight.bold,
+              ),
             ],
           ),
+
           SizedBox(height: 8.h),
+
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              CustomText(text: "Payment Date :", fontSize: 12.sp, color: Colors.grey),
-              CustomText(text: "12 Jan 25 8.00AM", fontSize: 12.sp, color: Colors.black),
+              CustomText(
+                  text: "Payment Date :",
+                  fontSize: 12.sp,
+                  color: Colors.grey),
+              CustomText(
+                text: item.createdAt.substring(0, 10),
+                fontSize: 12.sp,
+                color: Colors.black,
+              ),
             ],
           ),
         ],
@@ -225,13 +266,13 @@ class WalletScreen extends StatelessWidget {
     );
   }
 
-  void showWithdrawalSheet(BuildContext context) {
-    int selectedBankIndex = 0; // Local state for bank selection
+  void showWithdrawalSheet(BuildContext context, WalletInfoController controller) {
+    final amountController = TextEditingController();
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xFFD9E9B3), // Light green background from image
+      backgroundColor: const Color(0xFFD9E9B3),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(30.r),
@@ -239,131 +280,132 @@ class WalletScreen extends StatelessWidget {
         ),
       ),
       builder: (context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setModalState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-              ),
-              child: Container(
-                padding: EdgeInsets.all(25.w),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // 1. Bank Selection Container
-                    Container(
-                      padding: EdgeInsets.all(15.r),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20.r),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CustomText(
-                            text: "Select Your Bank",
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          SizedBox(height: 15.h),
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: Container(
+            padding: EdgeInsets.all(25.w),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
 
-                          // Bank Option 1
-                          _buildBankSelectRow(
-                            index: 0,
-                            selectedIndex: selectedBankIndex,
-                            bankName: "Dhaka Bank",
-                            accNumber: "XX45 654X 31131",
-                            onChanged: (val) => setModalState(() => selectedBankIndex = val!),
-                          ),
-                          const Divider(height: 30),
+                /// ---- AVAILABLE BALANCE CARD ----
+                Obx(() {
+                  final balance = controller.walletAttributes.value.balance;
 
-                          // Bank Option 2
-                          _buildBankSelectRow(
-                            index: 1,
-                            selectedIndex: selectedBankIndex,
-                            bankName: "Dhaka Bank",
-                            accNumber: "XX45 654X 31131",
-                            onChanged: (val) => setModalState(() => selectedBankIndex = val!),
-                          ),
-                        ],
-                      ),
+                  return Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(18.r),
+                    margin: EdgeInsets.only(bottom: 18.h),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18.r),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 10,
+                        )
+                      ],
                     ),
-
-                    SizedBox(height: 20.h),
-
-                    // 2. Amount Input Field
-                    Container(
-                      height: 55.h,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(15.r),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: TextField(
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          hintText: "Enter Your Amount",
-                          prefixIcon: Icon(Icons.monetization_on_outlined, color: Colors.grey, size: 22.sp),
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.symmetric(vertical: 15.h),
-                          hintStyle: TextStyle(color: Colors.grey, fontSize: 13.sp),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomText(
+                          text: "Available Balance",
+                          fontSize: 13.sp,
+                          color: Colors.grey,
                         ),
+                        SizedBox(height: 6.h),
+                        CustomText(
+                          text: "\$${balance.toStringAsFixed(2)}",
+                          fontSize: 22.sp,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF1D3826),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+
+                /// ---- AMOUNT FIELD ----
+                Container(
+                  height: 55.h,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(15.r),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: TextField(
+                    controller: amountController,
+                    keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                    decoration: InputDecoration(
+                      hintText: "Enter Your Amount",
+                      prefixIcon: Icon(
+                        Icons.monetization_on_outlined,
+                        color: Colors.grey,
+                        size: 22.sp,
+                      ),
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(vertical: 15.h),
+                      hintStyle: TextStyle(
+                        color: Colors.grey,
+                        fontSize: 13.sp,
                       ),
                     ),
-
-                    SizedBox(height: 25.h),
-
-                    // 3. Final Withdrawal Button
-                    CustomButton(
-                      text: "Withdrawal",
-                      onTap: () {
-                        // Final withdrawal processing logic
-                        Navigator.pop(context);
-                      },
-                    ),
-                    SizedBox(height: 10.h),
-                  ],
+                  ),
                 ),
-              ),
-            );
-          },
+
+                SizedBox(height: 25.h),
+
+                /// ---- WITHDRAW BUTTON ----
+                Obx(() => CustomButton(
+                  text: controller.isWithdrawing.value
+                      ? "Processing..."
+                      : "Withdrawal",
+                  onTap: controller.isWithdrawing.value
+                      ? null
+                      : () {
+                    double? enteredAmount =
+                    double.tryParse(amountController.text);
+
+                    double availableBalance = controller
+                        .walletAttributes.value.balance
+                        .toDouble();
+
+                    if (enteredAmount == null || enteredAmount <= 0) {
+                      Get.snackbar(
+                        "Error",
+                        "Please enter a valid amount",
+                        snackPosition: SnackPosition.BOTTOM,
+                      );
+                      return;
+                    }
+
+                    /// Prevent withdrawing more than balance
+                    if (enteredAmount > availableBalance) {
+                      Get.snackbar(
+                        "Insufficient Funds",
+                        "You cannot withdraw more than \$${availableBalance.toStringAsFixed(2)}",
+                        snackPosition: SnackPosition.BOTTOM,
+                        backgroundColor: Colors.redAccent,
+                        colorText: Colors.white,
+                      );
+                      return;
+                    }
+
+                    Navigator.pop(context);
+                    controller.requestWithdrawal(enteredAmount);
+                  },
+                )),
+
+                SizedBox(height: 10.h),
+              ],
+            ),
+          ),
         );
       },
-    );
-  }
-
-// Helper Widget for the Bank Radio Rows
-  Widget _buildBankSelectRow({
-    required int index,
-    required int selectedIndex,
-    required String bankName,
-    required String accNumber,
-    required Function(int?) onChanged,
-  }) {
-    return Row(
-      children: [
-        CircleAvatar(
-          backgroundColor: const Color(0xFF1D3826),
-          radius: 18.r,
-          child: Icon(Icons.credit_card, color: Colors.white, size: 18.sp),
-        ),
-        SizedBox(width: 12.w),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CustomText(text: "Bank Name : $bankName", fontSize: 12.sp, fontWeight: FontWeight.w600),
-              CustomText(text: "AC Number : $accNumber", fontSize: 11.sp, color: Colors.grey),
-            ],
-          ),
-        ),
-        Radio<int>(
-          value: index,
-          groupValue: selectedIndex,
-          activeColor: const Color(0xFF1D3826),
-          onChanged: onChanged,
-        ),
-      ],
     );
   }
 }
