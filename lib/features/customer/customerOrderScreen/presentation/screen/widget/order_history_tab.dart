@@ -101,7 +101,7 @@ class OrderHistoryCard extends StatelessWidget {
         return _statusBadge("Shipped", const Color(0xFF2D3E2F), const Color(0xFFC4C99A).withOpacity(0.3));
       case "Completed":
         return GestureDetector(
-          onTap: () => Get.toNamed(RouteConstants.rateServiceScreen, arguments: order.id),
+          onTap: () => Get.toNamed(RouteConstants.productRatingScreen, arguments: order),
           child: _statusBadge("Review", const Color(0xFF2D3E2F), const Color(0xFFC4C99A)),
         );
       case "Canceled":

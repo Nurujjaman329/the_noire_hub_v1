@@ -144,36 +144,6 @@ class ServiceBookingDetailsController extends GetxController {
   }
 
 
-  bool isTimeWithinRange(TimeOfDay picked, WorkingHoursDetails hours) {
-    final int pickedMinutes = picked.hour * 60 + picked.minute;
-
-    int parseTimeToMinutes(String timeStr) {
-      try {
-        // Handles "10:00 AM" or "19:00" formats
-        String cleanTime = timeStr.toUpperCase().trim();
-        bool isPM = cleanTime.contains("PM");
-        bool isAM = cleanTime.contains("AM");
-
-        // Remove AM/PM for parsing
-        cleanTime = cleanTime.replaceAll("AM", "").replaceAll("PM", "").trim();
-        List<String> parts = cleanTime.split(':');
-        int hour = int.parse(parts[0]);
-        int minute = parts.length > 1 ? int.parse(parts[1]) : 0;
-
-        if (isPM && hour < 12) hour += 12;
-        if (isAM && hour == 12) hour = 0;
-
-        return hour * 60 + minute;
-      } catch (e) {
-        return 0;
-      }
-    }
-
-    int start = parseTimeToMinutes(hours.startTime);
-    int end = parseTimeToMinutes(hours.endTime);
-
-    return pickedMinutes >= start && pickedMinutes <= end;
-  }
 
 
   void updateDate(DateTime date) => selectedDate.value = date;

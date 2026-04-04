@@ -70,7 +70,7 @@ class ServiceBookingScreen extends StatelessWidget {
                     _buildCalendarSection(attr.availableDates),
 
                     // WORKING HOURS SECTION
-                    _buildTimePickerSection(attr.workingHours),
+                    _buildTimeSlotSection(attr.workingSlots),
 
                     SizedBox(height: 30.h),
                   ],
@@ -298,59 +298,73 @@ class ServiceBookingScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTimePickerSection(WorkingHoursDetails? hours) {
+  Widget _buildTimeSlotSection(List<WorkingSlot> slots) {
     final controller = Get.find<ServiceBookingDetailsController>();
-    String displayHours = (hours != null) ? "${hours.startTime} - ${hours.endTime}" : "Not Available";
+
+    if (slots.isEmpty) {
+      return Padding(
+        padding: EdgeInsets.symmetric(horizontal: 25.w, vertical: 20.h),
+        child: CustomText(
+          text: "No Time Slots Available",
+          fontSize: 14.sp,
+          color: Colors.grey,
+        ),
+      );
+    }
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 25.w, vertical: 20.h),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomText(text: "Working Hours", fontWeight: FontWeight.bold, fontSize: 16.sp),
-          SizedBox(height: 10.h),
-          GestureDetector(
-            onTap: () async {
-              if (hours == null) return;
-              TimeOfDay? picked = await showTimePicker(
-                context: Get.context!,
-                initialTime: TimeOfDay.now(),
-              );
-              if (picked != null) {
-                if (controller.isTimeWithinRange(picked, hours)) {
-                  controller.updateTime(picked.format(Get.context!));
-                } else {
-                  Get.snackbar("Closed", "Please select between ${hours.startTime} and ${hours.endTime}",
-                      backgroundColor: Colors.redAccent, colorText: Colors.white);
-                }
-              }
-            },
-            child: Container(
-              padding: EdgeInsets.all(15.w),
-              decoration: BoxDecoration(
-                border: Border.all(color: const Color(0xFFC4C99A)),
-                borderRadius: BorderRadius.circular(25.r),
-                color: const Color(0xFFF1F4D3).withValues(alpha:0.2),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.access_time, size: 20, color: Color(0xFF2D3E2F)),
-                  SizedBox(width: 10.w),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CustomText(text: displayHours, fontSize: 12.sp, color: Colors.black54),
-                      Obx(() => CustomText(
-                          text: controller.selectedTime.value.isEmpty ? "Select Time" : controller.selectedTime.value,
-                          fontWeight: FontWeight.bold, fontSize: 14.sp
-                      )),
-                    ],
+          CustomText(
+            text: "Available Time Slots",
+            fontWeight: FontWeight.bold,
+            fontSize: 16.sp,
+          ),
+          SizedBox(height: 15.h),
+
+          Wrap(
+            spacing: 10.w,
+            runSpacing: 10.h,
+            children: slots.map((slot) {
+              final slotText = "${slot.startTime} - ${slot.endTime}";
+
+              return Obx(() {
+                bool isSelected = controller.selectedTime.value == slotText;
+
+                return GestureDetector(
+                  onTap: () {
+                    if (isSelected) {
+                      controller.updateTime(""); // deselect
+                    } else {
+                      controller.updateTime(slotText); // select
+                    }
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 14.w,
+                      vertical: 10.h,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? const Color(0xFF2D3E2F)
+                          : const Color(0xFFF1F4D3).withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(20.r),
+                      border: Border.all(
+                        color: const Color(0xFFC4C99A),
+                      ),
+                    ),
+                    child: CustomText(
+                      text: slotText,
+                      fontSize: 12.sp,
+                      color: isSelected ? Colors.white : Colors.black,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                  const Spacer(),
-                  const Icon(Icons.arrow_drop_down, color: Color(0xFF2D3E2F)),
-                ],
-              ),
-            ),
+                );
+              });
+            }).toList(),
           ),
         ],
       ),

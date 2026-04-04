@@ -1,67 +1,104 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../../../core/constants/api_constants.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/widgets/custom_app_bar.dart';
 import '../../../../../core/widgets/custom_network_image.dart';
 import '../../../../../core/widgets/custom_text.dart';
+import 'package:get/get.dart';
+
+import '../../data/average_review_response_model.dart';
+import '../controller/average_review_controller.dart';
 
 class ReviewsScreen extends StatelessWidget {
   const ReviewsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // Inject or find the controller
+    final controller = Get.find<AverageReviewController>();
+
     return Scaffold(
       backgroundColor: AppColors.white,
       appBar: CustomAppBar(
         title: "Reviews & Ratings",
         showBackButton: true,
       ),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          children: [
-            // 1. Overall Rating Summary Header
-            _buildRatingSummary(),
+      body: Obx(() {
+        // Show loading state
+        if (controller.isLoading.value && controller.reviewData.value == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-            const Divider(thickness: 1, color: AppColors.divider),
+        final data = controller.reviewData.value;
 
-            // 2. Individual Reviews List
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CustomText(
-                    text: "Customer Feedback",
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primaryDark,
-                    bottom: 20.h,
+        // Optional: Show empty state if no reviews exist
+        if (data == null || data.evaluations.isEmpty) {
+          return Center(child: CustomText(text: "No reviews yet."));
+        }
+
+        return RefreshIndicator(
+          onRefresh: () => controller.fetchEvaluations(),
+          color: AppColors.secondaryVariant,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              children: [
+                // 1. Overall Rating Summary Header (Dynamic)
+                _buildRatingSummary(controller, data),
+
+                const Divider(thickness: 1, color: AppColors.divider),
+
+                // 2. Individual Reviews List (Dynamic)
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        text: "Customer Feedback",
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primaryDark,
+                        bottom: 20.h,
+                      ),
+
+                      ListView.builder(
+                        shrinkWrap: true,
+                        padding: EdgeInsets.zero,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: data.evaluations.length,
+                        itemBuilder: (context, index) {
+                          final review = data.evaluations[index];
+
+                          // Helper to format the date
+                          String dateStr = "N/A";
+                          if (review.createdAt != null) {
+                            // Using timeago or DateFormat here
+                            dateStr = "${review.createdAt!.day}/${review.createdAt!.month}/${review.createdAt!.year}";
+                          }
+
+                          return _buildReviewItem(
+                            name: review.user.fullName,
+                            rating: review.rating,
+                            date: dateStr,
+                            comment: review.comment,
+                            imageUrl: review.user.image, // Base URL should be handled in model or here
+                          );
+                        },
+                      ),
+                    ],
                   ),
-                  _buildReviewItem(
-                    name: "Sarah Jenkins",
-                    rating: 5,
-                    date: "2 days ago",
-                    comment: "The hair quality is absolutely amazing! I've been wearing the extensions for a week now and no tangling at all.",
-                    imageUrl: "https://images.pexels.com/photos/1181686/pexels-photo-1181686.jpeg",
-                  ),
-                  _buildReviewItem(
-                    name: "Michael Chen",
-                    rating: 4,
-                    date: "1 week ago",
-                    comment: "Great service and fast shipping to Canada. The packaging was very professional.",
-                    imageUrl: "https://images.pexels.com/photos/1222271/pexels-photo-1222271.jpeg",
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      }),
     );
   }
 
-  Widget _buildRatingSummary() {
+  Widget _buildRatingSummary(AverageReviewController controller, EvaluationAttributes data) {
     return Container(
       padding: EdgeInsets.all(25.r),
       child: Row(
@@ -72,7 +109,7 @@ class ReviewsScreen extends StatelessWidget {
             child: Column(
               children: [
                 CustomText(
-                  text: "4.8",
+                  text: data.averageRating.toStringAsFixed(1),
                   fontSize: 48.sp,
                   fontWeight: FontWeight.bold,
                   color: AppColors.primaryDark,
@@ -81,12 +118,12 @@ class ReviewsScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(5, (index) => Icon(
                     Icons.star_rounded,
-                    color: index < 4 ? Colors.orange : Colors.grey.shade300,
+                    color: index < data.averageRating.floor() ? Colors.orange : Colors.grey.shade300,
                     size: 20.sp,
                   )),
                 ),
                 CustomText(
-                  text: "124 Reviews",
+                  text: "${data.totalReviews} Reviews",
                   fontSize: 12.sp,
                   color: AppColors.geryColor,
                   top: 8.h,
@@ -95,16 +132,16 @@ class ReviewsScreen extends StatelessWidget {
             ),
           ),
 
-          // Right Side: Progress Bars
+          // Right Side: Progress Bars (Dynamic via Controller)
           Expanded(
             flex: 3,
             child: Column(
               children: [
-                _buildRatingBar("5", 0.8),
-                _buildRatingBar("4", 0.6),
-                _buildRatingBar("3", 0.1),
-                _buildRatingBar("2", 0.05),
-                _buildRatingBar("1", 0.02),
+                _buildRatingBar("5", controller.calculateRatingRatio("5")),
+                _buildRatingBar("4", controller.calculateRatingRatio("4")),
+                _buildRatingBar("3", controller.calculateRatingRatio("3")),
+                _buildRatingBar("2", controller.calculateRatingRatio("2")),
+                _buildRatingBar("1", controller.calculateRatingRatio("1")),
               ],
             ),
           ),
@@ -127,7 +164,7 @@ class ReviewsScreen extends StatelessWidget {
                 value: progress,
                 minHeight: 6.h,
                 backgroundColor: AppColors.divider,
-                color: AppColors.secondaryVariant, // Your brand olive green
+                color: AppColors.secondaryVariant,
               ),
             ),
           ),
@@ -143,6 +180,9 @@ class ReviewsScreen extends StatelessWidget {
     required String comment,
     required String imageUrl,
   }) {
+    // Add base URL if your API image path is relative
+    String fullImageUrl = imageUrl.startsWith('http') ? imageUrl : "${ApiConstants.baseUrl}$imageUrl";
+
     return Padding(
       padding: EdgeInsets.only(bottom: 25.h),
       child: Column(
@@ -151,7 +191,7 @@ class ReviewsScreen extends StatelessWidget {
           Row(
             children: [
               CustomNetworkImage(
-                imageUrl: imageUrl,
+                imageUrl: fullImageUrl,
                 height: 45.r,
                 width: 45.r,
                 boxShape: BoxShape.circle,

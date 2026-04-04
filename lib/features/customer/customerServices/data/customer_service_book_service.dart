@@ -1,4 +1,5 @@
 import '../../../../core/api/api_client.dart';
+import '../../../../core/api/api_exception.dart';
 import '../../../../core/constants/api_constants.dart';
 import 'package:flutter/material.dart';
 
@@ -114,6 +115,31 @@ class CustomerServiceBookService {
     } catch (e) {
       debugPrint('❌ [POST] Error at Booking: $e');
       rethrow;
+    }
+  }
+
+  Future<bool> toggleFavorite(String id, String itemType) async {
+    final String url = "${ApiConstants.customerFavorites}/$id";
+    final Map<String, dynamic> body = {"itemType": itemType};
+
+    debugPrint('🚀 [POST] Request to: $url');
+    debugPrint('Payload: $body');
+
+    try {
+      final response = await _apiClient.postJson(
+        url,
+        data: body,
+      );
+
+      debugPrint('✅ [POST] Success: $url');
+      // Returns true if added/removed successfully
+      return response.statusCode == 200 || response.statusCode == 201;
+    } on AppException catch (e) {
+      debugPrint("🛑 [AppException] ${e.message}");
+      rethrow;
+    } catch (e) {
+      debugPrint('❌ [POST] Error at: $url');
+      throw Exception("Failed to update favorite: $e");
     }
   }
 }

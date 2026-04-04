@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import '../../../../../core/api/api_exception.dart';
 import '../../../../../core/services/cache_service.dart';
 import '../../data/customer_products_response_model.dart';
 import '../../data/customer_products_service.dart';
@@ -11,6 +12,7 @@ class CustomerProductsController extends GetxController {
   final searchController = TextEditingController();
   var isLoading = false.obs;
   var productList = <CustomerProduct>[].obs;
+  var favoriteLoadingState = <String, bool>{}.obs;
 
   int currentPage = 1;
   bool hasMore = true;
@@ -92,12 +94,47 @@ class CustomerProductsController extends GetxController {
         hasOffer: hasOffer.value ? true : null,
       );
 
-      productList.assignAll(response.data?.attributes?.results ?? []);
+      final results = response.data?.attributes?.results ?? <CustomerProduct>[];
+      productList.assignAll(results.cast<CustomerProduct>());
       hasMore = currentPage < (response.data?.attributes?.totalPages ?? 1);
     } catch (e) {
       Get.snackbar("Error", e.toString());
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<void> toggleProductFavorite(String productId) async {
+    try {
+      favoriteLoadingState[productId] = true;
+
+      // itemType is "Product" as per your requirement
+      final success = await _service.toggleFavorite(productId, "Product");
+
+      if (success) {
+        // Find the product in the local list and toggle its 'isFavorite' status
+        // to update UI instantly without a full refresh
+        int index = productList.indexWhere((p) => p.id == productId);
+        if (index != -1) {
+          // Toggle the isFavorite status and replace the item in the list
+          final updatedProduct = productList[index];
+          updatedProduct.isFavorite = !updatedProduct.isFavorite;
+          // Replace the item at the same index to trigger UI update
+          productList[index] = updatedProduct;
+        }
+
+        // Get.snackbar(
+        //   "Success",
+        //   "Favorites updated",
+        //   snackPosition: SnackPosition.BOTTOM,
+        //   backgroundColor: const Color(0xFF1D3826),
+        //   colorText: Colors.white,
+        // );
+      }
+    } on AppException catch (e) {
+      Get.snackbar("Error", e.message, snackPosition: SnackPosition.BOTTOM);
+    } finally {
+      favoriteLoadingState[productId] = false;
     }
   }
 
@@ -123,9 +160,9 @@ class CustomerProductsController extends GetxController {
         hasOffer: hasOffer.value ? true : null,
       );
 
-      final newResults = response.data?.attributes?.results ?? [];
+      final newResults = response.data?.attributes?.results ?? <CustomerProduct>[];
       if (newResults.isNotEmpty) {
-        productList.addAll(newResults);
+        productList.addAll(newResults.cast<CustomerProduct>());
         // Update hasMore based on meta data
         hasMore = currentPage < (response.data?.attributes?.totalPages ?? 1);
       } else {
@@ -138,6 +175,8 @@ class CustomerProductsController extends GetxController {
       isMoreLoading.value = false;
     }
   }
+
+  Future<void> onRefresh() async => await fetchProducts();
 
 
   void clearRating() {

@@ -1,8 +1,9 @@
 class ApiConstants {
   //common
 
-  static const String baseUrl = 'http://10.10.11.88:3000/api/v1/';
-  static const String imageUrl = 'http://10.10.11.88:3000';
+  // static const String baseUrl = 'http://10.10.11.88:3000/api/v1/';
+  static const String baseUrl = 'https://tonmoy3000.sobhoy.com/api/v1/';
+  static const String imageUrl = 'https://tonmoy3000.sobhoy.com';
   static const String baseImageUrl = imageUrl;
 
   static Map<String, String> get headers => {
@@ -26,9 +27,18 @@ class ApiConstants {
   static const String getBusinessInfo = "business/me";
   static const String categoryUpdate = "users/self/selected-categories";
   static const String promoCode = "promo-codes";
+  static const String promoCodeCustomer = "promo-codes/all";
   static const String feedback = "feedback";
   static const String inviteLink = "invite/link";
   static const String cart = "cart";
+  static const String wallet = "wallet";
+  static const String walletWithDraw = "wallet/withdraw";
+  static const String withdrawHistory = "wallet/withdrawals";
+  static const String evaluationsBase = "evaluation/";
+  static const String termsOfService = "admin/content/terms-of-service";
+  static const String aboutUs = "admin/content/about";
+  static const String helpContent = "admin/content/help";
+  static const String totalEarning = "wallet/earnings";
 
 
 
@@ -39,6 +49,8 @@ class ApiConstants {
   static const String customerFavorites = "favorites";
   static const String cartItems = "cart/items";
   static const String productOrders = "product-orders";
+  static const String serviceRating = "reviews/booking/";
+  static const String productRating = "product-reviews/";
 
 
 

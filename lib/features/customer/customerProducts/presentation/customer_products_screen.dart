@@ -1,8 +1,8 @@
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:the_noire_hub_v1/core/constants/api_constants.dart';
 import 'package:the_noire_hub_v1/features/customer/customerProducts/data/customer_products_response_model.dart';
 import '../../../../core/constants/app_assets.dart';
@@ -34,95 +34,117 @@ class CustomerProductsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          // 1. Attached the controller here
-          controller: controller.scrollController,
-          padding: EdgeInsets.symmetric(horizontal: 20.w),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: 10.h),
-              _buildHeader(fullImageUrl),
-              SizedBox(height: 20.h),
-              _buildSearchField(),
-              SizedBox(height: 25.h),
-              const CustomText(
-                text: "Our Specialties",
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0XFF000000),
+        child: RefreshIndicator(
+          onRefresh: () => controller.onRefresh(),
+          color: const Color(0xFF1D3826),
+          child: NotificationListener<ScrollNotification>(
+            onNotification: (ScrollNotification scrollInfo) {
+              if (scrollInfo.metrics.pixels >= scrollInfo.metrics.maxScrollExtent - 200) {
+                controller.loadMore();
+              }
+              return false; // Let the notification continue to RefreshIndicator
+            },
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+              // 1. Attached the controller here
+              controller: controller.scrollController,
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 10.h),
+                  _buildHeader(fullImageUrl),
+                  SizedBox(height: 20.h),
+                  _buildSearchField(),
+                  SizedBox(height: 25.h),
+                  const CustomText(
+                    text: "Our Specialties",
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0XFF000000),
+                  ),
+                  SizedBox(height: 15.h),
+                  _buildSpecialtiesList(categoryController, subCategoryController, controller),
+                  SizedBox(height: 20.h),
+                  _buildFilterChips(),
+                  SizedBox(height: 20.h),
+                  _buildSubCategoryList(subCategoryController, controller),
+                  SizedBox(height: 30.h),
+
+                  // --- DYNAMIC PRODUCT SECTION ---
+                  Obx(() {
+                    if (controller.isLoading.value && controller.productList.isEmpty) {
+                      return Shimmer.fromColors(
+                        baseColor: Colors.grey[300]!,
+                        highlightColor: Colors.grey[100]!,
+                        child: Column(
+                          children: List.generate(3, (index) => Padding(
+                            padding: EdgeInsets.only(bottom: 20.h),
+                            child: Row(
+                              children: [
+                                _skeletonServiceCard(),
+                                SizedBox(width: 15.w),
+                                _skeletonServiceCard(),
+                              ],
+                            ),
+                          )),
+                        ),
+                      );
+                    }
+
+                    if (controller.productList.isEmpty) {
+                      return _buildEmptyState(controller);
+                    }
+
+                    // 2. Build the Grid
+                    List<Widget> productRows = [];
+                    for (int i = 0; i < controller.productList.length; i += 2) {
+                      List<Widget> rowItems = [];
+                      rowItems.add(_buildProductCard(controller.productList[i]));
+                      if (i + 1 < controller.productList.length) {
+                        rowItems.add(_buildProductCard(controller.productList[i + 1]));
+                      }
+                      productRows.add(_buildHorizontalList(rowItems));
+                      productRows.add(SizedBox(height: 20.h));
+                    }
+
+                    return Column(
+                      children: [
+                        ...productRows,
+
+                        // 3. PAGINATION LOADER INDICATOR
+                        if (controller.isMoreLoading.value)
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: 20.h),
+                            child: const Center(
+                              child: CircularProgressIndicator(
+                                color: Color(0xFF1D3826),
+                                strokeWidth: 3,
+                              ),
+                            ),
+                          ),
+
+                        // 4. Optional: Show message when no more products
+                        if (!controller.hasMore && controller.productList.isNotEmpty)
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: 20.h),
+                            child: const Center(
+                              child: CustomText(
+                                text: "No more products to show",
+                                color: Colors.grey,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  }),
+
+                  _buildPopularNearYouSection(),
+                  SizedBox(height: 50.h),
+                ],
               ),
-              SizedBox(height: 15.h),
-              _buildSpecialtiesList(categoryController, subCategoryController, controller),
-              SizedBox(height: 20.h),
-              _buildFilterChips(),
-              SizedBox(height: 20.h),
-              _buildSubCategoryList(subCategoryController, controller),
-              SizedBox(height: 30.h),
-
-              // --- DYNAMIC PRODUCT SECTION ---
-              Obx(() {
-                if (controller.isLoading.value && controller.productList.isEmpty) {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 40),
-                      child: CircularProgressIndicator(color: Color(0xFF1D3826)),
-                    ),
-                  );
-                }
-
-                if (controller.productList.isEmpty) {
-                  return _buildEmptyState(controller); // Extracted for cleanliness
-                }
-
-                // 2. Build the Grid
-                List<Widget> productRows = [];
-                for (int i = 0; i < controller.productList.length; i += 2) {
-                  List<Widget> rowItems = [];
-                  rowItems.add(_buildProductCard(controller.productList[i]));
-                  if (i + 1 < controller.productList.length) {
-                    rowItems.add(_buildProductCard(controller.productList[i + 1]));
-                  }
-                  productRows.add(_buildHorizontalList(rowItems));
-                  productRows.add(SizedBox(height: 20.h));
-                }
-
-                return Column(
-                  children: [
-                    ...productRows,
-
-                    // 3. PAGINATION LOADER INDICATOR
-                    if (controller.isMoreLoading.value)
-                      Padding(
-                        padding: EdgeInsets.symmetric(vertical: 20.h),
-                        child: const Center(
-                          child: CircularProgressIndicator(
-                            color: Color(0xFF1D3826),
-                            strokeWidth: 3,
-                          ),
-                        ),
-                      ),
-
-                    // 4. Optional: Show message when no more products
-                    if (!controller.hasMore && controller.productList.isNotEmpty)
-                      Padding(
-                        padding: EdgeInsets.symmetric(vertical: 20.h),
-                        child: const Center(
-                          child: CustomText(
-                            text: "No more products to show",
-                            color: Colors.grey,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                  ],
-                );
-              }),
-
-              _buildPopularNearYouSection(),
-              SizedBox(height: 50.h),
-            ],
+            ),
           ),
         ),
       ),
@@ -130,6 +152,18 @@ class CustomerProductsScreen extends StatelessWidget {
   }
 
   // --- Helper Methods ---
+
+  Widget _skeletonServiceCard() {
+    return Expanded(
+      child: Container(
+        height: 200.h,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20.r),
+        ),
+      ),
+    );
+  }
 
   Widget _buildEmptyState(CustomerProductsController controller) {
     return Center(
@@ -174,28 +208,34 @@ class CustomerProductsScreen extends StatelessWidget {
   }
 
   Widget _buildProductCard(CustomerProduct product) {
+    final controller = Get.find<CustomerProductsController>();
     final imageUrl = product.images.isNotEmpty ? product.images.first : '';
     final fullImageUrl = "${ApiConstants.baseImageUrl}$imageUrl";
-
-    // --- GET DISTANCE DIRECTLY FROM MODEL ---
-    // Using toStringAsFixed(1) to handle decimals like 2.3 or 7.0
     String distanceText = "${product.distance.toStringAsFixed(1)} km away";
 
-    return _popularCard(
-      product.name,
-      product.price.toString(),
-      distanceText, // Direct use of the distance from your model
-      product.rating.toString(),
-      product.images.isNotEmpty
-          ? fullImageUrl
-          : "https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=500",
-      onTap: () {
-        Get.toNamed(
-          RouteConstants.productDetailsScreen,
-          arguments: product,
-        );
-      },
-    );
+    return Obx(() {
+      // Check if THIS specific product is currently hitting the favorite API
+      final isProcessing = controller.favoriteLoadingState[product.id] ?? false;
+
+      return _popularCard(
+        product.name,
+        product.price.toString(),
+        distanceText,
+        product.rating.toString(),
+        product.images.isNotEmpty
+            ? fullImageUrl
+            : "https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=500",
+        isFavorite: product.isFavorite,
+        isFavoriteLoading: isProcessing, // Pass loading state to UI
+        onTap: () {
+          Get.toNamed(RouteConstants.productDetailsScreen, arguments: product);
+        },
+        onFavoriteTap: () {
+          // HIT THE POST HERE
+          controller.toggleProductFavorite(product.id);
+        },
+      );
+    });
   }
 
   Widget _buildPopularNearYouSection() {
@@ -362,44 +402,26 @@ class CustomerProductsScreen extends StatelessWidget {
                 fit: BoxFit.contain,
               ),
             ),
-
-            CustomText(
+            const CustomText(
               text: "Beauty",
               fontWeight: FontWeight.bold,
             ),
           ],
         ),
-        Row(
-          children: [
-            CustomText(text: CacheService.formattedLocation, fontSize: 12.sp, color: AppColors.textHint),
-          ],
+        CustomText(
+            text: CacheService.formattedLocation,
+            fontSize: 12.sp,
+            color: AppColors.textHint
         ),
-
         GestureDetector(
           onTap: () => Get.toNamed(RouteConstants.profileScreen),
-          child: Container(
+          child: CustomNetworkImage(
+            imageUrl: imageUrl,
             height: 44.r,
             width: 44.r,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: const Color(0xFF1D3826).withValues(alpha: 0.1),
-            ),
-            child: ClipOval(
-              child: imageUrl.isNotEmpty // Use the parameter here
-                  ? CachedNetworkImage(
-                imageUrl: imageUrl,
-                fit: BoxFit.cover,
-                placeholder: (context, url) => const Center(
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-                errorWidget: (context, url, error) => Icon(
-                  Icons.person,
-                  size: 25.sp,
-                  color: const Color(0xFF1D3826),
-                ),
-              )
-                  : Icon(Icons.person, size: 25.sp, color: const Color(0xFF1D3826)),
-            ),
+            boxShape: BoxShape.circle,
+            // If the image is empty, your internal _buildErrorWidget
+            // already handles the Icons.person fallback.
           ),
         )
       ],
@@ -451,7 +473,18 @@ class CustomerProductsScreen extends StatelessWidget {
       CustomerProductsController productCtrl
       ) {
     return Obx(() {
-      if (catCtrl.isLoading.value) return const LinearProgressIndicator();
+      if (catCtrl.isLoading.value) {
+        return Shimmer.fromColors(
+          baseColor: Colors.grey[300]!,
+          highlightColor: Colors.grey[100]!,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: List.generate(5, (index) => _buildSkeletonCard()),
+            ),
+          ),
+        );
+      }
 
       return SingleChildScrollView(
         scrollDirection: Axis.horizontal,
@@ -476,6 +509,27 @@ class CustomerProductsScreen extends StatelessWidget {
       );
     });
   }
+
+  Widget _buildSkeletonCard() {
+    return Padding(
+      padding: EdgeInsets.only(right: 15.w, left: 5.w),
+      child: Column(
+        children: [
+          Container(
+            width: 90.w,
+            height: 90.w,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20.r),
+            ),
+          ),
+          SizedBox(height: 8.h),
+          Container(width: 60.w, height: 12.h, color: Colors.white),
+        ],
+      ),
+    );
+  }
+
 
   // 2. Updated Card Method
   Widget _specialtyCard(
@@ -913,7 +967,10 @@ class CustomerProductsScreen extends StatelessWidget {
       String distance,
       String rating,
       String imageUrl, {
+        bool isFavorite = false,
         VoidCallback? onTap,
+        VoidCallback? onFavoriteTap,
+        bool isFavoriteLoading = false,
       }) {
     return GestureDetector(
       onTap: onTap ?? () {
@@ -956,20 +1013,30 @@ class CustomerProductsScreen extends StatelessWidget {
                     topRight: Radius.circular(30.r),
                   ),
                 ),
-                Positioned(
-                  top: 12.h,
-                  right: 12.w,
-                  child: CircleAvatar(
-                    radius: 18.r,
-                    backgroundColor: const Color(0xFF1D3826).withValues(alpha:0.8),
-                    child: Icon(
-                      Icons.favorite,
-                      color: const Color(0xFFF1F0B2),
-                      size: 18.sp,
-                    ),
-                  ),
-                ),
-              ],
+        Positioned(
+          top: 12.h,
+          right: 12.w,
+          child: GestureDetector(
+            onTap: onFavoriteTap, // 👈 Trigger the API call
+            child: CircleAvatar(
+              radius: 18.r,
+              backgroundColor: const Color(0xFF1D3826).withValues(alpha: 0.8),
+              child: isFavoriteLoading
+                  ? SizedBox(
+                  height: 15.h,
+                  width: 15.h,
+                  child: const CircularProgressIndicator(color: Color(0xFFF1F0B2), strokeWidth: 2)
+              )
+                  : Icon(
+                isFavorite ? Icons.favorite : Icons.favorite_border,
+                color: const Color(0xFFF1F0B2),
+                size: 18.sp,
+              ),
+            ),
+          ),
+        ),
+        ],
+
             ),
 
             // 2. Info Section (Fixed for Overflow)

@@ -104,6 +104,16 @@ class CacheService {
     return value;
   }
 
+  static String get evaluationRoleSegment {
+    final role = _prefs?.getString(_roleKey) ?? '';
+    return role == "beautician" ? "beautician" : "vendor";
+  }
+
+  static String get applicableFor {
+    final role = _prefs?.getString(_roleKey) ?? '';
+    return role == "beautician" ? "service" : "product";
+  }
+
   // --- Setters ---
   static Future<void> saveSession({
     required String token,

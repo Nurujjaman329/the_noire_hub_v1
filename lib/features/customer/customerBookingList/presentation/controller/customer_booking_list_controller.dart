@@ -132,4 +132,45 @@ class CustomerBookingListController extends GetxController {
 
   Future<void> onRefresh() async => await fetchBookings(page: 1);
 
+
+  String getCancellationNotice(BookingDoc booking) {
+    // 1. Check if it's a Service or a Product
+    // Rule: If service object exists, it's a service cancellation.
+    // Otherwise, if it has bookingItems but no service, treat as product.
+    final isService = booking.service != null;
+
+    if (isService) {
+      if (booking.appointmentDate == null) return "Are you sure you want to cancel this service?";
+
+      final now = DateTime.now();
+      // Normalize dates to midnight for accurate day difference
+      final today = DateTime(now.year, now.month, now.day);
+      final appointment = DateTime(
+          booking.appointmentDate!.year,
+          booking.appointmentDate!.month,
+          booking.appointmentDate!.day
+      );
+
+      final differenceInDays = appointment.difference(today).inDays;
+
+      if (differenceInDays > 3) {
+        return "Notice: Cancellation is free of charge (> 3 days).";
+      } else if (differenceInDays == 3) {
+        return "Notice: A 30% cancellation charge applies (3 days remaining).";
+      } else if (differenceInDays == 2) {
+        return "Notice: A 50% cancellation charge applies (2 days remaining).";
+      } else if (differenceInDays == 1) {
+        return "Notice: A 70% cancellation charge applies (1 day remaining).";
+      } else {
+        return "Notice: A 90% cancellation charge applies (Day of service).";
+      }
+    } else {
+      // 2. Product Cancellation Logic
+      if (booking.status.toLowerCase() == "completed") {
+        return "Notice: Once order is completed, a cancellation charge of 10% applies.";
+      }
+      return "Are you sure you want to cancel this order?";
+    }
+  }
+
 }

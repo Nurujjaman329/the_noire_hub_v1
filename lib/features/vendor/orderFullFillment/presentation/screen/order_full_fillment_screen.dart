@@ -43,12 +43,24 @@ class _OrderFulfillmentScreenState extends State<OrderFulfillmentScreen> {
 
   final TextEditingController _freeShippingMinAmount = TextEditingController();
 
+  bool _restrictedEnabled = false;
+  List<String> _selectedCountries = [];
+
   @override
   void initState() {
     super.initState();
+
+    // 1. Start fetching data immediately (no vendorId passed = general settings)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.fetchSettings();
+    });
+
+    // 2. Keep your listener to update local state maps when data arrives
     ever(controller.fulfillmentData, (data) {
       if (data != null) _populateData(data);
     });
+
+    // 3. Populate if data already exists in the controller
     if (controller.fulfillmentData.value != null) {
       _populateData(controller.fulfillmentData.value!);
     }
@@ -87,6 +99,10 @@ class _OrderFulfillmentScreenState extends State<OrderFulfillmentScreen> {
       _costsEnabled["Customer"] = attr.costsAndFees.handledByCustomer.enabled;
       _costsEnabled["Free"] = attr.costsAndFees.conditionalFreeShipping.enabled;
       _freeShippingMinAmount.text = attr.costsAndFees.conditionalFreeShipping.minOrderAmount.toString();
+
+      _restrictedEnabled = attr.restrictedCountries.enabled;
+      _selectedCountries = List<String>.from(attr.restrictedCountries.countries);
+
     });
   }
 
@@ -107,6 +123,11 @@ class _OrderFulfillmentScreenState extends State<OrderFulfillmentScreen> {
         handledByVendor: FeeOption(enabled: _costsEnabled["Vendor"], amount: 0),
         handledByCustomer: FeeOption(enabled: _costsEnabled["Customer"], amount: 0),
         conditionalFreeShipping: ConditionalFreeShipping(enabled: _costsEnabled["Free"], minOrderAmount: double.tryParse(_freeShippingMinAmount.text)),
+      ),
+
+      restrictedCountries: RestrictedCountriesConfig(
+        enabled: _restrictedEnabled,
+        countries: _selectedCountries,
       ),
     );
     controller.updateSettings(postBody);
@@ -142,7 +163,9 @@ class _OrderFulfillmentScreenState extends State<OrderFulfillmentScreen> {
             _buildSimpleToggle("Duties & Taxes Handled By Vendor", "Vendor", _costsEnabled),
             _buildSimpleToggle("Duties & Taxes Handled By Customer", "Customer", _costsEnabled),
             _buildOption("Conditional Free Shipping", "Free", _costsEnabled, {"Free": _freeShippingMinAmount}, null, extraLabel: "For orders over:"),
-
+            SizedBox(height: 30.h),
+            _buildHeader("Restricted Countries", subtitle: "(shipping not allowed to these)"),
+            _buildRestrictedSection(),
             SizedBox(height: 50.h),
             _buildSaveButton(),
             SizedBox(height: 40.h),
@@ -160,26 +183,39 @@ class _OrderFulfillmentScreenState extends State<OrderFulfillmentScreen> {
       decoration: BoxDecoration(border: Border(bottom: BorderSide(color: AppColors.geryColor.withValues(alpha:0.1)))),
       child: Row(
         children: [
-          Expanded(
+          Expanded( // Fixes the main horizontal overflow
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (extraLabel != null) CustomText(text: extraLabel, fontSize: 10.sp, color: AppColors.geryColor, bottom: 2.h),
                 Row(
                   children: [
-                    CustomText(text: label, fontSize: 12.sp, color: AppColors.primaryDark, fontWeight: FontWeight.w500),
+                    // Wrap the label in Flexible so it doesn't push the textfield off screen
+                    Flexible(
+                      child: CustomText(
+                        text: label,
+                        fontSize: 12.sp,
+                        color: AppColors.primaryDark,
+                        fontWeight: FontWeight.w500,
+                        overflow: TextOverflow.ellipsis, // Safety for very long labels
+                      ),
+                    ),
                     if (timeMap != null) ...[
                       CustomText(text: " (", fontSize: 12.sp, color: AppColors.primaryDark, fontWeight: FontWeight.w500),
-                      IntrinsicWidth(
-                        child: TextField(
-                          controller: timeMap[key],
-                          enabled: isSelected,
-                          onChanged: (value) => setState(() {}), // Refresh to update IntrinsicWidth
-                          style: TextStyle(fontSize: 12.sp, color: AppColors.primaryDark, fontWeight: FontWeight.w500),
-                          decoration: const InputDecoration(
-                            isDense: true,
-                            contentPadding: EdgeInsets.zero,
-                            border: InputBorder.none,
+                      ConstrainedBox(
+                        constraints: BoxConstraints(maxWidth: 100.w), // Prevents infinite expansion
+                        child: IntrinsicWidth(
+                          child: TextField(
+                            controller: timeMap[key],
+                            enabled: isSelected,
+                            onChanged: (value) => setState(() {}),
+                            style: TextStyle(fontSize: 12.sp, color: AppColors.primaryDark, fontWeight: FontWeight.w500),
+                            decoration: const InputDecoration(
+                              isDense: true,
+                              contentPadding: EdgeInsets.zero,
+                              border: InputBorder.none,
+                              hintText: "...", // Optional: shows if empty
+                            ),
                           ),
                         ),
                       ),
@@ -190,13 +226,14 @@ class _OrderFulfillmentScreenState extends State<OrderFulfillmentScreen> {
               ],
             ),
           ),
+          // IconButton and Price Container remain fixed on the right
           IconButton(
             onPressed: () => setState(() => enabledMap[key] = !isSelected),
             icon: Icon(isSelected ? Icons.check_box : Icons.check_box_outline_blank, color: isSelected ? const Color(0xFF4A5D3F) : AppColors.geryColor.withValues(alpha:0.3)),
           ),
-          SizedBox(width: 15.w),
+          SizedBox(width: 8.w), // Reduced slightly to save horizontal space
           Container(
-            width: 80.w,
+            width: 75.w, // Adjusted slightly
             padding: EdgeInsets.symmetric(horizontal: 8.w),
             decoration: BoxDecoration(color: const Color(0xFFEBEBEB), borderRadius: BorderRadius.circular(8.r)),
             child: TextField(
@@ -205,7 +242,7 @@ class _OrderFulfillmentScreenState extends State<OrderFulfillmentScreen> {
               keyboardType: TextInputType.number,
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold, color: AppColors.geryColor),
-              decoration: const InputDecoration(prefixText: "\$ ", border: InputBorder.none),
+              decoration: const InputDecoration(prefixText: "\$ ", border: InputBorder.none, isDense: true),
             ),
           ),
         ],
@@ -227,16 +264,20 @@ class _OrderFulfillmentScreenState extends State<OrderFulfillmentScreen> {
     return SizedBox(
       width: double.infinity,
       height: 55.h,
-      child: ElevatedButton(
+      child: Obx(() => ElevatedButton( // Wrap with Obx to see loading state
         onPressed: controller.isSaving.value ? null : _handleSave,
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF1E3020),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.r)),
         ),
         child: controller.isSaving.value
-            ? const CircularProgressIndicator(color: Colors.white)
+            ? const SizedBox(
+            height: 20,
+            width: 20,
+            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+        )
             : CustomText(text: "Save", color: AppColors.white, fontSize: 18.sp, fontWeight: FontWeight.bold),
-      ),
+      )),
     );
   }
 
@@ -257,6 +298,150 @@ class _OrderFulfillmentScreenState extends State<OrderFulfillmentScreen> {
 
         SizedBox(height: 10.h),
       ],
+    );
+  }
+
+
+  Widget _buildRestrictedSection() {
+    return Column(
+      children: [
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          title: CustomText(text: "Enable Country Restrictions", fontSize: 12.sp, color: AppColors.primaryDark),
+          trailing: Icon(
+            _restrictedEnabled ? Icons.check_box : Icons.check_box_outline_blank,
+            color: _restrictedEnabled ? const Color(0xFF4A5D3F) : AppColors.geryColor.withValues(alpha: 0.3),
+          ),
+          onTap: () => setState(() => _restrictedEnabled = !_restrictedEnabled),
+        ),
+        if (_restrictedEnabled) ...[
+          SizedBox(height: 10.h),
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.all(12.r),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF9F9F9),
+              borderRadius: BorderRadius.circular(12.r),
+              border: Border.all(color: AppColors.geryColor.withValues(alpha: 0.1)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CustomText(text: "Selected Countries", fontSize: 11.sp, fontWeight: FontWeight.bold),
+                    TextButton(
+                      onPressed: _showCountrySelectionDialog,
+                      child: CustomText(text: "+ Add Country", fontSize: 11.sp, color: const Color(0xFF4A5D3F)),
+                    ),
+                  ],
+                ),
+                if (_selectedCountries.isEmpty)
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: 10.h),
+                    child: CustomText(text: "No countries restricted yet", fontSize: 10.sp, color: AppColors.geryColor),
+                  )
+                else
+                  Wrap(
+                    spacing: 8.w,
+                    runSpacing: 8.h,
+                    children: _selectedCountries.map((country) => Chip(
+                      label: CustomText(text: country, fontSize: 10.sp),
+                      deleteIcon: Icon(Icons.close, size: 14.sp),
+                      onDeleted: () => setState(() => _selectedCountries.remove(country)),
+                      backgroundColor: const Color(0xFFEBEBEB),
+                      side: BorderSide.none,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+                    )).toList(),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+
+  void _showCountrySelectionDialog() {
+    String newCountry = "";
+    Get.dialog(
+      Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+        child: Padding(
+          padding: EdgeInsets.all(20.r),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CustomText(
+                text: "Add Restricted Country",
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold,
+                color: AppColors.primaryDark,
+              ),
+              SizedBox(height: 15.h),
+              TextField(
+                onChanged: (value) => newCountry = value,
+                style: TextStyle(fontSize: 14.sp, color: Colors.black),
+                decoration: InputDecoration(
+                  hintText: "Enter country name",
+                  hintStyle: TextStyle(fontSize: 12.sp, color: AppColors.geryColor),
+                  filled: true,
+                  fillColor: const Color(0xFFF9F9F9),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                    borderSide: BorderSide(color: AppColors.geryColor.withValues(alpha: 0.1)),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                    borderSide: BorderSide(color: AppColors.geryColor.withValues(alpha: 0.1)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                    borderSide: const BorderSide(color: Color(0xFF4A5D3F)),
+                  ),
+                ),
+              ),
+              SizedBox(height: 25.h),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Get.back(),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFF4A5D3F)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                        padding: EdgeInsets.symmetric(vertical: 12.h),
+                      ),
+                      child: const CustomText(text: "Cancel", color: Color(0xFF4A5D3F)),
+                    ),
+                  ),
+                  SizedBox(width: 15.w),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (newCountry.trim().isNotEmpty) {
+                          setState(() => _selectedCountries.add(newCountry.trim().toUpperCase()));
+                          Get.back();
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1E3020),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                        padding: EdgeInsets.symmetric(vertical: 12.h),
+                      ),
+                      child: const CustomText(text: "Add", color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

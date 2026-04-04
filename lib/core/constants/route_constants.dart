@@ -40,6 +40,8 @@ class RouteConstants {
   static const String dealsPromosHistory = '/dealsPromosHistory';
   static const String customerProducts = '/customerProducts';
   static const String feedbackScreen = '/feedbackScreen';
+  static const String serviceRatingScreen = '/serviceRatingScreen';
+  static const String productRatingScreen = '/productRatingScreen';
 
 
   // vendor

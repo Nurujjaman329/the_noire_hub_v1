@@ -95,6 +95,9 @@ class CustomerBookingsList extends StatelessWidget {
     );
   }
 
+
+
+
   Widget _buildHeader() {
     return Padding(
       padding: const EdgeInsets.all(20.0),
