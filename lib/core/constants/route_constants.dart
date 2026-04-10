@@ -81,6 +81,7 @@ class RouteConstants {
   static const String otpVerifyScreen = '/otpVerifyScreen';
   static const String resetPasswordScreen = '/resetPasswordScreen';
   static const String changePassword = '/changePassword';
+  static const String deleteAccount = '/deleteAccount';
   static const String walletScreen = '/walletScreen';
   static const String reviewScreen = '/reviewScreen';
   static const String inviteScreens = '/inviteScreens';

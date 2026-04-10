@@ -8,6 +8,8 @@ import 'package:the_noire_hub_v1/features/beautician/serviceDetailsScreen/presen
 import 'package:the_noire_hub_v1/features/common/averageReviewScreen/presentation/bindings/average_review_bindings.dart';
 import 'package:the_noire_hub_v1/features/common/businessDocument/presentation/bindings/business_documents_bindings.dart';
 import 'package:the_noire_hub_v1/features/common/changePassword/presentation/bindings/change_password_bindings.dart';
+import 'package:the_noire_hub_v1/features/common/deleteAccount/presentation/binding/delete_account_binding.dart';
+import 'package:the_noire_hub_v1/features/common/deleteAccount/presentation/screen/delete_account_screen.dart';
 import 'package:the_noire_hub_v1/features/common/inviteFriends/presentation/bindings/invite_friends_bindings.dart';
 import 'package:the_noire_hub_v1/features/common/walletScreen/presentation/bindings/wallet_info_bindings.dart';
 import 'package:the_noire_hub_v1/features/customer/checkOut/presentation/bindings/check_out_bindings.dart';
@@ -356,6 +358,12 @@ class AppPages {
       name: RouteConstants.changePassword,
       page: () => const ChangePasswordScreen(),
       binding: ChangePasswordBinding(),
+      transition: Transition.cupertino,
+    ),
+    GetPage(
+      name: RouteConstants.deleteAccount,
+      page: () => const DeleteAccountScreen(),
+      binding: DeleteAccountBinding(),
       transition: Transition.cupertino,
     ),
     GetPage(

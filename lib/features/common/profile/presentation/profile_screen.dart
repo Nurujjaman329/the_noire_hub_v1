@@ -234,6 +234,7 @@ class ProfileScreen extends StatelessWidget {
       {"icon": Icons.visibility_off_outlined, "label": "Terms of Service"},
       {"icon": Icons.info_outline, "label": "About"},
       {"icon": Icons.password_outlined, "label": "Change Password"},
+      {"icon": Icons.delete_outline, "label": "Delete Account"},
     ];
 
     final filteredItems = menuItems.where((item) {
@@ -299,21 +300,27 @@ class ProfileScreen extends StatelessWidget {
               case "Change Password":
                 Get.toNamed(RouteConstants.changePassword);
                 break;
+              case "Delete Account":
+                Get.toNamed(RouteConstants.deleteAccount);
+                break;
             }
           },
           child: Padding(
             padding: EdgeInsets.symmetric(vertical: 12.h),
             child: Row(
               children: [
-                Icon(item['icon'],color: Color(0XFF000000), size: 26.sp),
+                Icon(
+                  item['icon'],
+                  color: item['label'] == "Delete Account" ? Colors.redAccent : const Color(0XFF000000),
+                  size: 26.sp,
+                ),
                 SizedBox(width: 20.w),
                 Expanded(
                   child: CustomText(
                     text: item['label'],
                     fontSize: 16.sp,
                     fontWeight: FontWeight.w600,
-                    color: Color(0XFF000000),
-                    // color: AppColors.primaryDark,
+                    color: item['label'] == "Delete Account" ? Colors.redAccent : const Color(0XFF000000),
                   ),
                 ),
                 Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.geryColor),
