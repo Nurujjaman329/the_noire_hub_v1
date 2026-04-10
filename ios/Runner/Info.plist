@@ -3,72 +3,66 @@
 <plist version="1.0">
 <dict>
 
-    <key>CADisableMinimumFrameDurationOnPhone</key>
-    <true/>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
 
-    <key>CFBundleDevelopmentRegion</key>
-    <string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleDisplayName</key>
+	<string>The Noire Hub V1</string>
 
-    <key>CFBundleDisplayName</key>
-    <string>The Noire Hub V1</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
 
-    <key>CFBundleExecutable</key>
-    <string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.annadat.tnp</string>
 
-    <key>CFBundleIdentifier</key>
-    <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
 
-    <key>CFBundleInfoDictionaryVersion</key>
-    <string>6.0</string>
+	<key>CFBundleName</key>
+	<string>the_noire_hub_v1</string>
 
-    <key>CFBundleName</key>
-    <string>the_noire_hub_v1</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
 
-    <key>CFBundlePackageType</key>
-    <string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(FLUTTER_BUILD_NAME)</string>
 
-    <key>CFBundleShortVersionString</key>
-    <string>1.0.0</string>
+	<key>CFBundleVersion</key>
+	<string>$(FLUTTER_BUILD_NUMBER)</string>
 
-    <key>CFBundleVersion</key>
-    <string>1</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
 
-    <key>LSRequiresIPhoneOS</key>
-    <true/>
+	<!-- Permissions -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs access to your photo library to upload images.</string>
 
-    <key>UIApplicationSupportsIndirectInputEvents</key>
-    <true/>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>This app saves images to your photo library.</string>
 
-    <key>UILaunchStoryboardName</key>
-    <string>LaunchScreen</string>
+	<key>NSCameraUsageDescription</key>
+	<string>This app uses the camera to capture photos.</string>
 
-    <key>UIMainStoryboardFile</key>
-    <string>Main</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app uses your location to improve user experience.</string>
 
-    <key>UISupportedInterfaceOrientations</key>
-    <array>
-        <string>UIInterfaceOrientationPortrait</string>
-        <string>UIInterfaceOrientationLandscapeLeft</string>
-        <string>UIInterfaceOrientationLandscapeRight</string>
-    </array>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>This app may use your location in the background for better functionality.</string>
 
-    <key>UISupportedInterfaceOrientations~ipad</key>
-    <array>
-        <string>UIInterfaceOrientationPortrait</string>
-        <string>UIInterfaceOrientationPortraitUpsideDown</string>
-        <string>UIInterfaceOrientationLandscapeLeft</string>
-        <string>UIInterfaceOrientationLandscapeRight</string>
-    </array>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
 
-    <!-- Permission Strings (required by App Store even if used only by SDKs) -->
-    <key>NSPhotoLibraryUsageDescription</key>
-    <string>This app requires photo library access to select and upload images.</string>
+	<key>UIMainStoryboardFile</key>
+	<string>Main</string>
 
-    <key>NSCameraUsageDescription</key>
-    <string>This app requires camera access to upload images.</string>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+	</array>
 
-    <key>NSLocationWhenInUseUsageDescription</key>
-    <string>This app requires location access to enhance user experience.</string>
-
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
 </dict>
 </plist>
