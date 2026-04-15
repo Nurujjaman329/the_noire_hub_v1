@@ -7,38 +7,32 @@ import '../constants/app_colors.dart';
 class CustomPinCodeTextField extends StatelessWidget {
   const CustomPinCodeTextField({
     super.key,
-    this.textEditingController,
+    this.pinController,
     this.onCompleted,
   });
 
-  final TextEditingController? textEditingController;
-  final Function(String)? onCompleted;
+  final PinInputController? pinController;
+  final ValueChanged<String>? onCompleted;
 
   @override
   Widget build(BuildContext context) {
-    return PinCodeTextField(
-      appContext: context,
+    return MaterialPinField(
       length: 6,
-      controller: textEditingController,
+      pinController: pinController,
       keyboardType: TextInputType.number,
       autoFocus: false,
-
       onCompleted: onCompleted,
-
-      pinTheme: PinTheme(
-        shape: PinCodeFieldShape.box,
+      theme: MaterialPinTheme(
+        shape: MaterialPinShape.outlined,
+        cellSize: Size(44.w, 57.h),
         borderRadius: BorderRadius.circular(8),
-        fieldHeight: 57.h,
-        fieldWidth: 44.w,
-        activeColor: AppColors.primary,
-        selectedColor: AppColors.primary,
-        inactiveColor: AppColors.primary,
-        activeFillColor: AppColors.geryColor,
-        selectedFillColor: AppColors.geryColor,
-        inactiveFillColor: AppColors.primary,
+        borderColor: AppColors.primary,
+        focusedBorderColor: AppColors.primary,
+        filledBorderColor: AppColors.primary,
+        fillColor: AppColors.primary,
+        focusedFillColor: AppColors.geryColor,
+        filledFillColor: AppColors.geryColor,
       ),
-
-      enableActiveFill: true,
     );
   }
 }
