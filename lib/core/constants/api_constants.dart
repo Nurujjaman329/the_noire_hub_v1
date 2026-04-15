@@ -20,6 +20,7 @@ class ApiConstants {
   static const String verifyMail = "auth/forgot-password";
   static const String resetPassword = "auth/reset-password";
   static const String changePassword = "auth/change-password";
+  static const String deleteMe = "auth/delete-me";
   static const String getProfile = "users/self/in";
   static const String updateProfile = "users/self/update";
   static const String addBusinessDocuments = "business-documents";

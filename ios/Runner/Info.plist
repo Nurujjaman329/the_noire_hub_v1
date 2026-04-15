@@ -3,72 +3,66 @@
 <plist version="1.0">
 <dict>
 
-    <key>CADisableMinimumFrameDurationOnPhone</key>
-    <true/>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>$(DEVELOPMENT_LANGUAGE)</string>
 
-    <key>CFBundleDevelopmentRegion</key>
-    <string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleDisplayName</key>
+	<string>The Noire Hub V1</string>
 
-    <key>CFBundleDisplayName</key>
-    <string>The Noire Hub V1</string>
+	<key>CFBundleExecutable</key>
+	<string>$(EXECUTABLE_NAME)</string>
 
-    <key>CFBundleExecutable</key>
-    <string>$(EXECUTABLE_NAME)</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.annadat.tnp</string>
 
-    <key>CFBundleIdentifier</key>
-    <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
 
-    <key>CFBundleInfoDictionaryVersion</key>
-    <string>6.0</string>
+	<key>CFBundleName</key>
+	<string>the_noire_hub_v1</string>
 
-    <key>CFBundleName</key>
-    <string>the_noire_hub_v1</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
 
-    <key>CFBundlePackageType</key>
-    <string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(FLUTTER_BUILD_NAME)</string>
 
-    <key>CFBundleShortVersionString</key>
-    <string>1.0.0</string>
+	<key>CFBundleVersion</key>
+	<string>$(FLUTTER_BUILD_NUMBER)</string>
 
-    <key>CFBundleVersion</key>
-    <string>1</string>
+	<key>LSRequiresIPhoneOS</key>
+	<true/>
 
-    <key>LSRequiresIPhoneOS</key>
-    <true/>
+	<!-- Permissions -->
 
-    <key>UIApplicationSupportsIndirectInputEvents</key>
-    <true/>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We use your photo library to let you select images for your profile and product listings. For example, you can choose existing photos when uploading a product.</string>
 
-    <key>UILaunchStoryboardName</key>
-    <string>LaunchScreen</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>We use this permission to allow users to save images from the app to their photo library.</string>
 
-    <key>UIMainStoryboardFile</key>
-    <string>Main</string>
+	<key>NSCameraUsageDescription</key>
+	<string>We use the camera to allow users to take photos for profile pictures and product listings. For example, you can capture a photo when creating or updating a product listing.</string>
 
-    <key>UISupportedInterfaceOrientations</key>
-    <array>
-        <string>UIInterfaceOrientationPortrait</string>
-        <string>UIInterfaceOrientationLandscapeLeft</string>
-        <string>UIInterfaceOrientationLandscapeRight</string>
-    </array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>We use your location to show products and availability in your area. For example, delivery options and product availability may vary based on your location, as some vendors do not deliver to all regions.</string>
 
-    <key>UISupportedInterfaceOrientations~ipad</key>
-    <array>
-        <string>UIInterfaceOrientationPortrait</string>
-        <string>UIInterfaceOrientationPortraitUpsideDown</string>
-        <string>UIInterfaceOrientationLandscapeLeft</string>
-        <string>UIInterfaceOrientationLandscapeRight</string>
-    </array>
+	<key>UILaunchStoryboardName</key>
+	<string>LaunchScreen</string>
 
-    <!-- Permission Strings (required by App Store even if used only by SDKs) -->
-    <key>NSPhotoLibraryUsageDescription</key>
-    <string>This app requires photo library access to select and upload images.</string>
+	<key>UIMainStoryboardFile</key>
+	<string>Main</string>
 
-    <key>NSCameraUsageDescription</key>
-    <string>This app requires camera access to upload images.</string>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+	</array>
 
-    <key>NSLocationWhenInUseUsageDescription</key>
-    <string>This app requires location access to enhance user experience.</string>
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
+
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
 
 </dict>
 </plist>
