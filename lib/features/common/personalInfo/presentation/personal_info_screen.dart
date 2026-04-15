@@ -104,18 +104,7 @@ class PersonalInfoScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(50.r),
             ),
           ),
-          Positioned(
-            bottom: 0,
-            right: 0,
-            child: Container(
-              padding: EdgeInsets.all(6.r),
-              decoration: const BoxDecoration(
-                color: Color(0xFF707E5F),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(Icons.camera_alt, color: Colors.white, size: 18.sp),
-            ),
-          ),
+
         ],
       ),
     );
