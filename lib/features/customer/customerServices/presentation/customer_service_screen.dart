@@ -8,6 +8,7 @@ import '../../../../core/constants/api_constants.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/route_constants.dart';
+import '../../../../core/controllers/profile_controller.dart';
 import '../../../../core/services/cache_service.dart';
 import '../../../../core/widgets/custom_network_image.dart';
 import '../../../../core/widgets/custom_text.dart';
@@ -24,13 +25,11 @@ class CustomerServiceScreen extends StatelessWidget {
     final controller = Get.find<CustomerServiceController>();
     final categoryController = Get.find<CategoryController>();
     final subCategoryController = Get.find<SubCategoryController>();
+    final profileController = Get.find<ProfileController>();
 
     if (categoryController.categories.isEmpty) {
       categoryController.loadCategories();
     }
-
-    final image = CacheService.userImage;
-    final fullImageUrl = image.isNotEmpty ? "${ApiConstants.baseImageUrl}$image" : '';
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -54,7 +53,7 @@ class CustomerServiceScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(height: 10.h),
-                  _buildHeader(fullImageUrl),
+                  _buildHeader(profileController),
                   SizedBox(height: 20.h),
                   _buildSearchField(),
                   SizedBox(height: 25.h),
@@ -396,7 +395,7 @@ class CustomerServiceScreen extends StatelessWidget {
 
 
 
-  Widget _buildHeader(String imageUrl) {
+  Widget _buildHeader(ProfileController profileController) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -424,17 +423,21 @@ class CustomerServiceScreen extends StatelessWidget {
             fontSize: 12.sp,
             color: AppColors.textHint
         ),
-        GestureDetector(
-          onTap: () => Get.toNamed(RouteConstants.profileScreen),
-          child: CustomNetworkImage(
-            imageUrl: imageUrl,
-            height: 44.r,
-            width: 44.r,
-            boxShape: BoxShape.circle,
-            // If the image is empty, your internal _buildErrorWidget
-            // already handles the Icons.person fallback.
-          ),
-        )
+        Obx(() {
+          final image = profileController.userImage.value;
+          final imageUrl = image.isNotEmpty ? "${ApiConstants.baseImageUrl}$image" : '';
+          return GestureDetector(
+            onTap: () => Get.toNamed(RouteConstants.profileScreen),
+            child: CustomNetworkImage(
+              imageUrl: imageUrl,
+              height: 44.r,
+              width: 44.r,
+              boxShape: BoxShape.circle,
+              // If the image is empty, your internal _buildErrorWidget
+              // already handles the Icons.person fallback.
+            ),
+          );
+        })
       ],
     );
   }
