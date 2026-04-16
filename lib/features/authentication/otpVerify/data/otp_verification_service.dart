@@ -27,6 +27,10 @@ class OtpVerificationService {
       if (flowType != "forgot_password") {
         final attributes = verificationResponse.data.attributes;
         final user = attributes.user;
+        debugPrint(
+          '📥 [OTP_VERIFY_RES] userId=${user.id}, role=${user.role}, email=${user.email}, '
+          'addressesCount=${user.addresses.length}',
+        );
 
         // --- 1. Extract Address & Coordinates ---
         String? combinedAddress;
@@ -34,6 +38,16 @@ class OtpVerificationService {
         double? longitude;
 
         if (user.addresses.isNotEmpty) {
+          for (int i = 0; i < user.addresses.length; i++) {
+            final a = user.addresses[i];
+            final lon = a.location.coordinates.isNotEmpty ? a.location.coordinates[0] : null;
+            final lat = a.location.coordinates.length > 1 ? a.location.coordinates[1] : null;
+            debugPrint(
+              '📥 [OTP_VERIFY_RES] address[$i] city=${a.city}, country=${a.country}, '
+              'lat=$lat, lon=$lon, isDefault=${a.isDefault}',
+            );
+          }
+
           final addr = user.addresses.firstWhere(
                 (a) => a.isDefault,
             orElse: () => user.addresses.first,
@@ -59,6 +73,9 @@ class OtpVerificationService {
           address: combinedAddress,
           lat: latitude,  // ✅ Added Lat
           lon: longitude, // ✅ Added Lon
+        );
+        debugPrint(
+          '💾 [OTP_CACHE_WRITE] address=$combinedAddress, lat=$latitude, lon=$longitude',
         );
       }
 

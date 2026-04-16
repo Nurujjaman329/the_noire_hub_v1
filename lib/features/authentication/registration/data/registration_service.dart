@@ -12,6 +12,23 @@ class RegistrationService {
 
   RegistrationService(this._apiClient);
 
+  void _logAddressPayload(String flow, List<AddressRequest> addresses) {
+    if (addresses.isEmpty) {
+      debugPrint('📤 [$flow] addresses: []');
+      return;
+    }
+
+    for (int i = 0; i < addresses.length; i++) {
+      final item = addresses[i];
+      final lon = item.location.coordinates.isNotEmpty ? item.location.coordinates[0] : null;
+      final lat = item.location.coordinates.length > 1 ? item.location.coordinates[1] : null;
+      debugPrint(
+        '📤 [$flow] address[$i] city=${item.city}, country=${item.country}, lat=$lat, lon=$lon',
+      );
+    }
+    debugPrint('📤 [$flow] addresses.raw=${jsonEncode(addresses.map((e) => e.toJson()).toList())}');
+  }
+
   // --- USER REGISTRATION (JSON) ---
   Future<Response> registerUser({
     required String fullName,
@@ -29,8 +46,8 @@ class RegistrationService {
       "addresses": addresses.map((e) => e.toJson()).toList(),
     };
 
-    // Printing the JSON body clearly
-    debugPrint('🚀 [User Registration Body]: ${jsonEncode(body)}');
+    _logAddressPayload('REGISTER_USER_REQ', addresses);
+    debugPrint('🚀 [REGISTER_USER_REQ] body=${jsonEncode(body)}');
 
     return await _apiClient.postJson(ApiConstants.registration, data: body);
   }
@@ -52,6 +69,9 @@ class RegistrationService {
     final categoryJson = jsonEncode(
         selectedCategories.map((e) => e.toJson()).toList());
 
+    _logAddressPayload('REGISTER_VENDOR_REQ', addresses);
+    debugPrint('📤 [REGISTER_VENDOR_REQ] categories.raw=$categoryJson');
+
     FormData formData = FormData.fromMap({
       "fullName": fullName,
       "email": email,
@@ -69,6 +89,12 @@ class RegistrationService {
             .last,
       ),
     });
+
+    debugPrint(
+      '🚀 [REGISTER_VENDOR_REQ] summary='
+      'role=$role, email=$email, businessName=$businessName, phone=$phoneNumber, '
+      'hasImage=${shopImage.path.isNotEmpty}',
+    );
 
     return await _apiClient.postFormData(
         ApiConstants.registration, data: formData);

@@ -65,8 +65,48 @@ mixin MapSearchMixin on GetxController {
       final detailUrl = "https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&key=$googleApiKey";
       final response = await dio_instance.Dio().get(detailUrl);
       if (response.statusCode == 200) {
-        final location = response.data['result']['geometry']['location'];
-        updateLocation(LatLng(location['lat'], location['lng']));
+        final result = response.data['result'] as Map<String, dynamic>? ?? {};
+        final location = result['geometry']?['location'] as Map<String, dynamic>?;
+        if (location == null) return;
+
+        final latLng = LatLng(location['lat'], location['lng']);
+
+        // Prefer authoritative address components from Place Details.
+        final components = (result['address_components'] as List<dynamic>? ?? [])
+            .whereType<Map<String, dynamic>>()
+            .toList();
+
+        String? cityFromComponents;
+        String? countryFromComponents;
+
+        for (final component in components) {
+          final types = (component['types'] as List<dynamic>? ?? []).map((e) => e.toString()).toList();
+          if (countryFromComponents == null && types.contains('country')) {
+            countryFromComponents = (component['long_name'] ?? '').toString();
+          }
+          if (cityFromComponents == null &&
+              (types.contains('locality') ||
+                  types.contains('postal_town') ||
+                  types.contains('administrative_area_level_2') ||
+                  types.contains('administrative_area_level_1'))) {
+            cityFromComponents = (component['long_name'] ?? '').toString();
+          }
+        }
+
+        if ((cityFromComponents ?? '').isNotEmpty) {
+          selectedCity.value = cityFromComponents!;
+        }
+        if ((countryFromComponents ?? '').isNotEmpty) {
+          selectedCountry.value = countryFromComponents!;
+        }
+
+        final formattedAddress = (result['formatted_address'] ?? prediction['description'] ?? '').toString();
+        if (formattedAddress.isNotEmpty) {
+          currentAddressString.value = formattedAddress;
+        }
+
+        // Keep marker movement + reverse geocoding as secondary sync.
+        await updateLocation(latLng);
         FocusManager.instance.primaryFocus?.unfocus();
       }
     } catch (e) {
@@ -93,8 +133,19 @@ mixin MapSearchMixin on GetxController {
       List<Placemark> placemarks = await placemarkFromCoordinates(latLng.latitude, latLng.longitude);
       if (placemarks.isNotEmpty) {
         Placemark place = placemarks[0];
-        selectedCity.value = place.locality ?? '';
-        selectedCountry.value = place.country ?? '';
+        final resolvedCity = (place.locality?.trim().isNotEmpty == true)
+            ? place.locality!
+            : (place.subAdministrativeArea?.trim().isNotEmpty == true)
+                ? place.subAdministrativeArea!
+                : (place.administrativeArea ?? '');
+        final resolvedCountry = place.country ?? '';
+
+        if (resolvedCity.trim().isNotEmpty) {
+          selectedCity.value = resolvedCity;
+        }
+        if (resolvedCountry.trim().isNotEmpty) {
+          selectedCountry.value = resolvedCountry;
+        }
         currentAddressString.value = "${place.street}, ${place.locality}, ${place.country}";
       }
     } catch (e) {
