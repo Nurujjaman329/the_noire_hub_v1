@@ -225,17 +225,17 @@ class DashboardScreen extends StatelessWidget {
             onTap: () => _scaffoldKey.currentState?.openDrawer(),
             child: Icon(Icons.menu, size: 28.sp, color: AppColors.geryColor),
           ),
-          Row(
+          Obx(() => Row(
             children: [
               Icon(Icons.location_on, size: 18.sp, color: AppColors.textPrimary),
               SizedBox(width: 5.w),
               CustomText(
-                text: CacheService.formattedLocation,
+                text: profileController.formattedLocation,
                 fontSize: 16.sp,
                 fontWeight: FontWeight.bold,
               ),
             ],
-          ),
+          )),
           Obx(() {
             final image = profileController.userImage.value;
             final imageUrl = image.isNotEmpty ? ApiConstants.baseImageUrl + image : '';

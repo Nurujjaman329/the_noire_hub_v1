@@ -418,11 +418,11 @@ class CustomerServiceScreen extends StatelessWidget {
             ),
           ],
         ),
-        CustomText(
-            text: CacheService.formattedLocation,
-            fontSize: 12.sp,
-            color: AppColors.textHint
-        ),
+        Obx(() => CustomText(
+          text: profileController.formattedLocation,
+          fontSize: 12.sp,
+          color: AppColors.textHint,
+        )),
         Obx(() {
           final image = profileController.userImage.value;
           final imageUrl = image.isNotEmpty ? "${ApiConstants.baseImageUrl}$image" : '';

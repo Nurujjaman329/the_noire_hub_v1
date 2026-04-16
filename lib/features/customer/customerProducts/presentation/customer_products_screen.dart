@@ -9,7 +9,6 @@ import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/route_constants.dart';
 import '../../../../core/controllers/profile_controller.dart';
-import '../../../../core/services/cache_service.dart';
 import '../../../../core/widgets/custom_network_image.dart';
 import '../../../../core/widgets/custom_text.dart';
 import '../../../common/category/presentation/controller/category_controller.dart';
@@ -407,11 +406,11 @@ class CustomerProductsScreen extends StatelessWidget {
             ),
           ],
         ),
-        CustomText(
-            text: CacheService.formattedLocation,
-            fontSize: 12.sp,
-            color: AppColors.textHint
-        ),
+        Obx(() => CustomText(
+          text: profileController.formattedLocation,
+          fontSize: 12.sp,
+          color: AppColors.textHint,
+        )),
         Obx(() {
           final image = profileController.userImage.value;
           final imageUrl = image.isNotEmpty ? "${ApiConstants.baseImageUrl}$image" : '';
