@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../../../core/api/api_exception.dart';
+import '../../../../../core/controllers/profile_controller.dart';
 import '../../../../../core/services/cache_service.dart';
 import '../../../../../core/utils/app_snackbar.dart';
 import '../../../../../core/utils/mixins/map_search_mixin.dart';
@@ -124,6 +125,7 @@ class EditProfileController extends GetxController with MapSearchMixin {
         final addr = updatedUser.addresses.firstWhere((a) => a.isDefault, orElse: () => updatedUser.addresses.first);
         newLon = addr.location.coordinates[0];
         newLat = addr.location.coordinates[1];
+        combinedAddress = "${addr.city}|${addr.country}";
       }
 
       // --- 2. SYNC CACHE SERVICE ---
@@ -141,7 +143,22 @@ class EditProfileController extends GetxController with MapSearchMixin {
         lon: newLon,
       );
 
-      // --- 3. SYNC OTHER CONTROLLERS ---
+      // --- 3. SYNC PROFILE CONTROLLER (Reactive) ---
+      if (Get.isRegistered<ProfileController>()) {
+        final profileCtrl = Get.find<ProfileController>();
+        profileCtrl.updateProfile(
+          image: updatedUser.image,
+          fullName: updatedUser.fullName,
+          businessName: updatedUser.businessName,
+          phone: updatedUser.phoneNumber,
+          bio: updatedUser.bio,
+          address: combinedAddress,
+          lat: newLat,
+          lon: newLon,
+        );
+      }
+
+      // --- 4. SYNC OTHER CONTROLLERS ---
       if (Get.isRegistered<PersonalInfoController>()) {
         Get.find<PersonalInfoController>().userProfile.value =
             UserProfileModel.fromJson(updatedUser.toJson());

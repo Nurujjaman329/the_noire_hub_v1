@@ -33,7 +33,6 @@ class EditProfileScreen extends GetView<EditProfileController> {
               child: Column(
                 children: [
                   _editTile(label: "Full Name", controller: controller.fullNameController, icon: Icons.person_outline),
-                  _editTile(label: "Business Name", controller: controller.businessNameController, icon: Icons.business_outlined),
                   _editTile(label: "Phone Number", controller: controller.phoneController, icon: Icons.phone_android_outlined),
                   _editTile(
                     label: "Address",
@@ -42,7 +41,6 @@ class EditProfileScreen extends GetView<EditProfileController> {
                     readOnly: false,
                     mainController: controller
                   ),
-                  _editTile(label: "Bio", controller: controller.bioController, icon: Icons.info_outline),
                 ],
               ),
             ),

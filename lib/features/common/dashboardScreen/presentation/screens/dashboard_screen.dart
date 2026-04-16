@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -7,6 +6,7 @@ import 'package:shimmer/shimmer.dart';
 import '../../../../../core/constants/api_constants.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/route_constants.dart';
+import '../../../../../core/controllers/profile_controller.dart';
 import '../../../../../core/services/cache_service.dart';
 import '../../../../../core/widgets/custom_network_image.dart';
 import '../../../../../core/widgets/custom_text.dart';
@@ -24,6 +24,7 @@ class DashboardScreen extends StatelessWidget {
   final vendorController = Get.find<VendorProductController>();
   final beauticianController = Get.find<BeauticianStoreServiceController>();
   final earningsController = Get.find<EarningsController>();
+  final profileController = Get.find<ProfileController>();
 
   @override
   Widget build(BuildContext context) {
@@ -34,9 +35,6 @@ class DashboardScreen extends StatelessWidget {
     final String businessName = CacheService.businessName.isNotEmpty
         ? CacheService.businessName
         : "Ada’s Body Shop";
-
-    final image = CacheService.userImage;
-    final fullImageUrl = image.isNotEmpty ? ApiConstants.baseImageUrl + image : '';
 
     return Scaffold(
       key: _scaffoldKey,
@@ -61,7 +59,7 @@ class DashboardScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildHeader(context, fullImageUrl: fullImageUrl),
+                  _buildHeader(context),
                   SizedBox(height: 20.h),
                   Center(
                     child: CustomText(text: "Dashboard", fontSize: 28.sp, fontWeight: FontWeight.bold),
@@ -217,7 +215,7 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, {String? fullImageUrl}) {
+  Widget _buildHeader(BuildContext context) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 10.h),
       child: Row(
@@ -227,27 +225,31 @@ class DashboardScreen extends StatelessWidget {
             onTap: () => _scaffoldKey.currentState?.openDrawer(),
             child: Icon(Icons.menu, size: 28.sp, color: AppColors.geryColor),
           ),
-          Row(
+          Obx(() => Row(
             children: [
               Icon(Icons.location_on, size: 18.sp, color: AppColors.textPrimary),
               SizedBox(width: 5.w),
               CustomText(
-                text: CacheService.formattedLocation,
+                text: profileController.formattedLocation,
                 fontSize: 16.sp,
                 fontWeight: FontWeight.bold,
               ),
             ],
-          ),
-          GestureDetector(
-            onTap: () => Get.toNamed(RouteConstants.profileScreen),
-            child: CustomNetworkImage(
-              imageUrl: fullImageUrl ?? '',
-              height: 44.r,
-              width: 44.r,
-              boxShape: BoxShape.circle,
-              // If the image is empty, it will show the person icon automatically
-            ),
-          ),
+          )),
+          Obx(() {
+            final image = profileController.userImage.value;
+            final imageUrl = image.isNotEmpty ? ApiConstants.baseImageUrl + image : '';
+            return GestureDetector(
+              onTap: () => Get.toNamed(RouteConstants.profileScreen),
+              child: CustomNetworkImage(
+                imageUrl: imageUrl,
+                height: 44.r,
+                width: 44.r,
+                boxShape: BoxShape.circle,
+                // If the image is empty, it will show the person icon automatically
+              ),
+            );
+          }),
         ],
       ),
     );

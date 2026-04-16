@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/route_constants.dart';
+import '../../../../core/controllers/profile_controller.dart';
 import '../../../../core/services/cache_service.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/widgets/custom_network_image.dart';
@@ -16,15 +17,7 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 1. Get simple strings directly from static CacheService
-    final String role = CacheService.role.toLowerCase();
-    final String fullName = CacheService.userFullName.isNotEmpty ? CacheService.userFullName : "User Name";
-    final String image = CacheService.userImage;
-    final profileImg = image.isNotEmpty ? ApiConstants.baseImageUrl + image : '';
-
-    // 2. Pure logic without model overhead
-    final bool isCustomer = role == 'user' || role == 'customer';
-    final bool isBeautician = role.contains('beautician');
+    final profileController = Get.find<ProfileController>();
 
     return Scaffold(
       backgroundColor: const Color(0XFF3F592B),
@@ -53,19 +46,31 @@ class ProfileScreen extends StatelessWidget {
                 children: [
                   SizedBox(height: 75.h),
 
-                  // Dynamic Name from Cache
-                  CustomText(
-                    text: fullName,
-                    fontSize: 26.sp,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primaryDark,
-                  ),
+                  Obx(() {
+                    final fullName = profileController.userFullName.value.isNotEmpty
+                        ? profileController.userFullName.value
+                        : "User Name";
+                    return CustomText(
+                      text: fullName,
+                      fontSize: 26.sp,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primaryDark,
+                    );
+                  }),
                   SizedBox(height: 25.h),
 
-                  _buildQuickActions(isCustomer, isBeautician),
-                  SizedBox(height: 20.h),
-
-                  _buildSettingsList(isCustomer),
+                  Obx(() {
+                    final role = profileController.role.value.toLowerCase();
+                    final isCustomer = role == 'user' || role == 'customer';
+                    final isBeautician = role.contains('beautician');
+                    return Column(
+                      children: [
+                        _buildQuickActions(isCustomer, isBeautician),
+                        SizedBox(height: 20.h),
+                        _buildSettingsList(isCustomer),
+                      ],
+                    );
+                  }),
                   SizedBox(height: 20.h),
                   _buildSignOutSection(),
                   SizedBox(height: 100.h),
@@ -74,16 +79,20 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
 
-          // Dynamic Profile Image from Cache
+          // Dynamic Profile Image from reactive controller
           Positioned(
             top: 0,
-            child: CustomNetworkImage(
-              imageUrl: profileImg,
-              height: 120.h,
-              width: 120.w,
-              boxShape: BoxShape.circle,
-              border: Border.all(color: AppColors.white, width: 4),
-            ),
+            child: Obx(() {
+              final image = profileController.userImage.value;
+              final profileImg = image.isNotEmpty ? ApiConstants.baseImageUrl + image : '';
+              return CustomNetworkImage(
+                imageUrl: profileImg,
+                height: 120.h,
+                width: 120.w,
+                boxShape: BoxShape.circle,
+                border: Border.all(color: AppColors.white, width: 4),
+              );
+            }),
           ),
         ],
       ),

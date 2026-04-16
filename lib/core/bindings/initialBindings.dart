@@ -18,6 +18,7 @@ import '../../features/vendor/orderFullFillment/presentation/controller/order_fu
 import '../../features/vendor/vendorOrderScreen/data/vendor_order_service.dart';
 import '../../features/vendor/vendorOrderScreen/presentation/controller/vendor_order_controller.dart';
 import '../api/api_client.dart';
+import '../controllers/profile_controller.dart';
 import '../../features/authentication/login/data/login_service.dart';
 import '../../features/authentication/login/presentation/controller/login_controller.dart';
 import '../../features/common/category/data/category_service.dart';
@@ -32,6 +33,9 @@ class InitialBinding extends Bindings {
   void dependencies() {
     // Core
     Get.put<ApiClient>(ApiClient(), permanent: true);
+    
+    // Profile Controller (Permanent - holds reactive profile state)
+    Get.put<ProfileController>(ProfileController(), permanent: true);
 
     // Auth
     Get.lazyPut<LoginService>(() => LoginService(Get.find<ApiClient>()), fenix: true);

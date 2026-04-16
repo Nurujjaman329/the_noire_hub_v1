@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 
 import '../../../../../core/constants/route_constants.dart';
+import '../../../../../core/controllers/profile_controller.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/otp_verification_service.dart';
@@ -54,7 +55,12 @@ class OtpVerificationController extends GetxController {
       if (flowType == "forgot_password") {
         Get.toNamed(RouteConstants.resetPasswordScreen, arguments: {"email": email});
       } else {
-        // Normal flow: Storage happened in service, now navigate to Home
+        // Normal flow: Storage happened in service, now refresh ProfileController
+        // This ensures all screens immediately see updated location, address, etc.
+        final profileController = Get.find<ProfileController>();
+        profileController.refreshProfile();
+        
+        // Navigate to Home
         final userRole = response.data.attributes.user.role.toLowerCase();
         if (userRole.contains('vendor') || userRole.contains('beautician')) {
           Get.offAllNamed(RouteConstants.vendorMainContainer);

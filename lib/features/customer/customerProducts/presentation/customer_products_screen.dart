@@ -8,7 +8,7 @@ import 'package:the_noire_hub_v1/features/customer/customerProducts/data/custome
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/route_constants.dart';
-import '../../../../core/services/cache_service.dart';
+import '../../../../core/controllers/profile_controller.dart';
 import '../../../../core/widgets/custom_network_image.dart';
 import '../../../../core/widgets/custom_text.dart';
 import '../../../common/category/presentation/controller/category_controller.dart';
@@ -23,13 +23,11 @@ class CustomerProductsScreen extends StatelessWidget {
     final controller = Get.find<CustomerProductsController>();
     final categoryController = Get.find<CategoryController>();
     final subCategoryController = Get.find<SubCategoryController>();
+    final profileController = Get.find<ProfileController>();
 
     if (categoryController.categories.isEmpty) {
       categoryController.loadCategories();
     }
-
-    final image = CacheService.userImage;
-    final fullImageUrl = image.isNotEmpty ? "${ApiConstants.baseImageUrl}$image" : '';
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -53,7 +51,7 @@ class CustomerProductsScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(height: 10.h),
-                  _buildHeader(fullImageUrl),
+                  _buildHeader(profileController),
                   SizedBox(height: 20.h),
                   _buildSearchField(),
                   SizedBox(height: 25.h),
@@ -385,7 +383,7 @@ class CustomerProductsScreen extends StatelessWidget {
 
 
 
-  Widget _buildHeader(String imageUrl) {
+  Widget _buildHeader(ProfileController profileController) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -408,22 +406,26 @@ class CustomerProductsScreen extends StatelessWidget {
             ),
           ],
         ),
-        CustomText(
-            text: CacheService.formattedLocation,
-            fontSize: 12.sp,
-            color: AppColors.textHint
-        ),
-        GestureDetector(
-          onTap: () => Get.toNamed(RouteConstants.profileScreen),
-          child: CustomNetworkImage(
-            imageUrl: imageUrl,
-            height: 44.r,
-            width: 44.r,
-            boxShape: BoxShape.circle,
-            // If the image is empty, your internal _buildErrorWidget
-            // already handles the Icons.person fallback.
-          ),
-        )
+        Obx(() => CustomText(
+          text: profileController.formattedLocation,
+          fontSize: 12.sp,
+          color: AppColors.textHint,
+        )),
+        Obx(() {
+          final image = profileController.userImage.value;
+          final imageUrl = image.isNotEmpty ? "${ApiConstants.baseImageUrl}$image" : '';
+          return GestureDetector(
+            onTap: () => Get.toNamed(RouteConstants.profileScreen),
+            child: CustomNetworkImage(
+              imageUrl: imageUrl,
+              height: 44.r,
+              width: 44.r,
+              boxShape: BoxShape.circle,
+              // If the image is empty, your internal _buildErrorWidget
+              // already handles the Icons.person fallback.
+            ),
+          );
+        })
       ],
     );
   }
