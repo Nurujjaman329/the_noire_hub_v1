@@ -268,7 +268,7 @@ class ProfileScreen extends StatelessWidget {
               case "Message to Admin":
                 final Uri emailLaunchUri = Uri(
                   scheme: 'mailto',
-                  path: 'tonmoysds110@gmail.com',
+                  path: 'tnpvendor@gmail.com',
                   query: encodeQueryParameters(<String, String>{
                     'subject': 'Support Request - ${CacheService.userFullName}',
                     'body': 'Hello Admin,\n\n',
