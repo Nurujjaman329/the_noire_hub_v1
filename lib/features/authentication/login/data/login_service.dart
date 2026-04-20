@@ -4,6 +4,7 @@ import '../../../../core/api/api_exception.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/controllers/profile_controller.dart';
 import '../../../../core/services/cache_service.dart';
+import '../../../../core/services/push_notification_service.dart';
 import 'login_response_model.dart';
 
 class LoginService {
@@ -14,9 +15,17 @@ class LoginService {
   /// Login with email & password
   Future<LoginResponseModel> login(String email, String password) async {
     try {
+      final fcmToken = await PushNotificationService.getToken();
+
+      final Map<String, dynamic> loginBody = {
+        'email': email,
+        'password': password,
+        if (fcmToken != null && fcmToken.isNotEmpty) 'fcmToken': fcmToken,
+      };
+
       final response = await _apiClient.postJson(
         ApiConstants.login,
-        data: {'email': email, 'password': password},
+        data: loginBody,
       );
 
       final loginResponse = LoginResponseModel.fromJson(response.data);

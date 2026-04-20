@@ -21,6 +21,7 @@ class CacheService {
   static const String _addressKey = 'user_address';
   static const String _latKey = 'user_lat';
   static const String _lonKey = 'user_lon';
+  static const String _fcmTokenKey = 'fcm_token';
 
   // --- Getters ---
 
@@ -102,6 +103,15 @@ class CacheService {
     final value = _prefs?.getString(_bioKey) ?? '';
     debugPrint('🔑 Get bio: $value');
     return value;
+  }
+
+  static String get fcmToken {
+    return _prefs?.getString(_fcmTokenKey) ?? '';
+  }
+
+  static Future<void> saveFcmToken(String token) async {
+    await _prefs?.setString(_fcmTokenKey, token);
+    debugPrint('💾 fcmToken saved: $token');
   }
 
   static String get evaluationRoleSegment {
