@@ -38,7 +38,7 @@ class ConversationsSingleService {
     required String text,
   }) async {
     final String url = '${ApiConstants.conversations}/$conversationId/messages';
-    final Map<String, dynamic> body = {'text': text, 'type': 'text'};
+    final Map<String, dynamic> body = {'text': text,};
 
     debugPrint('🚀 [POST] Request to: $url');
     debugPrint('Request Body: $body');
