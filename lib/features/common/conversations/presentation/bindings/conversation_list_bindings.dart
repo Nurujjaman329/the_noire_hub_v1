@@ -7,12 +7,12 @@ import '../controller/conversation_list_controller.dart';
 class ConversationBindings extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<ConversationService>(
-      () => ConversationService(Get.find<ApiClient>()),
+    Get.lazyPut<ConversationListService>(
+      () => ConversationListService(Get.find<ApiClient>()),
     );
 
     Get.lazyPut<ConversationController>(
-      () => ConversationController(Get.find<ConversationService>()),
+      () => ConversationController(Get.find<ConversationListService>()),
     );
   }
 }

@@ -5,7 +5,7 @@ import '../../data/conversation_list_response_model.dart';
 import '../../data/conversation_list_service.dart';
 
 class ConversationController extends GetxController {
-  final ConversationService _service;
+  final ConversationListService _service;
   ConversationController(this._service);
 
   var isLoading = false.obs;
@@ -42,10 +42,20 @@ class ConversationController extends GetxController {
     }
   }
 
-  Future<ConversationDoc?> startConversation({required String receiverId}) async {
+  Future<ConversationDoc?> startConversation({
+    required String receiverId,
+    String? contextType,
+    String? contextId,
+    String? contextModel,
+  }) async {
     isCreating.value = true;
     try {
-      final conversation = await _service.createConversation(receiverId: receiverId);
+      final conversation = await _service.createConversation(
+        receiverId: receiverId,
+        contextType: contextType,
+        contextId: contextId,
+        contextModel: contextModel,
+      );
       if (conversation != null) {
         final exists = conversations.any((c) => c.id == conversation.id);
         if (!exists) conversations.insert(0, conversation);

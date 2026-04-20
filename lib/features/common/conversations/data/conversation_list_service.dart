@@ -4,9 +4,9 @@ import '../../../../core/api/api_client.dart';
 import '../../../../core/constants/api_constants.dart';
 import 'conversation_list_response_model.dart';
 
-class ConversationService {
+class ConversationListService {
   final ApiClient _apiClient;
-  ConversationService(this._apiClient);
+  ConversationListService(this._apiClient);
 
   Future<ConversationListResponseModel> getConversations({
     int page = 1,
@@ -39,9 +39,17 @@ class ConversationService {
 
   Future<ConversationDoc?> createConversation({
     required String receiverId,
+    String? contextType,
+    String? contextId,
+    String? contextModel,
   }) async {
     final String url = ApiConstants.conversations;
-    final Map<String, dynamic> body = {'receiverId': receiverId};
+    final Map<String, dynamic> body = {
+      'receiverId': receiverId,
+      if (contextType != null) 'contextType': contextType,
+      if (contextId != null) 'contextId': contextId,
+      if (contextModel != null) 'contextModel': contextModel,
+    };
 
     debugPrint('🚀 [POST] Request to: $url');
     debugPrint('Request Body: $body');

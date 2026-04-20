@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../../core/api/api_client.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/route_constants.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/widgets/custom_network_image.dart';
 import '../../../../core/widgets/custom_text.dart';
+import '../../../common/conversations/data/conversation_list_service.dart';
 import '../data/product_details_response_model.dart';
 import 'controller/product_details_controller.dart';
 
@@ -449,7 +451,32 @@ class ProductDetailScreen extends GetView<ProductDetailsController> {
             ),
             SizedBox(width: 10.w),
             GestureDetector(
-              onTap: () {},
+              onTap: () async {
+                try {
+                  Get.dialog(
+                    const Center(child: CircularProgressIndicator(color: Color(0XFF3F592B))),
+                    barrierDismissible: false,
+                  );
+                  final service = ConversationListService(Get.find<ApiClient>());
+                  final conv = await service.createConversation(
+                    receiverId: p.vendor.id,
+                    contextType: 'product',
+                    contextId: p.id,
+                    contextModel: 'Product',
+                  );
+                  if (Get.isDialogOpen == true) Get.back();
+                  if (conv != null) {
+                    Get.toNamed(
+                      RouteConstants.singleConversationScreen,
+                      arguments: {'conversationId': conv.id},
+                    );
+                  }
+                } catch (e) {
+                  if (Get.isDialogOpen == true) Get.back();
+                  Get.snackbar('Error', 'Could not start conversation',
+                      backgroundColor: Colors.redAccent, colorText: Colors.white);
+                }
+              },
               child: Container(
                 padding: EdgeInsets.all(6.r),
                 decoration: BoxDecoration(
