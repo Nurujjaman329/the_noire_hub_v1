@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../../core/services/cache_service.dart';
+import '../../../../../core/services/socket_service.dart';
 import '../../data/conversations_single_response_model.dart';
 import '../../data/conversations_single_service.dart';
 
@@ -26,14 +28,46 @@ class ConversationsSingleController extends GetxController {
     super.onInit();
     fetchConversation();
     scrollController.addListener(_onScroll);
+    _connectSocket();
   }
 
   @override
   void onClose() {
+    _disconnectSocket();
     textController.dispose();
     scrollController.dispose();
     super.onClose();
   }
+
+  // ── Socket ──────────────────────────────────────────────
+
+  void _connectSocket() {
+    SocketService.connect();
+    SocketService.joinRoom(conversationId);
+
+    // Listen for incoming messages in this conversation
+    SocketService.on('newMessage', (data) {
+      debugPrint('🔌 [Socket] newMessage received: $data');
+      try {
+        final message = Message.fromJson(Map<String, dynamic>.from(data));
+        // Avoid duplicate: skip if same id already in list
+        final alreadyExists = messages.any((m) => m.id == message.id);
+        if (!alreadyExists) {
+          messages.add(message);
+          _scrollToBottom();
+        }
+      } catch (e) {
+        debugPrint('🔌 [Socket] newMessage parse error: $e');
+      }
+    });
+  }
+
+  void _disconnectSocket() {
+    SocketService.off('newMessage');
+    SocketService.leaveRoom(conversationId);
+  }
+
+  // ── Data ────────────────────────────────────────────────
 
   void _onScroll() {
     if (scrollController.position.pixels <= 50 &&
@@ -95,19 +129,49 @@ class ConversationsSingleController extends GetxController {
     final text = textController.text.trim();
     if (text.isEmpty) return;
 
-    isSending.value = true;
+    // Clear input immediately — optimistic UX
     textController.clear();
 
+    // Add optimistic message so it appears instantly
+    final tempId = 'temp_${DateTime.now().millisecondsSinceEpoch}';
+    final optimistic = Message(
+      id: tempId,
+      author: User(
+        id: CacheService.userId,
+        fullName: CacheService.userFullName,
+        image: CacheService.userImage,
+        role: CacheService.role,
+      ),
+      text: text,
+      image: '',
+      type: 'text',
+      seenBy: [],
+      createdAt: DateTime.now().toIso8601String(),
+    );
+    messages.add(optimistic);
+    _scrollToBottom();
+
+    isSending.value = true;
     try {
       final success = await _service.sendMessage(
         conversationId: conversationId,
         text: text,
       );
 
-      if (success) {
-        await fetchConversation();
+      if (!success) {
+        // Remove optimistic message if API failed
+        messages.removeWhere((m) => m.id == tempId);
+        Get.snackbar(
+          "Error",
+          "Failed to send message. Please try again.",
+          backgroundColor: Colors.redAccent.withValues(alpha: 0.8),
+          colorText: Colors.white,
+        );
       }
+      // On success: socket's newMessage event will deliver the real message
+      // Replace optimistic with real when it arrives (handled in _connectSocket)
     } catch (e) {
+      messages.removeWhere((m) => m.id == tempId);
       Get.snackbar(
         "Error",
         "Failed to send message. Please try again.",
