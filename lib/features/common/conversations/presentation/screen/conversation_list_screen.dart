@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+
 import '../../../../../core/constants/api_constants.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/services/cache_service.dart';
@@ -90,18 +91,14 @@ class _ConversationTile extends StatelessWidget {
 
   const _ConversationTile({required this.doc});
 
-  ConversationParticipant _otherParticipant() {
-    final myId = CacheService.userId;
-    return doc.participants.firstWhere(
-      (p) => p.id != myId,
-      orElse: () => doc.participants.isNotEmpty
-          ? doc.participants.first
-          : ConversationParticipant(id: '', fullName: 'Unknown', image: '', role: ''),
-    );
+  ConversationUser _otherUser() {
+    return doc.users.isNotEmpty
+        ? doc.users.first
+        : ConversationUser(id: '', fullName: 'Unknown', image: '', role: '');
   }
 
   String _timeLabel() {
-    final dt = doc.lastMessage?.createdAt ?? doc.updatedAt;
+    final dt = doc.lastMessage?.createdAt ?? doc.createdAt;
     if (dt == null) return '';
     final now = DateTime.now();
     final diff = now.difference(dt);
@@ -115,11 +112,12 @@ class _ConversationTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final other = _otherParticipant();
-    final hasUnread = doc.unreadCount > 0;
-    final lastText = doc.lastMessage?.content ?? '';
+    final myId = CacheService.userId;
+    final other = _otherUser();
+    final hasUnread = doc.hasUnread(myId);
+    final lastText = doc.lastMessage?.text ?? '';
     final imageUrl = other.image.isNotEmpty
-        ? '${ApiConstants.baseImageUrl}/images/${other.image}'
+        ? '${ApiConstants.baseImageUrl}${other.image}'
         : '';
 
     return InkWell(
@@ -184,6 +182,29 @@ class _ConversationTile extends StatelessWidget {
                     ],
                   ),
                   SizedBox(height: 4.h),
+                  // Context label (product/service name)
+                  if (doc.contextId != null && doc.contextId!.name.isNotEmpty) ...[
+                    Row(
+                      children: [
+                        Icon(
+                          doc.contextModel == 'Product'
+                              ? Icons.shopping_bag_outlined
+                              : Icons.spa_outlined,
+                          size: 11.sp,
+                          color: AppColors.secondaryVariant,
+                        ),
+                        SizedBox(width: 4.w),
+                        CustomText(
+                          text: doc.contextId!.name,
+                          fontSize: 10.sp,
+                          color: AppColors.secondaryVariant,
+                          fontWeight: FontWeight.w500,
+                          maxLines: 1,
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 3.h),
+                  ],
                   Row(
                     children: [
                       Expanded(
@@ -198,16 +219,11 @@ class _ConversationTile extends StatelessWidget {
                       if (hasUnread) ...[
                         SizedBox(width: 8.w),
                         Container(
-                          padding: EdgeInsets.symmetric(horizontal: 7.w, vertical: 2.h),
-                          decoration: BoxDecoration(
+                          width: 10.w,
+                          height: 10.w,
+                          decoration: const BoxDecoration(
                             color: AppColors.primaryDark,
-                            borderRadius: BorderRadius.circular(20.r),
-                          ),
-                          child: CustomText(
-                            text: doc.unreadCount > 99 ? '99+' : '${doc.unreadCount}',
-                            fontSize: 10.sp,
-                            color: AppColors.white,
-                            fontWeight: FontWeight.bold,
+                            shape: BoxShape.circle,
                           ),
                         ),
                       ],

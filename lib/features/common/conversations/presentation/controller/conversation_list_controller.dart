@@ -28,9 +28,9 @@ class ConversationController extends GetxController {
       if (response.data?.attributes != null) {
         final attr = response.data!.attributes!;
         if (page == 1) {
-          conversations.assignAll(attr.docs);
+          conversations.assignAll(attr.results);
         } else {
-          conversations.addAll(attr.docs);
+          conversations.addAll(attr.results);
         }
         currentPage.value = attr.page;
         totalPages.value = attr.totalPages;
