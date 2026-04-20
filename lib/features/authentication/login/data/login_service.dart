@@ -1,6 +1,8 @@
+import 'package:get/get.dart';
 import '../../../../core/api/api_client.dart';
 import '../../../../core/api/api_exception.dart';
 import '../../../../core/constants/api_constants.dart';
+import '../../../../core/controllers/profile_controller.dart';
 import '../../../../core/services/cache_service.dart';
 import 'login_response_model.dart';
 
@@ -51,6 +53,9 @@ class LoginService {
         lat: latitude,
         lon: longitude,
       );
+
+      // Sync new user data into the reactive ProfileController
+      Get.find<ProfileController>().refreshProfile();
 
       return loginResponse;
     } on AppException {
