@@ -111,6 +111,16 @@ class ServiceBookingScreen extends StatelessWidget {
             ),
           ),
         ),
+        Positioned(
+          top: 50.h, right: 20.w,
+          child: GestureDetector(
+            onTap: () {},
+            child: CircleAvatar(
+              backgroundColor: Colors.black.withValues(alpha:0.5),
+              child: const Icon(Icons.chat_bubble_outline, color: Colors.white, size: 18),
+            ),
+          ),
+        ),
         Container(
           margin: EdgeInsets.only(top: 220.h),
           width: double.infinity,

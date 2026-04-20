@@ -439,11 +439,31 @@ class ProductDetailScreen extends GetView<ProductDetailsController> {
           fontSize: 10.sp,
           color: AppColors.geryColor,
         ),
-        const CustomText(
-          text: "View Store",
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
-          color: Color(0XFF3F592B),
+        Row(
+          children: [
+            const CustomText(
+              text: "View Store",
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: Color(0XFF3F592B),
+            ),
+            SizedBox(width: 10.w),
+            GestureDetector(
+              onTap: () {},
+              child: Container(
+                padding: EdgeInsets.all(6.r),
+                decoration: BoxDecoration(
+                  color: const Color(0XFF3F592B).withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.chat_bubble_outline,
+                  size: 14.sp,
+                  color: const Color(0XFF3F592B),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
@@ -516,4 +536,5 @@ class ProductDetailScreen extends GetView<ProductDetailsController> {
       ),
     );
   }
+
 }
