@@ -112,6 +112,8 @@ import '../../features/vendor/vendorProductDetailsScreen/presentation/bindings/v
 import '../../features/vendor/vendorProductDetailsScreen/presentation/vendor_product_details_screen.dart';
 import '../../features/vendor/vendorStoreScreen/presentation/screens/vendor_store_screen.dart';
 import '../../features/common/conversations/presentation/screen/conversation_list_screen.dart';
+import '../../features/common/conversationSingle/presentation/bindings/conversations_single_bindings.dart';
+import '../../features/common/conversationSingle/presentation/screen/conversations_single_screen.dart';
 import '../bindings/initialBindings.dart';
 
 class AppPages {
@@ -516,6 +518,12 @@ class AppPages {
       name: RouteConstants.conversationsScreen,
       page: () => const ConversationListScreen(),
       binding: ConversationBindings(),
+      transition: Transition.cupertino,
+    ),
+    GetPage(
+      name: RouteConstants.singleConversationScreen,
+      page: () => const ConversationsSingleScreen(),
+      binding: ConversationsSingleBindings(),
       transition: Transition.cupertino,
     ),
   ];

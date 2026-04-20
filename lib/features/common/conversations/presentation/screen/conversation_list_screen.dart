@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 
 import '../../../../../core/constants/api_constants.dart';
 import '../../../../../core/constants/app_colors.dart';
+import '../../../../../core/constants/route_constants.dart';
 import '../../../../../core/services/cache_service.dart';
 import '../../../../../core/widgets/custom_app_bar.dart';
 import '../../../../../core/widgets/custom_text.dart';
@@ -121,7 +122,10 @@ class _ConversationTile extends StatelessWidget {
         : '';
 
     return InkWell(
-      onTap: () {},
+      onTap: () => Get.toNamed(
+        RouteConstants.singleConversationScreen,
+        arguments: {'conversationId': doc.id},
+      ),
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
         child: Row(
