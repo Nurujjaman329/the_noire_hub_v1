@@ -52,6 +52,8 @@ class ApiConstants {
   static const String productOrders = "product-orders";
   static const String serviceRating = "reviews/booking/";
   static const String productRating = "product-reviews/";
+  static const String conversations = "conversations";
+  static const String singleConversations = "conversations/";
 
 
 

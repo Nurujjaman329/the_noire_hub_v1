@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
+import '../../../../../core/api/api_client.dart';
 import '../../../../../core/constants/api_constants.dart';
 import '../../../../../core/constants/route_constants.dart';
 import '../../../../../core/widgets/custom_button.dart';
 import '../../../../../core/widgets/custom_text.dart';
+import '../../../../common/conversations/data/conversation_list_service.dart';
 import '../../data/service_booking_details_response_model.dart';
 import '../controller/service_booking_details_controller.dart';
 
@@ -108,6 +110,46 @@ class ServiceBookingScreen extends StatelessWidget {
             child: CircleAvatar(
               backgroundColor: Colors.black.withValues(alpha:0.5),
               child: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 18),
+            ),
+          ),
+        ),
+        Positioned(
+          top: 50.h, right: 20.w,
+          child: GestureDetector(
+            onTap: () async {
+              final controller = Get.find<ServiceBookingDetailsController>();
+              final attr = controller.serviceAttributes.value;
+              final beauticianId = attr?.beautician?.id ?? '';
+              final serviceId = attr?.id ?? '';
+              if (beauticianId.isEmpty || serviceId.isEmpty) return;
+              try {
+                Get.dialog(
+                  const Center(child: CircularProgressIndicator(color: Colors.white)),
+                  barrierDismissible: false,
+                );
+                final service = ConversationListService(Get.find<ApiClient>());
+                final conv = await service.createConversation(
+                  receiverId: beauticianId,
+                  contextType: 'service',
+                  contextId: serviceId,
+                  contextModel: 'Service',
+                );
+                if (Get.isDialogOpen == true) Get.back();
+                if (conv != null) {
+                  Get.toNamed(
+                    RouteConstants.singleConversationScreen,
+                    arguments: {'conversationId': conv.id},
+                  );
+                }
+              } catch (e) {
+                if (Get.isDialogOpen == true) Get.back();
+                Get.snackbar('Error', 'Could not start conversation',
+                    backgroundColor: Colors.redAccent, colorText: Colors.white);
+              }
+            },
+            child: CircleAvatar(
+              backgroundColor: Colors.black.withValues(alpha:0.5),
+              child: const Icon(Icons.chat_bubble_outline, color: Colors.white, size: 18),
             ),
           ),
         ),

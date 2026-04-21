@@ -51,6 +51,7 @@ import '../../features/common/bottomNavBar/vendor/vendor_main_container.dart';
 import '../../features/common/businessDocument/presentation/bindings/business_info_bindings.dart';
 import '../../features/common/businessDocument/presentation/screen/business_screen.dart';
 import '../../features/common/changePassword/presentation/screen/change_password_screen.dart';
+import '../../features/common/conversations/presentation/bindings/conversation_list_bindings.dart';
 import '../../features/common/earning/presentation/bindings/earning_bindings.dart';
 import '../../features/common/editProfile/presentation/binding/edit_profile_binding.dart';
 import '../../features/common/editProfile/presentation/edit_profile_screen.dart';
@@ -110,6 +111,9 @@ import '../../features/vendor/vendorOrderScreen/presentation/screens/vendor_orde
 import '../../features/vendor/vendorProductDetailsScreen/presentation/bindings/vendor_product_details_bindings.dart';
 import '../../features/vendor/vendorProductDetailsScreen/presentation/vendor_product_details_screen.dart';
 import '../../features/vendor/vendorStoreScreen/presentation/screens/vendor_store_screen.dart';
+import '../../features/common/conversations/presentation/screen/conversation_list_screen.dart';
+import '../../features/common/conversationSingle/presentation/bindings/conversations_single_bindings.dart';
+import '../../features/common/conversationSingle/presentation/screen/conversations_single_screen.dart';
 import '../bindings/initialBindings.dart';
 
 class AppPages {
@@ -508,6 +512,18 @@ class AppPages {
       name: RouteConstants.productRatingScreen,
       page: () => const ProductRatingScreen(),
       binding: ProductRatingBindings(),
+      transition: Transition.cupertino,
+    ),
+    GetPage(
+      name: RouteConstants.conversationsScreen,
+      page: () => const ConversationListScreen(),
+      binding: ConversationBindings(),
+      transition: Transition.cupertino,
+    ),
+    GetPage(
+      name: RouteConstants.singleConversationScreen,
+      page: () => const ConversationsSingleScreen(),
+      binding: ConversationsSingleBindings(),
       transition: Transition.cupertino,
     ),
   ];

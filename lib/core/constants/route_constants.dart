@@ -88,7 +88,8 @@ class RouteConstants {
   static const String editProfile = '/editProfile';
   static const String addDealsPromos = '/addDealsPromos';
   static const String addBankScreen = '/addBankScreen';
-
+  static const String conversationsScreen = '/conversationsScreen';
+  static const String singleConversationScreen = '/singleConversationScreen';
 
 
 }

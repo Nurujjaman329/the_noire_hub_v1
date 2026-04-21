@@ -235,6 +235,7 @@ class ProfileScreen extends StatelessWidget {
     final List<Map<String, dynamic>> menuItems = [
       {"icon": Icons.person_outline, "label": "Personal Info"},
       {"icon": Icons.group_add_outlined, "label": "Invite Friends"},
+      {"icon": Icons.message, "label": "Conversations"},
       {"icon": Icons.message_outlined, "label": "Message to Admin"},
       {"icon": Icons.local_offer_outlined, "label": "Deals & Promos"},
       {"icon": Icons.local_offer_outlined, "label": "Add Promo Code"},
@@ -265,10 +266,13 @@ class ProfileScreen extends StatelessWidget {
               case "Invite Friends":
                 Get.toNamed(RouteConstants.inviteScreens);
                 break;
+              case "Conversations":
+                Get.toNamed(RouteConstants.conversationsScreen);
+                break;
               case "Message to Admin":
                 final Uri emailLaunchUri = Uri(
                   scheme: 'mailto',
-                  path: 'tonmoysds110@gmail.com',
+                  path: 'tnpvendor@gmail.com',
                   query: encodeQueryParameters(<String, String>{
                     'subject': 'Support Request - ${CacheService.userFullName}',
                     'body': 'Hello Admin,\n\n',
