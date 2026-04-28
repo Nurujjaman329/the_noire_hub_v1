@@ -121,6 +121,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         }
 
         final attr = fulfillmentController.fulfillmentData.value;
+        final vendorLocation = attr?.vendorCountry;
+        final vendorCity = vendorLocation?.city ?? "";
+        final vendorCountry = vendorLocation?.country ?? "";
         final methods = attr?.deliveryMethod;
         final shippingMethods = attr?.shippingMethod;
 
@@ -383,6 +386,61 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               CustomText(text: "Summary", fontSize: 22.sp, fontWeight: FontWeight.bold),
               SizedBox(height: 15.h),
               _buildSummaryRow(Icons.storefront, "${vendorData.vendor.businessName} | ${vendorData.itemCount} items"),
+
+              if (vendorCity.isNotEmpty || vendorCountry.isNotEmpty) ...[
+                SizedBox(height: 10.h),
+
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.06), // soft highlight
+                    borderRadius: BorderRadius.circular(12.r),
+                    border: Border.all(
+                      color: AppColors.primary.withValues(alpha: 0.15),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(6.r),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.12),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.public, // better than location pin for country meaning
+                          size: 16.sp,
+                          color: AppColors.primaryDark,
+                        ),
+                      ),
+
+                      SizedBox(width: 10.w),
+
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CustomText(
+                              text: "Vendor Location",
+                              fontSize: 10.sp,
+                              color: AppColors.geryColor,
+                            ),
+                            CustomText(
+                              text: [
+                                if (vendorCity.isNotEmpty) vendorCity,
+                                if (vendorCountry.isNotEmpty) vendorCountry,
+                              ].join(", "),
+                              fontSize: 13.sp,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
 
               SizedBox(height: 25.h),
 
