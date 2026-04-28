@@ -32,7 +32,7 @@ class GetOrderFulfillmentData {
 class GetOrderFulfillmentAttributes {
   final String id;
   final String vendor;
-  final String vendorCountry;
+  final VendorCountry vendorCountry;
   final GetShippingMethodConfig shippingMethod;
   final GetDeliveryMethodConfig deliveryMethod;
   final GetCostsAndFeesConfig costsAndFees;
@@ -56,7 +56,9 @@ class GetOrderFulfillmentAttributes {
     return GetOrderFulfillmentAttributes(
       id: json['id'] ?? '',
       vendor: json['vendor'] ?? '',
-      vendorCountry: json['vendorCountry'] ?? '',
+      vendorCountry: json['vendorCountry'] is Map
+          ? VendorCountry.fromJson(json['vendorCountry'])
+          : VendorCountry(city: '', country: json['vendorCountry'] ?? ''),
       shippingMethod:
       GetShippingMethodConfig.fromJson(json['shippingMethod'] ?? {}),
       deliveryMethod:
@@ -68,6 +70,24 @@ class GetOrderFulfillmentAttributes {
       isActive: json['isActive'] ?? false,
       createdAt: DateTime.tryParse(json['createdAt'] ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0),
+    );
+  }
+}
+
+
+class VendorCountry {
+  final String city;
+  final String country;
+
+  VendorCountry({
+    required this.city,
+    required this.country,
+  });
+
+  factory VendorCountry.fromJson(Map<String, dynamic> json) {
+    return VendorCountry(
+      city: json['city'] ?? '',
+      country: json['country'] ?? '',
     );
   }
 }

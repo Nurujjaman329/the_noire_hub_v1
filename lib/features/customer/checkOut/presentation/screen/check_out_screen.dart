@@ -1077,11 +1077,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final attr = fulfillmentController.fulfillmentData.value;
     if (attr == null) return false;
 
-    // Normalize both to uppercase for a safe comparison
-    String userCountry = checkoutController.selectedCountry.value.trim().toUpperCase();
-    String vendorCountry = attr.vendorCountry.trim().toUpperCase();
+    final userCountry =
+    checkoutController.selectedCountry.value.trim().toUpperCase();
 
-    return userCountry != vendorCountry && vendorCountry.isNotEmpty;
+    final vendorCountry =
+    (attr.vendorCountry.country).trim().toUpperCase();
+
+    if (vendorCountry.isEmpty || userCountry.isEmpty) return false;
+
+    return userCountry != vendorCountry;
   }
 
 
