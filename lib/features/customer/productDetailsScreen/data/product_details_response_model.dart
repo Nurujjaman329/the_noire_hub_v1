@@ -56,9 +56,15 @@ class DetailsProductAttributes {
   Location location;
   Vendor vendor;
   Category category;
-  SubCategory subcategory;
+  SubCategory? subcategory;
+  bool isFavorite;
+
+  // ✅ NEW
+  DeliveryMethod? deliveryMethod;
+  ShippingMethod? shippingMethod;
+
   List<DetailsVariant> variants;
-  List<PromoCode> activePromoCodes; // Added this field
+  List<PromoCode> activePromoCodes;
 
   DetailsProductAttributes({
     this.id = '',
@@ -81,9 +87,15 @@ class DetailsProductAttributes {
     required this.location,
     required this.vendor,
     required this.category,
-    required this.subcategory,
+    this.subcategory,
+    this.isFavorite = false,
+
+    // ✅ FIXED (removed required)
+    this.deliveryMethod,
+    this.shippingMethod,
+
     this.variants = const [],
-    this.activePromoCodes = const [], // Initialized
+    this.activePromoCodes = const [],
   });
 
   factory DetailsProductAttributes.fromJson(Map<String, dynamic> json) {
@@ -108,18 +120,122 @@ class DetailsProductAttributes {
       location: Location.fromJson(json['location'] ?? {}),
       vendor: Vendor.fromJson(json['vendor'] ?? {}),
       category: Category.fromJson(json['category'] ?? {}),
-      subcategory: SubCategory.fromJson(json['subcategory'] ?? {}),
+
+      subcategory: json['subcategory'] != null
+          ? SubCategory.fromJson(json['subcategory'])
+          : null,
+
+      isFavorite: json['isFavorite'] ?? false,
+
+      // ✅ CORRECT MAPPING
+      deliveryMethod: json['deliveryMethod'] != null
+          ? DeliveryMethod.fromJson(json['deliveryMethod'])
+          : null,
+
+      shippingMethod: json['shippingMethod'] != null
+          ? ShippingMethod.fromJson(json['shippingMethod'])
+          : null,
+
       variants: (json['variants'] as List?)
           ?.map((v) => DetailsVariant.fromJson(v))
           .toList() ??
           [],
+
       activePromoCodes: (json['activePromoCodes'] as List?)
           ?.map((p) => PromoCode.fromJson(p))
           .toList() ??
-          [], // Mapped the new list
+          [],
     );
   }
 }
+
+class DeliveryOption {
+  bool enabled;
+  String deliveryTime;
+  num price;
+
+  DeliveryOption({
+    this.enabled = false,
+    this.deliveryTime = '',
+    this.price = 0,
+  });
+
+  factory DeliveryOption.fromJson(Map<String, dynamic> json) {
+    return DeliveryOption(
+      enabled: json['enabled'] ?? false,
+      deliveryTime: json['deliveryTime'] ?? '',
+      price: json['price'] ?? 0,
+    );
+  }
+}
+
+class PickupOption {
+  bool enabled;
+  num price;
+
+  PickupOption({
+    this.enabled = false,
+    this.price = 0,
+  });
+
+  factory PickupOption.fromJson(Map<String, dynamic> json) {
+    return PickupOption(
+      enabled: json['enabled'] ?? false,
+      price: json['price'] ?? 0,
+    );
+  }
+}
+
+
+class DeliveryMethod {
+  String id;
+  DeliveryOption turbo;
+  DeliveryOption standard;
+  DeliveryOption basic;
+  PickupOption pickup;
+
+  DeliveryMethod({
+    this.id = '',
+    required this.turbo,
+    required this.standard,
+    required this.basic,
+    required this.pickup,
+  });
+
+  factory DeliveryMethod.fromJson(Map<String, dynamic> json) {
+    return DeliveryMethod(
+      id: json['_id'] ?? '',
+      turbo: DeliveryOption.fromJson(json['turbo'] ?? {}),
+      standard: DeliveryOption.fromJson(json['standard'] ?? {}),
+      basic: DeliveryOption.fromJson(json['basic'] ?? {}),
+      pickup: PickupOption.fromJson(json['pickup'] ?? {}),
+    );
+  }
+}
+
+class ShippingMethod {
+  String id;
+  DeliveryOption turbo;
+  DeliveryOption standard;
+  DeliveryOption basic;
+
+  ShippingMethod({
+    this.id = '',
+    required this.turbo,
+    required this.standard,
+    required this.basic,
+  });
+
+  factory ShippingMethod.fromJson(Map<String, dynamic> json) {
+    return ShippingMethod(
+      id: json['_id'] ?? '',
+      turbo: DeliveryOption.fromJson(json['turbo'] ?? {}),
+      standard: DeliveryOption.fromJson(json['standard'] ?? {}),
+      basic: DeliveryOption.fromJson(json['basic'] ?? {}),
+    );
+  }
+}
+
 
 class PromoCode {
   String id;

@@ -2,6 +2,7 @@ class ApiConstants {
   //common
 
   // static const String baseUrl = 'http://10.10.11.88:3000/api/v1/';
+  // static const String baseUrl = 'https://tonmoy3000.sobhoy.com/api/v1/';
   static const String baseUrl = 'https://ton3000.fuez.co.za/api/v1/';
   static const String imageUrl = 'https://ton3000.fuez.co.za';
   static const String baseImageUrl = imageUrl;

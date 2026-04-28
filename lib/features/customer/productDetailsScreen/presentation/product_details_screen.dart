@@ -68,6 +68,11 @@ class ProductDetailScreen extends GetView<ProductDetailsController> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildStoreHeader(p),
+                    SizedBox(height: 8.h),
+
+                    // ✅ ADD HERE
+                    _buildDeliveryInfo(p),
+
                     SizedBox(height: 10.h),
                     CustomText(
                       text: p.name,
@@ -560,6 +565,80 @@ class ProductDetailScreen extends GetView<ProductDetailsController> {
             arguments: {'initialTab': 3}
         ),
         child: Icon(Icons.shopping_cart_outlined, color: AppColors.textPrimary, size: 24.sp),
+      ),
+    );
+  }
+
+  Widget _buildDeliveryInfo(DetailsProductAttributes p) {
+    bool hasInternational = false;
+    bool hasNational = false;
+
+    // ✅ Check Shipping (International)
+    if (p.shippingMethod != null) {
+      final s = p.shippingMethod!;
+      hasInternational =
+          s.turbo.enabled || s.standard.enabled || s.basic.enabled;
+    }
+
+    // ✅ Check Delivery (National)
+    if (p.deliveryMethod != null) {
+      final d = p.deliveryMethod!;
+      hasNational =
+          d.turbo.enabled ||
+              d.standard.enabled ||
+              d.basic.enabled ||
+              d.pickup.enabled;
+    }
+
+    if (!hasInternational && !hasNational) {
+      return const SizedBox.shrink();
+    }
+
+    return Row(
+      children: [
+        if (hasNational)
+          _buildDeliveryChip(
+            icon: Icons.local_shipping_outlined,
+            text: "National Delivery",
+            color: Colors.green,
+          ),
+
+        if (hasNational && hasInternational)
+          SizedBox(width: 8.w),
+
+        if (hasInternational)
+          _buildDeliveryChip(
+            icon: Icons.public,
+            text: "International Delivery",
+            color: Colors.blue,
+          ),
+      ],
+    );
+  }
+
+  Widget _buildDeliveryChip({
+    required IconData icon,
+    required String text,
+    required Color color,
+  }) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.h),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(20.r),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14.sp, color: color),
+          SizedBox(width: 5.w),
+          CustomText(
+            text: text,
+            fontSize: 10.sp,
+            color: color,
+            fontWeight: FontWeight.w600,
+          ),
+        ],
       ),
     );
   }
