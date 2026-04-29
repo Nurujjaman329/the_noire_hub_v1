@@ -78,6 +78,42 @@ class RegistrationController extends GetxController with MapSearchMixin {
     }
   }
 
+  bool validateStep1() {
+    if (selectedShopImage.value == null) {
+      _showErrorSnack("Please select a shop image");
+      return false;
+    }
+    if (fullNameController.text.trim().isEmpty) {
+      _showErrorSnack("Please enter your full name");
+      return false;
+    }
+    if (businessNameController.text.trim().isEmpty) {
+      _showErrorSnack("Please enter your business name");
+      return false;
+    }
+    if (emailController.text.trim().isEmpty) {
+      _showErrorSnack("Please enter your email");
+      return false;
+    }
+    if (phoneController.text.trim().isEmpty) {
+      _showErrorSnack("Please enter your phone number");
+      return false;
+    }
+    if (passwordController.text.isEmpty) {
+      _showErrorSnack("Please create a password");
+      return false;
+    }
+    if (confirmPasswordController.text.isEmpty) {
+      _showErrorSnack("Please confirm your password");
+      return false;
+    }
+    if (passwordController.text != confirmPasswordController.text) {
+      _showErrorSnack("Passwords do not match");
+      return false;
+    }
+    return true;
+  }
+
   bool _validateForm() {
     if (fullNameController.text.isEmpty || emailController.text.isEmpty || passwordController.text.isEmpty) {
       _showErrorSnack("Please fill in all required fields");
