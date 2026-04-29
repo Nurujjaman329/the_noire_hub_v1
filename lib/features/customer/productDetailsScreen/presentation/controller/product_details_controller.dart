@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import '../../../customerProducts/data/customer_products_response_model.dart';
 import '../../../customerProducts/data/customer_products_service.dart';
+import '../../../multiVendorCartScreen/presentation/controller/multi_vendor_cart_controller.dart';
 import '../../data/product_details_response_model.dart';
 import 'package:flutter/material.dart';
 
@@ -76,6 +77,10 @@ class ProductDetailsController extends GetxController {
 
       // Call service with updated map
       await _service.addToCart(cartData);
+
+      if (Get.isRegistered<MultiVendorCartController>()) {
+        Get.find<MultiVendorCartController>().getCartDetails();
+      }
 
       Get.snackbar(
         "Success",

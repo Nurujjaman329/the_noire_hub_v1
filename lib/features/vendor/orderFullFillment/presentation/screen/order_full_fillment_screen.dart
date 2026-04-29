@@ -22,7 +22,13 @@ class _OrderFulfillmentScreenState extends State<OrderFulfillmentScreen> {
 
   // State Maps
   final Map<String, bool> _shippingEnabled = {"Turbo": false, "Standard": false, "Basic": false};
-  final Map<String, bool> _deliveryEnabled = {"Turbo": false, "Standard": false, "Basic": false, "Pickup": false};
+  final Map<String, bool> _deliveryEnabled = {
+    "Turbo": false,
+    "Standard": false,
+    "Basic": false,
+    "Pickup": false,
+    "City": false, // ✅
+  };
   final Map<String, bool> _costsEnabled = {"Vendor": false, "Customer": false, "Free": false};
 
   // Controllers for Prices
@@ -30,7 +36,11 @@ class _OrderFulfillmentScreenState extends State<OrderFulfillmentScreen> {
     "Turbo": TextEditingController(), "Standard": TextEditingController(), "Basic": TextEditingController(),
   };
   final Map<String, TextEditingController> _deliveryPrices = {
-    "Turbo": TextEditingController(), "Standard": TextEditingController(), "Basic": TextEditingController(), "Pickup": TextEditingController(),
+    "Turbo": TextEditingController(),
+    "Standard": TextEditingController(),
+    "Basic": TextEditingController(),
+    "Pickup": TextEditingController(),
+    "City": TextEditingController(), // ✅ ADD HERE
   };
 
   // Controllers for Times
@@ -38,8 +48,12 @@ class _OrderFulfillmentScreenState extends State<OrderFulfillmentScreen> {
     "Turbo": TextEditingController(), "Standard": TextEditingController(), "Basic": TextEditingController(),
   };
   final Map<String, TextEditingController> _deliveryTimes = {
-    "Turbo": TextEditingController(), "Standard": TextEditingController(), "Basic": TextEditingController(),
+    "Turbo": TextEditingController(),
+    "Standard": TextEditingController(),
+    "Basic": TextEditingController(),
+    "City": TextEditingController(), // ✅ ADD HERE
   };
+
 
   final TextEditingController _freeShippingMinAmount = TextEditingController();
 
@@ -103,6 +117,10 @@ class _OrderFulfillmentScreenState extends State<OrderFulfillmentScreen> {
       _restrictedEnabled = attr.restrictedCountries.enabled;
       _selectedCountries = List<String>.from(attr.restrictedCountries.countries);
 
+      _deliveryEnabled["City"] = attr.deliveryMethod.city.enabled;
+      _deliveryPrices["City"]!.text = attr.deliveryMethod.city.price.toString();
+      _deliveryTimes["City"]!.text = attr.deliveryMethod.city.deliveryTime;
+
     });
   }
 
@@ -117,6 +135,11 @@ class _OrderFulfillmentScreenState extends State<OrderFulfillmentScreen> {
         turbo: MethodOption(enabled: _deliveryEnabled["Turbo"], deliveryTime: _deliveryTimes["Turbo"]!.text, price: double.tryParse(_deliveryPrices["Turbo"]!.text)),
         standard: MethodOption(enabled: _deliveryEnabled["Standard"], deliveryTime: _deliveryTimes["Standard"]!.text, price: double.tryParse(_deliveryPrices["Standard"]!.text)),
         basic: MethodOption(enabled: _deliveryEnabled["Basic"], deliveryTime: _deliveryTimes["Basic"]!.text, price: double.tryParse(_deliveryPrices["Basic"]!.text)),
+        city: MethodOption(
+          enabled: _deliveryEnabled["City"],
+          deliveryTime: _deliveryTimes["City"]!.text,
+          price: double.tryParse(_deliveryPrices["City"]!.text),
+        ),
         pickup: PickupOption(enabled: _deliveryEnabled["Pickup"], price: double.tryParse(_deliveryPrices["Pickup"]!.text)),
       ),
       costsAndFees: CostsAndFeesConfig(
@@ -157,6 +180,7 @@ class _OrderFulfillmentScreenState extends State<OrderFulfillmentScreen> {
             _buildOption("Standard", "Standard", _deliveryEnabled, _deliveryPrices, _deliveryTimes),
             _buildOption("Basic", "Basic", _deliveryEnabled, _deliveryPrices, _deliveryTimes),
             _buildOption("Pickup", "Pickup", _deliveryEnabled, _deliveryPrices, null),
+            _buildOption("City", "City", _deliveryEnabled, _deliveryPrices, _deliveryTimes),
 
             SizedBox(height: 30.h),
             _buildHeader("Costs & Fees", subtitle: "(time needed before shipping)"),

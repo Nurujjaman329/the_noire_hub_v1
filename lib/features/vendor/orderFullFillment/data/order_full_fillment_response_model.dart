@@ -135,12 +135,14 @@ class GetShippingMethodConfig {
     );
   }
 }
+
 class GetDeliveryMethodConfig {
   final String id;
   final GetMethodOption turbo;
   final GetMethodOption standard;
   final GetMethodOption basic;
   final GetPickupOption pickup;
+  final GetMethodOption city; // ✅ ADD THIS
 
   GetDeliveryMethodConfig({
     required this.id,
@@ -148,6 +150,7 @@ class GetDeliveryMethodConfig {
     required this.standard,
     required this.basic,
     required this.pickup,
+    required this.city, // ✅ ADD
   });
 
   factory GetDeliveryMethodConfig.fromJson(Map<String, dynamic> json) {
@@ -157,9 +160,11 @@ class GetDeliveryMethodConfig {
       standard: GetMethodOption.fromJson(json['standard'] ?? {}),
       basic: GetMethodOption.fromJson(json['basic'] ?? {}),
       pickup: GetPickupOption.fromJson(json['pickup'] ?? {}),
+      city: GetMethodOption.fromJson(json['city'] ?? {}), // ✅ ADD
     );
   }
 }
+
 class GetMethodOption {
   final bool enabled;
   final String deliveryTime;
