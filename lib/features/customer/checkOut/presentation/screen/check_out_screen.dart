@@ -303,8 +303,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 _buildEstimatedTimeHeader(methods),
                 SizedBox(height: 15.h),
                 // --- 5. SPEED CARDS ---
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  child: Row(
                   children: [
                     if (attr != null) ...[
                       // Logic: Pick the correct display data based on international status
@@ -362,8 +364,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         ),
                     ],
                   ],
+                  ),
                 ),
-                
+
                 // Show warning if Standard method is not enabled but other methods are
                 if (selectedSpeed == null) ...[
                   SizedBox(height: 15.h),
@@ -614,6 +617,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       onTap: () => setState(() => selectedSpeed = title),
       child: Container(
         width: 82.w,
+        margin: EdgeInsets.only(right: 10.w),
         padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 4.w),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.surfaceVariant : AppColors.surfaceVariant.withValues(alpha: 0.5),
