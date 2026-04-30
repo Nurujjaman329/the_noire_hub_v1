@@ -78,6 +78,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           defaultMethod = "Basic";
         } else if (attr.deliveryMethod.pickup.enabled) {
           defaultMethod = "Pickup";
+        } else if (attr.deliveryMethod.city.enabled) {
+          defaultMethod = "City";
         }
       }
       selectedSpeed = defaultMethod;
@@ -148,7 +150,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             : ((methods?.turbo.enabled ?? false) ||
                 (methods?.standard.enabled ?? false) ||
                 (methods?.basic.enabled ?? false) ||
-                (methods?.pickup.enabled ?? false));
+                (methods?.pickup.enabled ?? false) ||
+                (methods?.city.enabled ?? false));
 
         return SingleChildScrollView(
           padding: EdgeInsets.symmetric(horizontal: 20.w),
@@ -346,6 +349,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           "Pickup",
                           "Collect in store",
                           "\$${attr.deliveryMethod.pickup.price}",
+                          false,
+                        ),
+
+                      // 5. CITY (Hidden if International)
+                      if (!isIntl && attr.deliveryMethod.city.enabled)
+                        _speedCard(
+                          "City",
+                          attr.deliveryMethod.city.deliveryTime,
+                          "\$${attr.deliveryMethod.city.price}",
                           false,
                         ),
                     ],
@@ -570,6 +582,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       timeRange = isIntl 
           ? (attr?.shippingMethod.basic.deliveryTime ?? "")
           : (methods?.basic.deliveryTime ?? "");
+    } else if (selectedSpeed == "City") {
+      timeRange = methods?.city.deliveryTime ?? "";
     } else if (selectedSpeed == "Pickup") {
       timeRange = "Ready for pickup";
     } else {
@@ -1099,6 +1113,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             : attr.deliveryMethod.basic.price.toDouble();
       case "Pickup":
         return attr.deliveryMethod.pickup.price.toDouble();
+      case "City":
+        return attr.deliveryMethod.city.price.toDouble();
       default: // Standard
         return isIntl
             ? attr.shippingMethod.standard.price.toDouble()
@@ -1124,6 +1140,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         return isIntl
             ? attr.shippingMethod.basic.price.toDouble()
             : attr.deliveryMethod.basic.price.toDouble();
+      case "City":
+        return attr.deliveryMethod.city.price.toDouble();
       default: // Standard
         return isIntl
             ? attr.shippingMethod.standard.price.toDouble()
