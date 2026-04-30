@@ -46,9 +46,9 @@ class ConversationListService {
     final String url = ApiConstants.conversations;
     final Map<String, dynamic> body = {
       'receiverId': receiverId,
-      if (contextType != null) 'contextType': contextType,
-      if (contextId != null) 'contextId': contextId,
-      if (contextModel != null) 'contextModel': contextModel,
+      'contextType': ?contextType,
+      'contextId': ?contextId,
+      'contextModel': ?contextModel,
     };
 
     debugPrint('🚀 [POST] Request to: $url');

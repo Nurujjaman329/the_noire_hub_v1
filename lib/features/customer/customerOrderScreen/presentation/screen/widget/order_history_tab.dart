@@ -59,7 +59,7 @@ class OrderHistoryCard extends StatelessWidget {
                     CustomText(
                       text: DateFormat('dd/MM/yyyy').format(DateTime.parse(order.createdAt)),
                       fontSize: 12.sp,
-                      color: Colors.black.withOpacity(0.6),
+                      color: Colors.black.withValues(alpha: 0.6),
                     ),
                   ],
                 ),
@@ -67,7 +67,7 @@ class OrderHistoryCard extends StatelessWidget {
                 CustomText(
                   text: productName + (order.items.length > 1 ? " (+${order.items.length - 1} more)" : ""),
                   fontSize: 11.sp,
-                  color: Colors.black.withOpacity(0.6),
+                  color: Colors.black.withValues(alpha: 0.6),
                 ),
                 SizedBox(height: 8.h),
                 Row(
@@ -95,10 +95,10 @@ class OrderHistoryCard extends StatelessWidget {
       case "Pending":
         return GestureDetector(
           onTap: () => _showCancelDialog(context, controller),
-          child: _statusBadge("Cancel", const Color(0xFFFF0000), const Color(0xFFFF0000).withOpacity(0.1)),
+          child: _statusBadge("Cancel", const Color(0xFFFF0000), const Color(0xFFFF0000).withValues(alpha: 0.1)),
         );
       case "In Progress":
-        return _statusBadge("Shipped", const Color(0xFF2D3E2F), const Color(0xFFC4C99A).withOpacity(0.3));
+        return _statusBadge("Shipped", const Color(0xFF2D3E2F), const Color(0xFFC4C99A).withValues(alpha: 0.3));
       case "Completed":
         return GestureDetector(
           onTap: () => Get.toNamed(RouteConstants.productRatingScreen, arguments: order),

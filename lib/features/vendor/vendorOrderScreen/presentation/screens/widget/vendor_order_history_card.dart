@@ -59,7 +59,7 @@ class VendorOrderHistoryCard extends StatelessWidget {
                     CustomText(
                       text: DateFormat('dd/MM/yyyy').format(DateTime.parse(order.createdAt)),
                       fontSize: 12.sp,
-                      color: Colors.black.withOpacity(0.6),
+                      color: Colors.black.withValues(alpha: 0.6),
                     ),
                   ],
                 ),
@@ -67,7 +67,7 @@ class VendorOrderHistoryCard extends StatelessWidget {
                 CustomText(
                   text: productName + (order.items.length > 1 ? " (+${order.items.length - 1} more)" : ""),
                   fontSize: 11.sp,
-                  color: Colors.black.withOpacity(0.6),
+                  color: Colors.black.withValues(alpha: 0.6),
                 ),
                 SizedBox(height: 8.h),
                 Row(

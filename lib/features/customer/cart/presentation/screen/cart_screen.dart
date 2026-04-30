@@ -191,47 +191,5 @@ class CartScreen extends GetView<MultiVendorCartController> {
     );
   }
 
-  Widget _buildProductCard(String title, String price, String imgUrl) {
-    return Container(
-      width: 140.w,
-      margin: EdgeInsets.only(right: 15.w),
-      padding: EdgeInsets.all(12.r),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F4D3),
-        borderRadius: BorderRadius.circular(30.r),
-      ),
-      child: Column(
-        children: [
-          CustomNetworkImage(
-            imageUrl: imgUrl,
-            height: 100.h,
-            width: 110.w,
-            borderRadius: BorderRadius.circular(20.r),
-          ),
-          SizedBox(height: 10.h),
-          CustomText(
-            text: title,
-            fontSize: 11.sp,
-            fontWeight: FontWeight.bold,
-            textAlign: TextAlign.center,
-            maxLines: 2,
-          ),
-          SizedBox(height: 8.h),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CustomText(text: "\$$price", fontSize: 12.sp, color: Colors.black, fontWeight: FontWeight.bold),
-              const Spacer(),
-              Container(
-                padding: EdgeInsets.all(5.r),
-                decoration: const BoxDecoration(color: Color(0xFF1E2F23), shape: BoxShape.circle),
-                child: Icon(Icons.arrow_forward_ios, color: Colors.white, size: 10.sp),
-              )
-            ],
-          ),
-        ],
-      ),
-    );
-  }
 
 }

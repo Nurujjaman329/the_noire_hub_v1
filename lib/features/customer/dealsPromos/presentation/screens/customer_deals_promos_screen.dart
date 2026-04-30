@@ -189,9 +189,9 @@ class CustomerDealsPromosScreen extends StatelessWidget {
                     Container(
                       padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.1),
+                        color: AppColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(6.r),
-                        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+                        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
                       ),
                       child: CustomText(
                         text: code,
@@ -223,7 +223,7 @@ class CustomerDealsPromosScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(12.r),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF9BB575).withOpacity(0.3),
+                      color: const Color(0xFF9BB575).withValues(alpha: 0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 4),
                     )
