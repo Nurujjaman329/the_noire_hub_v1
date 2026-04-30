@@ -55,32 +55,8 @@ class MultiVendorCartScreen extends StatelessWidget {
                 },
               ),
 
-              const Divider(thickness: 1, color: AppColors.divider),
               SizedBox(height: 20.h),
 
-              // 5. Similar Items Section (Keep as static or link to a different API later)
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20.w),
-                child: CustomText(
-                  text: "Similar to items in your carts",
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              SizedBox(height: 15.h),
-
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                padding: EdgeInsets.only(left: 20.w, bottom: 40.h),
-                child: Row(
-                  children: [
-                    _buildSimilarProductCard("Naturals Argan Shampoo", "13.00", "https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?q=80&w=200"),
-                    _buildSimilarProductCard("Skie Coconut & Peach Pomade", "15.00", "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?q=80&w=200"),
-                    _buildSimilarProductCard("Clay's Afro Comb", "10.39", "https://images.unsplash.com/photo-1590159346183-406b75bc912d?q=80&w=200"),
-                  ],
-                ),
-              ),
               SizedBox(height: 80.h)
             ],
           ),
@@ -152,62 +128,4 @@ class MultiVendorCartScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSimilarProductCard(String title, String price, String imgUrl) {
-    return Container(
-      width: 150.w,
-      margin: EdgeInsets.only(right: 15.w),
-      padding: EdgeInsets.all(12.r),
-      decoration: BoxDecoration(
-          color: Color(0XFFF1F0B2),
-          // color: AppColors.primary,
-          borderRadius: BorderRadius.circular(30.r),
-          boxShadow: const [
-            BoxShadow(
-              color: AppColors.cardShadow,
-              blurRadius: 10,
-              offset: Offset(0, 5),
-            )
-          ]
-      ),
-      child: Column(
-        children: [
-          CustomNetworkImage(
-              imageUrl: imgUrl,
-              height: 110.h,
-              width: 130.w,
-              borderRadius: BorderRadius.circular(20.r)
-          ),
-          SizedBox(height: 10.h),
-          CustomText(
-              text: title,
-              fontSize: 11.sp,
-              fontWeight: FontWeight.bold,
-              textAlign: TextAlign.center,
-              color: Color(0XFF000000),
-              // color: AppColors.textPrimary,
-              maxLines: 2
-          ),
-          SizedBox(height: 5.h),
-          CustomText(
-              text: "\$$price",
-              fontSize: 12.sp,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary
-          ),
-          SizedBox(height: 8.h),
-          Align(
-            alignment: Alignment.centerRight,
-            child: Container(
-              padding: EdgeInsets.all(8.r),
-              decoration: const BoxDecoration(
-                  color: AppColors.primaryDark,
-                  shape: BoxShape.circle
-              ),
-              child: Icon(Icons.arrow_forward_ios, color: AppColors.white, size: 12.sp),
-            ),
-          )
-        ],
-      ),
-    );
-  }
 }
