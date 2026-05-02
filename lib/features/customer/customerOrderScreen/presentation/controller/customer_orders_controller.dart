@@ -12,6 +12,7 @@ class CustomerOrderController extends GetxController {
   var selectedTab = "Pending".obs;
   var isLoading = false.obs;
   var isCanceling = false.obs;
+  var isCompleting = false.obs;
 
   var orders = <OrderDoc>[].obs;
 
@@ -81,6 +82,19 @@ class CustomerOrderController extends GetxController {
       debugPrint("Order Controller Error: $e");
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  /// Complete order
+  Future<void> handleComplete(String id) async {
+    try {
+      isCompleting.value = true;
+      final success = await _service.completeOrder(orderId: id);
+      if (success) await onRefresh();
+    } catch (e) {
+      debugPrint("Complete Order Error: $e");
+    } finally {
+      isCompleting.value = false;
     }
   }
 

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import '../../../../../core/constants/api_constants.dart';
 import '../../../../../core/constants/app_colors.dart';
+import '../../../../../core/constants/app_constants.dart';
 import '../../../../../core/constants/route_constants.dart';
 import '../../../../../core/widgets/custom_app_bar.dart';
 import '../../../../../core/widgets/custom_network_image.dart';
@@ -73,7 +75,7 @@ class MultiVendorCartScreen extends StatelessWidget {
           CustomNetworkImage(
             imageUrl: vendorData.vendor.image.startsWith('http')
                 ? vendorData.vendor.image
-                : "https://tonmoy3000.sobhoy.com${vendorData.vendor.image}",
+                : "${ApiConstants.baseImageUrl}${vendorData.vendor.image}",
             height: 80.h,
             width: 80.w,
             borderRadius: BorderRadius.circular(10.r),

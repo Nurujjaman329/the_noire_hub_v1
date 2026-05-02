@@ -98,7 +98,10 @@ class OrderHistoryCard extends StatelessWidget {
           child: _statusBadge("Cancel", const Color(0xFFFF0000), const Color(0xFFFF0000).withValues(alpha: 0.1)),
         );
       case "In Progress":
-        return _statusBadge("Shipped", const Color(0xFF2D3E2F), const Color(0xFFC4C99A).withValues(alpha: 0.3));
+        return GestureDetector(
+          onTap: () => _showCompleteDialog(context, controller),
+          child: _statusBadge("Complete", Colors.white, const Color(0xFF2D3E2F)),
+        );
       case "Completed":
         return GestureDetector(
           onTap: () => Get.toNamed(RouteConstants.productRatingScreen, arguments: order),
@@ -109,6 +112,66 @@ class OrderHistoryCard extends StatelessWidget {
       default:
         return const SizedBox.shrink();
     }
+  }
+
+  void _showCompleteDialog(BuildContext context, CustomerOrderController controller) {
+    Get.dialog(
+      Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+        backgroundColor: Colors.white,
+        child: Padding(
+          padding: EdgeInsets.all(24.r),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.check_circle_outline, size: 48.sp, color: const Color(0xFF2D3E2F)),
+              SizedBox(height: 16.h),
+              CustomText(text: "Confirm Order Received", fontSize: 16.sp, fontWeight: FontWeight.bold),
+              SizedBox(height: 8.h),
+              CustomText(
+                text: "Have you received your order? This action cannot be undone.",
+                fontSize: 12.sp,
+                color: Colors.black54,
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 24.h),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Get.back(),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFF2D3E2F)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                        padding: EdgeInsets.symmetric(vertical: 12.h),
+                      ),
+                      child: const Text("Cancel", style: TextStyle(color: Color(0xFF2D3E2F))),
+                    ),
+                  ),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: Obx(() => ElevatedButton(
+                      onPressed: controller.isCompleting.value ? null : () {
+                        Get.back();
+                        controller.handleComplete(order.id);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF2D3E2F),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                        padding: EdgeInsets.symmetric(vertical: 12.h),
+                      ),
+                      child: controller.isCompleting.value
+                          ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                          : const Text("Confirm", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    )),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _showCancelDialog(BuildContext context, CustomerOrderController controller) {
