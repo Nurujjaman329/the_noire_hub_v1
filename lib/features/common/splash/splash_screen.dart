@@ -1,14 +1,14 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
+import '../../../../core/services/cache_service.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/route_constants.dart';
 import '../../../core/widgets/custom_text.dart';
-
-import '../../../../core/services/cache_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -18,6 +18,7 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  final TextEditingController fcmCTRL = TextEditingController();
   @override
   void initState() {
     super.initState();
@@ -63,10 +64,7 @@ class _SplashScreenState extends State<SplashScreen> {
       body: Stack(
         children: [
           Positioned.fill(
-            child: Image.asset(
-              AppAssets.splashImage,
-              fit: BoxFit.cover,
-            ),
+            child: Image.asset(AppAssets.splashImage, fit: BoxFit.cover),
           ),
           Center(
             child: Column(
@@ -89,7 +87,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(
                     3,
-                        (index) => Container(
+                    (index) => Container(
                       margin: EdgeInsets.symmetric(horizontal: 4.w),
                       height: 8.h,
                       width: 8.w,
