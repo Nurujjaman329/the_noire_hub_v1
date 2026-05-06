@@ -36,9 +36,9 @@ class CheckOutController extends GetxController with MapSearchMixin {
       "items": items,
       "deliveryMethod": deliveryMethod,
       "deliveryAddress": address,
-      if (instructions != null) "deliveryInstructions": instructions,
-      if (tip != null) "tip": tip,
-      if (promoCode != null) "promoCode": promoCode,
+      "deliveryInstructions": ?instructions,
+      "tip": ?tip,
+      "promoCode": ?promoCode,
     };
 
     try {

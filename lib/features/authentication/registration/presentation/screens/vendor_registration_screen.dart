@@ -109,7 +109,11 @@ class VendorRegistrationScreen extends GetView<RegistrationController> {
                     CustomButton(
                       text: "Continue",
                       color: const Color(0XFF1D3826),
-                      onTap: () => Get.toNamed(RouteConstants.storeSetUp),
+                      onTap: () {
+                        if (controller.validateStep1()) {
+                          Get.toNamed(RouteConstants.storeSetUp);
+                        }
+                      },
                     ),
 
                     SizedBox(height: 20.h),

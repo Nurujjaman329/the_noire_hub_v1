@@ -32,7 +32,7 @@ class GetOrderFulfillmentData {
 class GetOrderFulfillmentAttributes {
   final String id;
   final String vendor;
-  final String vendorCountry;
+  final VendorCountry vendorCountry;
   final GetShippingMethodConfig shippingMethod;
   final GetDeliveryMethodConfig deliveryMethod;
   final GetCostsAndFeesConfig costsAndFees;
@@ -56,7 +56,9 @@ class GetOrderFulfillmentAttributes {
     return GetOrderFulfillmentAttributes(
       id: json['id'] ?? '',
       vendor: json['vendor'] ?? '',
-      vendorCountry: json['vendorCountry'] ?? '',
+      vendorCountry: json['vendorCountry'] is Map
+          ? VendorCountry.fromJson(json['vendorCountry'])
+          : VendorCountry(city: '', country: json['vendorCountry'] ?? ''),
       shippingMethod:
       GetShippingMethodConfig.fromJson(json['shippingMethod'] ?? {}),
       deliveryMethod:
@@ -68,6 +70,24 @@ class GetOrderFulfillmentAttributes {
       isActive: json['isActive'] ?? false,
       createdAt: DateTime.tryParse(json['createdAt'] ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0),
+    );
+  }
+}
+
+
+class VendorCountry {
+  final String city;
+  final String country;
+
+  VendorCountry({
+    required this.city,
+    required this.country,
+  });
+
+  factory VendorCountry.fromJson(Map<String, dynamic> json) {
+    return VendorCountry(
+      city: json['city'] ?? '',
+      country: json['country'] ?? '',
     );
   }
 }
@@ -115,12 +135,14 @@ class GetShippingMethodConfig {
     );
   }
 }
+
 class GetDeliveryMethodConfig {
   final String id;
   final GetMethodOption turbo;
   final GetMethodOption standard;
   final GetMethodOption basic;
   final GetPickupOption pickup;
+  final GetMethodOption city; // ✅ ADD THIS
 
   GetDeliveryMethodConfig({
     required this.id,
@@ -128,6 +150,7 @@ class GetDeliveryMethodConfig {
     required this.standard,
     required this.basic,
     required this.pickup,
+    required this.city, // ✅ ADD
   });
 
   factory GetDeliveryMethodConfig.fromJson(Map<String, dynamic> json) {
@@ -137,9 +160,11 @@ class GetDeliveryMethodConfig {
       standard: GetMethodOption.fromJson(json['standard'] ?? {}),
       basic: GetMethodOption.fromJson(json['basic'] ?? {}),
       pickup: GetPickupOption.fromJson(json['pickup'] ?? {}),
+      city: GetMethodOption.fromJson(json['city'] ?? {}), // ✅ ADD
     );
   }
 }
+
 class GetMethodOption {
   final bool enabled;
   final String deliveryTime;

@@ -88,7 +88,7 @@ class VendorOrderController extends GetxController {
         Get.snackbar(
           "Success",
           "Order status updated to $newStatus",
-          backgroundColor: const Color(0xFF3F592B).withOpacity(0.8),
+          backgroundColor: const Color(0xFF3F592B).withValues(alpha: 0.8),
           colorText: Colors.white,
           snackPosition: SnackPosition.BOTTOM,
         );

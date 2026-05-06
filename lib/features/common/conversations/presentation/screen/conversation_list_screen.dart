@@ -42,7 +42,7 @@ class ConversationListScreen extends StatelessWidget {
           child: ListView.separated(
             padding: EdgeInsets.symmetric(vertical: 10.h),
             itemCount: controller.conversations.length,
-            separatorBuilder: (_, __) => Divider(
+            separatorBuilder: (_, _) => Divider(
               height: 1,
               thickness: 0.8,
               color: AppColors.divider,

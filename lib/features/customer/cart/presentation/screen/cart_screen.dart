@@ -25,17 +25,62 @@ class CartScreen extends GetView<MultiVendorCartController> {
         title: "My Cart",
         showBackButton: true,
       ),
+      bottomNavigationBar: Obx(() {
+        final currentVendor = controller.cartAttributes.value?.vendors
+            .firstWhereOrNull((v) => v.vendor.id == vendorData.vendor.id);
+        final subtotal = currentVendor?.subtotal ?? vendorData.subtotal;
+
+        return Container(
+          padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 30.h),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 12,
+                offset: const Offset(0, -4),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(text: "Subtotal", fontSize: 18.sp, fontWeight: FontWeight.bold),
+                      CustomText(text: "Promotions Applied at Checkout", fontSize: 10.sp),
+                    ],
+                  ),
+                  CustomText(
+                    text: "\$${subtotal.toStringAsFixed(2)}",
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ],
+              ),
+              SizedBox(height: 16.h),
+              CustomButton(
+                text: "Go to checkout",
+                onTap: () => Get.toNamed(
+                    RouteConstants.checkOutScreen,
+                    arguments: currentVendor ?? vendorData
+                ),
+              ),
+            ],
+          ),
+        );
+      }),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 2. Wrap list in Obx so it refreshes when controller.getCartDetails() is called
             Obx(() {
-              // We find the current vendor's updated data from the controller's main list
               final currentVendor = controller.cartAttributes.value?.vendors
                   .firstWhereOrNull((v) => v.vendor.id == vendorData.vendor.id);
-
-              // Fallback to initial vendorData if controller hasn't loaded yet
               final displayItems = currentVendor?.items ?? vendorData.items;
 
               return ListView.builder(
@@ -50,73 +95,11 @@ class CartScreen extends GetView<MultiVendorCartController> {
               );
             }),
 
-            // Add More Items Button
             _buildAddMoreButton(),
 
             const Divider(thickness: 1, color: Colors.black12),
 
-            // Subtotal Section
-            Obx(() {
-              final currentVendor = controller.cartAttributes.value?.vendors
-                  .firstWhereOrNull((v) => v.vendor.id == vendorData.vendor.id);
-              final subtotal = currentVendor?.subtotal ?? vendorData.subtotal;
-
-              return Padding(
-                padding: EdgeInsets.all(20.r),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            CustomText(text: "Subtotal", fontSize: 18.sp, fontWeight: FontWeight.bold),
-                            CustomText(text: "Promotions Applied at Checkout", fontSize: 10.sp),
-                          ],
-                        ),
-                        CustomText(
-                          text: "\$${subtotal.toStringAsFixed(2)}",
-                          fontSize: 18.sp,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 20.h),
-                    // Inside CartScreen subtotal section
-                    CustomButton(
-                      text: "Go to checkout",
-                      onTap: () => Get.toNamed(
-                          RouteConstants.checkOutScreen,
-                          arguments: currentVendor ?? vendorData
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }),
-
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20.w),
-              child: CustomText(
-                text: "Products You Might Need",
-                fontSize: 16.sp,
-                fontWeight: FontWeight.bold,
-                color: const Color(0XFF000000),
-              ),
-            ),
-            SizedBox(height: 15.h),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: EdgeInsets.only(left: 20.w, bottom: 110.h),
-              child: Row(
-                children: [
-                  _buildProductCard("Naturals Argan Shampoo", "13.00", "https://images.unsplash.com/photo-1535585209827-a15fcdbc4c2d?q=80&w=200"),
-                  _buildProductCard("Skie Coconut & Peach Pomade", "15.00", "https://images.unsplash.com/photo-1598440947619-2c35fc9aa908?q=80&w=200"),
-                  _buildProductCard("Clay's Afro Comb", "10.39", "https://images.unsplash.com/photo-1590159346183-406b75bc912d?q=80&w=200"),
-                ],
-              ),
-            ),
+            SizedBox(height: 10.h),
           ],
         ),
       ),
@@ -208,47 +191,5 @@ class CartScreen extends GetView<MultiVendorCartController> {
     );
   }
 
-  Widget _buildProductCard(String title, String price, String imgUrl) {
-    return Container(
-      width: 140.w,
-      margin: EdgeInsets.only(right: 15.w),
-      padding: EdgeInsets.all(12.r),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F4D3),
-        borderRadius: BorderRadius.circular(30.r),
-      ),
-      child: Column(
-        children: [
-          CustomNetworkImage(
-            imageUrl: imgUrl,
-            height: 100.h,
-            width: 110.w,
-            borderRadius: BorderRadius.circular(20.r),
-          ),
-          SizedBox(height: 10.h),
-          CustomText(
-            text: title,
-            fontSize: 11.sp,
-            fontWeight: FontWeight.bold,
-            textAlign: TextAlign.center,
-            maxLines: 2,
-          ),
-          SizedBox(height: 8.h),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              CustomText(text: "\$$price", fontSize: 12.sp, color: Colors.black, fontWeight: FontWeight.bold),
-              const Spacer(),
-              Container(
-                padding: EdgeInsets.all(5.r),
-                decoration: const BoxDecoration(color: Color(0xFF1E2F23), shape: BoxShape.circle),
-                child: Icon(Icons.arrow_forward_ios, color: Colors.white, size: 10.sp),
-              )
-            ],
-          ),
-        ],
-      ),
-    );
-  }
 
 }

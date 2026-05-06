@@ -2,67 +2,50 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-
+	<key>CADisableMinimumFrameDurationOnPhone</key>
+	<true/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
-
 	<key>CFBundleDisplayName</key>
-	<string>The Noire Hub V1</string>
-
+	<string>TNP Beauty</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
-
 	<key>CFBundleIdentifier</key>
 	<string>com.annadat.tnp</string>
-
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
-
 	<key>CFBundleName</key>
 	<string>the_noire_hub_v1</string>
-
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
-
 	<key>CFBundleShortVersionString</key>
 	<string>$(FLUTTER_BUILD_NAME)</string>
-
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
-
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-
-	<!-- Permissions -->
-
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>We use your photo library to let you select images for your profile and product listings. For example, you can choose existing photos when uploading a product.</string>
-
-	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>We use this permission to allow users to save images from the app to their photo library.</string>
-
 	<key>NSCameraUsageDescription</key>
 	<string>We use the camera to allow users to take photos for profile pictures and product listings. For example, you can capture a photo when creating or updating a product listing.</string>
-
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>We use your location to show products and availability in your area. For example, delivery options and product availability may vary based on your location, as some vendors do not deliver to all regions.</string>
-
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>We use this permission to allow users to save images from the app to their photo library.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>We use your photo library to let you select images for your profile and product listings. For example, you can choose existing photos when uploading a product.</string>
+	<key>UIApplicationSupportsIndirectInputEvents</key>
+	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
-
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
-
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
 	</array>
-
-	<key>CADisableMinimumFrameDurationOnPhone</key>
-	<true/>
-
-	<key>UIApplicationSupportsIndirectInputEvents</key>
-	<true/>
-
 </dict>
 </plist>

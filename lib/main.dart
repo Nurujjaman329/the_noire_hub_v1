@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:the_noire_hub_v1/core/services/cache_service.dart';
 import 'package:the_noire_hub_v1/core/services/push_notification_service.dart';
+
 import 'app.dart';
 
 void main() async {
@@ -43,4 +44,3 @@ Future<void> _preCacheFonts() async {
     debugPrint('Font pre-caching failed: $e');
   }
 }
-

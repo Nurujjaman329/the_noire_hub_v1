@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
       splitScreenMode: true,
       builder: (context, child) {
         return GetMaterialApp(
-          title: 'Noire Hub',
+          title: 'TNP Beauty',
           debugShowCheckedModeBanner: false,
 
           // 5. Global Bindings (Injects ApiClient, LocalStorage, etc.)

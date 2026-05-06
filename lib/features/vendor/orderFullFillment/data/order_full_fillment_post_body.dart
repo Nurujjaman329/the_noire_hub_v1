@@ -56,12 +56,14 @@ class DeliveryMethodConfig {
   final MethodOption? turbo;
   final MethodOption? standard;
   final MethodOption? basic;
+  final MethodOption? city; // ✅ ADD THIS
   final PickupOption? pickup;
 
   DeliveryMethodConfig({
     this.turbo,
     this.standard,
     this.basic,
+    this.city, // ✅ ADD
     this.pickup,
   });
 
@@ -69,9 +71,11 @@ class DeliveryMethodConfig {
     if (turbo != null) 'turbo': turbo!.toJson(),
     if (standard != null) 'standard': standard!.toJson(),
     if (basic != null) 'basic': basic!.toJson(),
+    if (city != null) 'city': city!.toJson(), // ✅ ADD
     if (pickup != null) 'pickup': pickup!.toJson(),
   };
 }
+
 class MethodOption {
   final bool? enabled;
   final String? deliveryTime;

@@ -21,12 +21,6 @@ class OrderFullFillmentController extends GetxController {
   // Helper getter to decide which data to show if you use one variable
   var fulfillmentData = Rxn<GetOrderFulfillmentAttributes>();
 
-  @override
-  void onInit() {
-    super.onInit();
-    // Only call this here if you want general settings pre-loaded
-    // fetchSettings();
-  }
 
   /// GET: Fetch settings
   Future<void> fetchSettings({String? vendorId}) async {

@@ -49,6 +49,17 @@ class CustomerOrdersService {
     }
   }
 
+  Future<bool> completeOrder({required String orderId}) async {
+    final String url = "${ApiConstants.productOrders}/$orderId/status";
+    try {
+      final response = await _apiClient.patch(url, data: {"status": "completed"});
+      return response.data != null && response.data['code'] == 200;
+    } catch (e) {
+      debugPrint("!!! COMPLETE ORDER SERVICE ERROR: $e");
+      return false;
+    }
+  }
+
   Future<bool> cancelOrder({required String orderId, required String reason}) async {
     final String url = "${ApiConstants.productOrders}/$orderId/cancel";
 

@@ -78,6 +78,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           defaultMethod = "Basic";
         } else if (attr.deliveryMethod.pickup.enabled) {
           defaultMethod = "Pickup";
+        } else if (attr.deliveryMethod.city.enabled) {
+          defaultMethod = "City";
         }
       }
       selectedSpeed = defaultMethod;
@@ -121,6 +123,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         }
 
         final attr = fulfillmentController.fulfillmentData.value;
+        final vendorLocation = attr?.vendorCountry;
+        final vendorCity = vendorLocation?.city ?? "";
+        final vendorCountry = vendorLocation?.country ?? "";
         final methods = attr?.deliveryMethod;
         final shippingMethods = attr?.shippingMethod;
 
@@ -145,7 +150,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             : ((methods?.turbo.enabled ?? false) ||
                 (methods?.standard.enabled ?? false) ||
                 (methods?.basic.enabled ?? false) ||
-                (methods?.pickup.enabled ?? false));
+                (methods?.pickup.enabled ?? false) ||
+                (methods?.city.enabled ?? false));
 
         return SingleChildScrollView(
           padding: EdgeInsets.symmetric(horizontal: 20.w),
@@ -297,8 +303,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 _buildEstimatedTimeHeader(methods),
                 SizedBox(height: 15.h),
                 // --- 5. SPEED CARDS ---
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  child: Row(
                   children: [
                     if (attr != null) ...[
                       // Logic: Pick the correct display data based on international status
@@ -345,10 +353,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           "\$${attr.deliveryMethod.pickup.price}",
                           false,
                         ),
+
+                      // 5. CITY (Hidden if International)
+                      if (!isIntl && attr.deliveryMethod.city.enabled)
+                        _speedCard(
+                          "City",
+                          attr.deliveryMethod.city.deliveryTime,
+                          "\$${attr.deliveryMethod.city.price}",
+                          false,
+                        ),
                     ],
                   ],
+                  ),
                 ),
-                
+
                 // Show warning if Standard method is not enabled but other methods are
                 if (selectedSpeed == null) ...[
                   SizedBox(height: 15.h),
@@ -383,6 +401,61 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               CustomText(text: "Summary", fontSize: 22.sp, fontWeight: FontWeight.bold),
               SizedBox(height: 15.h),
               _buildSummaryRow(Icons.storefront, "${vendorData.vendor.businessName} | ${vendorData.itemCount} items"),
+
+              if (vendorCity.isNotEmpty || vendorCountry.isNotEmpty) ...[
+                SizedBox(height: 10.h),
+
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.06), // soft highlight
+                    borderRadius: BorderRadius.circular(12.r),
+                    border: Border.all(
+                      color: AppColors.primary.withValues(alpha: 0.15),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(6.r),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.12),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.public, // better than location pin for country meaning
+                          size: 16.sp,
+                          color: AppColors.primaryDark,
+                        ),
+                      ),
+
+                      SizedBox(width: 10.w),
+
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CustomText(
+                              text: "Vendor Location",
+                              fontSize: 10.sp,
+                              color: AppColors.geryColor,
+                            ),
+                            CustomText(
+                              text: [
+                                if (vendorCity.isNotEmpty) vendorCity,
+                                if (vendorCountry.isNotEmpty) vendorCountry,
+                              ].join(", "),
+                              fontSize: 13.sp,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
 
               SizedBox(height: 25.h),
 
@@ -512,6 +585,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       timeRange = isIntl 
           ? (attr?.shippingMethod.basic.deliveryTime ?? "")
           : (methods?.basic.deliveryTime ?? "");
+    } else if (selectedSpeed == "City") {
+      timeRange = methods?.city.deliveryTime ?? "";
     } else if (selectedSpeed == "Pickup") {
       timeRange = "Ready for pickup";
     } else {
@@ -542,6 +617,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       onTap: () => setState(() => selectedSpeed = title),
       child: Container(
         width: 82.w,
+        margin: EdgeInsets.only(right: 10.w),
         padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 4.w),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.surfaceVariant : AppColors.surfaceVariant.withValues(alpha: 0.5),
@@ -1041,6 +1117,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             : attr.deliveryMethod.basic.price.toDouble();
       case "Pickup":
         return attr.deliveryMethod.pickup.price.toDouble();
+      case "City":
+        return attr.deliveryMethod.city.price.toDouble();
       default: // Standard
         return isIntl
             ? attr.shippingMethod.standard.price.toDouble()
@@ -1066,6 +1144,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         return isIntl
             ? attr.shippingMethod.basic.price.toDouble()
             : attr.deliveryMethod.basic.price.toDouble();
+      case "City":
+        return attr.deliveryMethod.city.price.toDouble();
       default: // Standard
         return isIntl
             ? attr.shippingMethod.standard.price.toDouble()
@@ -1077,11 +1157,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final attr = fulfillmentController.fulfillmentData.value;
     if (attr == null) return false;
 
-    // Normalize both to uppercase for a safe comparison
-    String userCountry = checkoutController.selectedCountry.value.trim().toUpperCase();
-    String vendorCountry = attr.vendorCountry.trim().toUpperCase();
+    final userCountry =
+    checkoutController.selectedCountry.value.trim().toUpperCase();
 
-    return userCountry != vendorCountry && vendorCountry.isNotEmpty;
+    final vendorCountry =
+    (attr.vendorCountry.country).trim().toUpperCase();
+
+    if (vendorCountry.isEmpty || userCountry.isEmpty) return false;
+
+    return userCountry != vendorCountry;
   }
 
 
