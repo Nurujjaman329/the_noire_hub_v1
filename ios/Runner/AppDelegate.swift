@@ -12,7 +12,7 @@ import UserNotifications
   ) -> Bool {
 
     GeneratedPluginRegistrant.register(with: self)
-    GMSServices.provideAPIKey("AIzaSyCrmEOP4JyFCozu7n85BIZqn_8LarJq_iI")
+    GMSServices.provideAPIKey("AIzaSyDi6UV_eBl9BZgd7MZNYGJV2jjLd1o9I4I")
 
     if #available(iOS 10.0, *) {
       UNUserNotificationCenter.current().delegate = self
