@@ -1,3 +1,5 @@
+// lib/core/widgets/payment/stripe_payment_webview.dart
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -16,6 +18,11 @@ class _StripePaymentWebViewState extends State<StripePaymentWebView> {
   late final WebViewController _controller;
   bool isLoading = true;
 
+  String? get _source =>
+      Get.arguments is String ? Get.arguments as String : null;
+
+  bool get _isStripeOnboarding => _source == 'stripe_onboarding';
+
   @override
   void initState() {
     super.initState();
@@ -30,6 +37,17 @@ class _StripePaymentWebViewState extends State<StripePaymentWebView> {
           },
             onPageFinished: (String url) {
               setState(() => isLoading = false);
+
+              final String? source = _source;
+
+              if (source == 'stripe_onboarding') {
+                if (url.contains('return') ||
+                    url.contains('success') ||
+                    url.contains('complete')) {
+                  Get.back(result: true);
+                }
+                return;
+              }
 
               // --- SUCCESS CASE ---
               if (url.contains('success')) {
@@ -88,7 +106,10 @@ class _StripePaymentWebViewState extends State<StripePaymentWebView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Secure Payment",style: TextStyle(color: Colors.white),),
+        title: Text(
+          _isStripeOnboarding ? "Stripe Account Setup" : "Secure Payment",
+          style: const TextStyle(color: Colors.white),
+        ),
         backgroundColor: const Color(0xFF1D3826),
         // Important: If user closes manually, we treat it as a back action
         leading: IconButton(

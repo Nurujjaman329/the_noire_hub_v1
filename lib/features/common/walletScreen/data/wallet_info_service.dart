@@ -1,8 +1,11 @@
+// lib/features/common/walletScreen/data/wallet_info_service.dart
+
 import 'package:flutter/material.dart';
 import 'package:the_noire_hub_v1/features/common/walletScreen/data/withdraw_history_response_model.dart';
 import '../../../../core/api/api_client.dart';
 import '../../../../core/constants/api_constants.dart';
-import 'wallet_info_response_model.dart'; // Ensure this import is correct
+import 'wallet_info_response_model.dart';
+import 'withdraw_response_model.dart';
 
 class WalletInfoService {
   final ApiClient _apiClient;
@@ -59,7 +62,7 @@ class WalletInfoService {
   }
 
   /// POST: Withdraw Money
-  Future<bool> withdrawAmount({required double amount}) async {
+  Future<WithdrawResponseModel> withdrawAmount({required double amount}) async {
     final Map<String, dynamic> body = {
       "amount": amount,
     };
@@ -78,8 +81,13 @@ class WalletInfoService {
       debugPrint('✅ [WITHDRAW] Success Status: ${response.statusCode}');
       debugPrint('Response Data: ${response.data}');
 
-      // Return true if the request was successful
-      return response.statusCode == 200 || response.statusCode == 201;
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return WithdrawResponseModel.fromJson(
+          Map<String, dynamic>.from(response.data as Map),
+        );
+      }
+
+      throw Exception('Withdraw request failed');
     } catch (e) {
       // --- DEBUG PRINT: ERROR ---
       debugPrint('❌ [WITHDRAW] Error at: ${ApiConstants.walletWithDraw}');
