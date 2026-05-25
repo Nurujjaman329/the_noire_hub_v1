@@ -1,3 +1,5 @@
+// lib/features/customer/customerServices/presentation/customer_service_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -499,21 +501,49 @@ class CustomerServiceScreen extends StatelessWidget {
         );
       }
 
-      return SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: catCtrl.categories.map((category) {
-            bool isSelected = serviceCtrl.selectedCategoryId.value == category.id;
-            return _specialtyCard(
-              category.name,
-              "${ApiConstants.baseImageUrl}${category.image}",
-              isSelected,
-                  () {
-                subCtrl.fetchSubCategories(categoryId: category.id);
-                serviceCtrl.filterByCategory(category.id);
-              },
-            );
-          }).toList(),
+      return NotificationListener<ScrollNotification>(
+        onNotification: (ScrollNotification scrollInfo) {
+          if (scrollInfo.metrics.pixels >= scrollInfo.metrics.maxScrollExtent - 80) {
+            catCtrl.loadMoreCategories();
+          }
+          return false;
+        },
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          child: Row(
+            children: [
+              ...catCtrl.categories.map((category) {
+                bool isSelected = serviceCtrl.selectedCategoryId.value == category.id;
+                return _specialtyCard(
+                  category.name,
+                  "${ApiConstants.baseImageUrl}${category.image}",
+                  isSelected,
+                      () {
+                    subCtrl.fetchSubCategories(
+                      categoryId: category.id,
+                      categoryType: 'service',
+                    );
+                    serviceCtrl.filterByCategory(category.id);
+                  },
+                );
+              }),
+              if (catCtrl.isMoreLoading.value)
+                Padding(
+                  padding: EdgeInsets.only(right: 15.w, left: 5.w, bottom: 8.h),
+                  child: SizedBox(
+                    width: 90.w,
+                    height: 90.w,
+                    child: const Center(
+                      child: CircularProgressIndicator(
+                        color: Color(0xFF1D3826),
+                        strokeWidth: 2,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       );
     });
@@ -920,61 +950,85 @@ class CustomerServiceScreen extends StatelessWidget {
       if (subCtrl.isLoading.value) return const Center(child: CircularProgressIndicator());
       if (subCtrl.subCategories.isEmpty) return const SizedBox.shrink();
 
-      return SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        child: Row(
-          children: subCtrl.subCategories.map((sub) {
-            bool isSelected = serviceCtrl.selectedSubCategoryId.value == sub.id;
+      return NotificationListener<ScrollNotification>(
+        onNotification: (ScrollNotification scrollInfo) {
+          if (scrollInfo.metrics.pixels >= scrollInfo.metrics.maxScrollExtent - 80) {
+            subCtrl.loadMore();
+          }
+          return false;
+        },
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          child: Row(
+            children: [
+              ...subCtrl.subCategories.map((sub) {
+                bool isSelected = serviceCtrl.selectedSubCategoryId.value == sub.id;
 
-            return GestureDetector(
-              onTap: () => serviceCtrl.filterBySubCategory(sub.id),
-              child: Padding(
-                padding: EdgeInsets.only(right: 15.w),
-                child: Column(
-                  children: [
-                    Container(
-                      width: 85.w,
-                      height: 85.w,
-                      decoration: BoxDecoration(
-                        // Color change based on selection
-                        color: isSelected ? const Color(0xFF1D3826) : Colors.white,
-                        borderRadius: BorderRadius.circular(25.r),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.08),
-                            blurRadius: 12,
-                            offset: const Offset(0, 6),
+                return GestureDetector(
+                  onTap: () => serviceCtrl.filterBySubCategory(sub.id),
+                  child: Padding(
+                    padding: EdgeInsets.only(right: 15.w),
+                    child: Column(
+                      children: [
+                        Container(
+                          width: 85.w,
+                          height: 85.w,
+                          decoration: BoxDecoration(
+                            // Color change based on selection
+                            color: isSelected ? const Color(0xFF1D3826) : Colors.white,
+                            borderRadius: BorderRadius.circular(25.r),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.08),
+                                blurRadius: 12,
+                                offset: const Offset(0, 6),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20.r),
-                        child: Padding(
-                          padding: EdgeInsets.all(8.r),
-                          child: CustomNetworkImage(
-                            imageUrl: "${ApiConstants.baseImageUrl}${sub.image}",
-                            height: 75.h,
-                            width: 75.w,
-                            // Tint icon if selected
-                            color: isSelected ? Colors.white : null,
-                            borderRadius: BorderRadius.circular(18.r),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(20.r),
+                            child: Padding(
+                              padding: EdgeInsets.all(8.r),
+                              child: CustomNetworkImage(
+                                imageUrl: "${ApiConstants.baseImageUrl}${sub.image}",
+                                height: 75.h,
+                                width: 75.w,
+                                // Tint icon if selected
+                                color: isSelected ? Colors.white : null,
+                                borderRadius: BorderRadius.circular(18.r),
+                              ),
+                            ),
                           ),
                         ),
+                        CustomText(
+                          text: sub.name,
+                          fontSize: 13.sp,
+                          top: 10.h,
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                          color: isSelected ? const Color(0xFF1D3826) : Colors.black,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+              if (subCtrl.isMoreLoading.value)
+                Padding(
+                  padding: EdgeInsets.only(right: 15.w),
+                  child: SizedBox(
+                    width: 85.w,
+                    height: 85.w,
+                    child: const Center(
+                      child: CircularProgressIndicator(
+                        color: Color(0xFF1D3826),
+                        strokeWidth: 2,
                       ),
                     ),
-                    CustomText(
-                      text: sub.name,
-                      fontSize: 13.sp,
-                      top: 10.h,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                      color: isSelected ? const Color(0xFF1D3826) : Colors.black,
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            );
-          }).toList(),
+            ],
+          ),
         ),
       );
     });

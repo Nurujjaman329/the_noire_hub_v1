@@ -1,4 +1,4 @@
-
+// lib/features/vendor/storeSetUp/presentation/screens/store_setup_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -150,30 +150,52 @@ class StoreSetupScreen extends GetView<RegistrationController> {
   }
 
   Widget _buildDynamicCategories(CategoryController catCtrl, SubCategoryController subCtrl) {
-    return Obx(() => SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: catCtrl.categories.map((cat) {
-          bool isSelected = controller.selectedCategories.any((c) => c.category == cat.id);
+    return Obx(() => NotificationListener<ScrollNotification>(
+      onNotification: (ScrollNotification scrollInfo) {
+        if (scrollInfo.metrics.pixels >= scrollInfo.metrics.maxScrollExtent - 80) {
+          catCtrl.loadMoreCategories();
+        }
+        return false;
+      },
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        child: Row(
+          children: [
+            ...catCtrl.categories.map((cat) {
+              bool isSelected = controller.selectedCategories.any((c) => c.category == cat.id);
 
-          return GestureDetector(
-            onTap: () {
-              controller.selectedCategories.assignAll([
-                SelectedCategoryRequest(category: cat.id, subcategories: [])
-              ]);
+              return GestureDetector(
+                onTap: () {
+                  controller.selectedCategories.assignAll([
+                    SelectedCategoryRequest(category: cat.id, subcategories: [])
+                  ]);
 
-              // Determine type based on the initial SelectionScreen choice
-              String apiType = (controller.userRole.value == 'vendor') ? 'product' : 'service';
+                  // Determine type based on the initial SelectionScreen choice
+                  String apiType = (controller.userRole.value == 'vendor') ? 'product' : 'service';
 
-              // Fetch subcategories filtered by both ID and Type
-              subCtrl.fetchSubCategories(
-                  categoryId: cat.id,
-                  categoryType: apiType
+                  // Fetch subcategories filtered by both ID and Type
+                  subCtrl.fetchSubCategories(
+                      categoryId: cat.id,
+                      categoryType: apiType
+                  );
+                },
+                child: _specialtyCard(cat.name, cat.image, isSelected),
               );
-            },
-            child: _specialtyCard(cat.name, cat.image, isSelected),
-          );
-        }).toList(),
+            }),
+            if (catCtrl.isMoreLoading.value)
+              Padding(
+                padding: EdgeInsets.only(right: 15.w),
+                child: SizedBox(
+                  width: 110.w,
+                  height: 120.h,
+                  child: const Center(
+                    child: CircularProgressIndicator(color: Color(0XFFB5B475)),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     ));
   }
@@ -193,28 +215,52 @@ class StoreSetupScreen extends GetView<RegistrationController> {
         );
       }
 
-      return SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        child: Row(
-          children: subCtrl.subCategories.map((sub) {
-            bool isSelected = controller.selectedCategories.isNotEmpty &&
-                (controller.selectedCategories.first.subcategories.contains(sub.id));
+      return NotificationListener<ScrollNotification>(
+        onNotification: (ScrollNotification scrollInfo) {
+          if (scrollInfo.metrics.pixels >= scrollInfo.metrics.maxScrollExtent - 80) {
+            subCtrl.loadMore();
+          }
+          return false;
+        },
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          child: Row(
+            children: [
+              ...subCtrl.subCategories.map((sub) {
+                bool isSelected = controller.selectedCategories.isNotEmpty &&
+                    (controller.selectedCategories.first.subcategories.contains(sub.id));
 
-            return GestureDetector(
-              onTap: () {
-                if (controller.selectedCategories.isEmpty) return;
-                var currentSubKeys = controller.selectedCategories.first.subcategories;
-                if (isSelected) {
-                  currentSubKeys.remove(sub.id);
-                } else {
-                  currentSubKeys.add(sub.id);
-                }
-                controller.selectedCategories.refresh();
-              },
-              child: _subcategoryCard(sub.name, sub.image, isSelected),
-            );
-          }).toList(),
+                return GestureDetector(
+                  onTap: () {
+                    if (controller.selectedCategories.isEmpty) return;
+                    var currentSubKeys = controller.selectedCategories.first.subcategories;
+                    if (isSelected) {
+                      currentSubKeys.remove(sub.id);
+                    } else {
+                      currentSubKeys.add(sub.id);
+                    }
+                    controller.selectedCategories.refresh();
+                  },
+                  child: _subcategoryCard(sub.name, sub.image, isSelected),
+                );
+              }),
+              if (subCtrl.isMoreLoading.value)
+                Padding(
+                  padding: EdgeInsets.only(right: 12.w, bottom: 5.h),
+                  child: SizedBox(
+                    width: 90.w,
+                    height: 90.w,
+                    child: const Center(
+                      child: CircularProgressIndicator(
+                        color: Color(0XFFB5B475),
+                        strokeWidth: 2,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       );
     });

@@ -1,4 +1,4 @@
-
+// lib/features/vendor/vendorAddProduct/presentation/screen/vendor_add_product_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -21,6 +21,8 @@ class VendorAddProductScreen extends StatefulWidget {
 }
 
 class _VendorAddProductScreenState extends State<VendorAddProductScreen> {
+  static const _loadMoreSubCategoryValue = '__load_more_subcategory__';
+
   final categoryController = Get.find<CategoryController>();
   final subCategoryController = Get.find<SubCategoryController>();
   final productController = Get.find<VendorAddProductController>();
@@ -247,79 +249,125 @@ class _VendorAddProductScreenState extends State<VendorAddProductScreen> {
   }
 
   Widget _buildCategorySelection() {
-    final cats = categoryController.categories;
-    if (cats.isEmpty) return const Text("No categories found");
+    return Obx(() {
+      final cats = categoryController.categories;
+      if (cats.isEmpty) return const Text("No categories found");
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: cats.map((cat) {
-          bool isSelected = selectedCategoryId == cat.id;
-          return GestureDetector(
-            onTap: () {
-              setState(() {
-                selectedCategoryId = cat.id;
-                selectedSubCategoryId = null; // Reset subcat on category change
-              });
-              // Fetch subcategories for this specific category
-              subCategoryController.fetchSubCategories(
-                categoryId: cat.id,
-                id: CacheService.userId,
-              );
-            },
-            child: Container(
-              width: 105.w,
-              height: 110.h,
-              margin: EdgeInsets.only(right: 10.w),
-              decoration: BoxDecoration(
-                color: isSelected ? const Color(0xFFB7C591) : const Color(0xFFCADA9F).withValues(alpha: 0.6),
-                borderRadius: BorderRadius.circular(25.r),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Use network image if available, else icon
-                  const Icon(Icons.category_outlined, color: Color(0xFF1D3826)),
-                  SizedBox(height: 8.h),
-                  CustomText(
-                    text: cat.name,
-                    fontSize: 12.sp,
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFF1D3826),
+      return NotificationListener<ScrollNotification>(
+        onNotification: (ScrollNotification scrollInfo) {
+          if (scrollInfo.metrics.pixels >= scrollInfo.metrics.maxScrollExtent - 80) {
+            categoryController.loadMoreCategories();
+          }
+          return false;
+        },
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          child: Row(
+            children: [
+              ...cats.map((cat) {
+                bool isSelected = selectedCategoryId == cat.id;
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      selectedCategoryId = cat.id;
+                      selectedSubCategoryId = null; // Reset subcat on category change
+                    });
+                    // Fetch subcategories for this specific category
+                    subCategoryController.fetchSubCategories(
+                      categoryId: cat.id,
+                      id: CacheService.userId,
+                    );
+                  },
+                  child: Container(
+                    width: 105.w,
+                    height: 110.h,
+                    margin: EdgeInsets.only(right: 10.w),
+                    decoration: BoxDecoration(
+                      color: isSelected ? const Color(0xFFB7C591) : const Color(0xFFCADA9F).withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(25.r),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // Use network image if available, else icon
+                        const Icon(Icons.category_outlined, color: Color(0xFF1D3826)),
+                        SizedBox(height: 8.h),
+                        CustomText(
+                          text: cat.name,
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF1D3826),
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
+                );
+              }),
+              if (categoryController.isMoreLoading.value)
+                SizedBox(
+                  width: 105.w,
+                  height: 110.h,
+                  child: const Center(
+                    child: CircularProgressIndicator(
+                      color: Color(0xFF1D3826),
+                      strokeWidth: 2,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      );
+    });
   }
 
 
   Widget _buildSubCategoryDropdown() {
-    final subCats = subCategoryController.subCategories;
+    return Obx(() {
+      final subCats = subCategoryController.subCategories;
 
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w),
-      decoration: BoxDecoration(
-        border: Border.all(color: const Color(0xFF1D3826)),
-        borderRadius: BorderRadius.circular(8.r),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          isExpanded: true,
-          hint: Text(subCategoryController.isLoading.value ? "Loading..." : "Select Subcategory"),
-          value: selectedSubCategoryId,
-          icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF1D3826)),
-          items: subCats.map((e) => DropdownMenuItem(
-              value: e.id,
-              child: Text(e.name)
-          )).toList(),
-          onChanged: (v) => setState(() => selectedSubCategoryId = v),
+      return Container(
+        padding: EdgeInsets.symmetric(horizontal: 12.w),
+        decoration: BoxDecoration(
+          border: Border.all(color: const Color(0xFF1D3826)),
+          borderRadius: BorderRadius.circular(8.r),
         ),
-      ),
-    );
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton<String>(
+            isExpanded: true,
+            hint: Text(subCategoryController.isLoading.value ? "Loading..." : "Select Subcategory"),
+            value: selectedSubCategoryId,
+            icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF1D3826)),
+            items: [
+              ...subCats.map((e) => DropdownMenuItem(
+                    value: e.id,
+                    child: Text(e.name),
+                  )),
+              if (subCategoryController.hasMoreData.value)
+                DropdownMenuItem(
+                  value: _loadMoreSubCategoryValue,
+                  enabled: !subCategoryController.isMoreLoading.value,
+                  child: Text(
+                    subCategoryController.isMoreLoading.value ? "Loading..." : "Load more...",
+                    style: const TextStyle(
+                      color: Color(0xFF1D3826),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+            ],
+            onChanged: (v) {
+              if (v == _loadMoreSubCategoryValue) {
+                subCategoryController.loadMore();
+                return;
+              }
+              setState(() => selectedSubCategoryId = v);
+            },
+          ),
+        ),
+      );
+    });
   }
 
   Widget _buildAddProductHeader() {

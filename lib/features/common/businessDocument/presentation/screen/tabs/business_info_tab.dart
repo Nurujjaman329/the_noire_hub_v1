@@ -1,3 +1,5 @@
+// lib/features/common/businessDocument/presentation/screen/tabs/business_info_tab.dart
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -504,11 +506,28 @@ class BusinessInfoTab extends StatelessWidget {
                   return const Center(child: CircularProgressIndicator(color: Color(0XFF627E4C)));
                 }
 
-                return ListView.builder(
-                  padding: EdgeInsets.symmetric(horizontal: 10.w),
-                  itemCount: catController.categories.length,
-                  itemBuilder: (context, index) {
-                    final category = catController.categories[index];
+                return NotificationListener<ScrollNotification>(
+                  onNotification: (ScrollNotification scrollInfo) {
+                    if (scrollInfo.metrics.pixels >= scrollInfo.metrics.maxScrollExtent - 80) {
+                      catController.loadMoreCategories();
+                    }
+                    return false;
+                  },
+                  child: ListView.builder(
+                    padding: EdgeInsets.symmetric(horizontal: 10.w),
+                    itemCount: catController.categories.length +
+                        (catController.isMoreLoading.value ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (index >= catController.categories.length) {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          child: Center(
+                            child: CircularProgressIndicator(color: Color(0XFF627E4C)),
+                          ),
+                        );
+                      }
+
+                      final category = catController.categories[index];
 
                     return Obx(() {
                       final isSelected = tempSelection.containsKey(category.id);
@@ -555,6 +574,7 @@ class BusinessInfoTab extends StatelessWidget {
                       );
                     });
                   },
+                  ),
                 );
               }),
             ),
@@ -594,32 +614,66 @@ class BusinessInfoTab extends StatelessWidget {
         );
       }
 
-      return Container(
-        padding: EdgeInsets.only(left: 50.w, right: 15.w, bottom: 15.h),
-        width: double.infinity,
-        child: Wrap(
-          spacing: 8.w,
-          runSpacing: 8.h,
-          children: subs.map((sub) {
-            final isSubSelected = selection[parentId]?.contains(sub.id) ?? false;
-            return FilterChip(
-              label: Text(sub.name, style: TextStyle(fontSize: 10.sp)),
-              selected: isSubSelected,
-              selectedColor: const Color(0XFFCADA9F),
-              checkmarkColor: const Color(0XFF627E4C),
-              onSelected: (val) {
-                if (!selection.containsKey(parentId)) selection[parentId] = [];
+      return NotificationListener<ScrollNotification>(
+        onNotification: (ScrollNotification scrollInfo) {
+          if (subController.selectedCategoryId == parentId &&
+              scrollInfo.metrics.pixels >= scrollInfo.metrics.maxScrollExtent - 80) {
+            subController.loadMore();
+          }
+          return false;
+        },
+        child: SingleChildScrollView(
+          child: Container(
+            padding: EdgeInsets.only(left: 50.w, right: 15.w, bottom: 15.h),
+            width: double.infinity,
+            child: Wrap(
+              spacing: 8.w,
+              runSpacing: 8.h,
+              children: [
+                ...subs.map((sub) {
+                  final isSubSelected = selection[parentId]?.contains(sub.id) ?? false;
+                  return FilterChip(
+                    label: Text(sub.name, style: TextStyle(fontSize: 10.sp)),
+                    selected: isSubSelected,
+                    selectedColor: const Color(0XFFCADA9F),
+                    checkmarkColor: const Color(0XFF627E4C),
+                    onSelected: (val) {
+                      if (!selection.containsKey(parentId)) selection[parentId] = [];
 
-                var currentList = List<String>.from(selection[parentId]!);
-                if (val) {
-                  currentList.add(sub.id);
-                } else {
-                  currentList.remove(sub.id);
-                }
-                selection[parentId] = currentList;
-              },
-            );
-          }).toList(),
+                      var currentList = List<String>.from(selection[parentId]!);
+                      if (val) {
+                        currentList.add(sub.id);
+                      } else {
+                        currentList.remove(sub.id);
+                      }
+                      selection[parentId] = currentList;
+                    },
+                  );
+                }),
+                if (subController.isMoreLoading.value &&
+                    subController.selectedCategoryId == parentId)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        color: Color(0XFF627E4C),
+                        strokeWidth: 2,
+                      ),
+                    ),
+                  ),
+                if (subController.hasMoreData.value &&
+                    !subController.isMoreLoading.value &&
+                    subController.selectedCategoryId == parentId)
+                  ActionChip(
+                    label: Text('Load more', style: TextStyle(fontSize: 10.sp)),
+                    backgroundColor: const Color(0XFFCADA9F),
+                    onPressed: () => subController.loadMore(),
+                  ),
+              ],
+            ),
+          ),
         ),
       );
     });
