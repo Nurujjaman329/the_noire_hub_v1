@@ -1,9 +1,9 @@
-
-
+// lib/features/common/walletScreen/presentation/controller/wallet_info_controller.dart
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../../core/widgets/payment/stripe_payment_webview.dart';
 import '../../data/wallet_info_response_model.dart';
 import '../../data/wallet_info_service.dart';
 import '../../data/withdraw_history_response_model.dart';
@@ -85,20 +85,40 @@ class WalletInfoController extends GetxController {
 
     isWithdrawing.value = true;
     try {
-      final success = await _service.withdrawAmount(amount: amount);
+      final response = await _service.withdrawAmount(amount: amount);
 
-      if (success) {
+      if (response.needsStripeSetup) {
         Get.snackbar(
-          "Success",
-          "Withdrawal request submitted successfully!",
+          "Stripe Setup Required",
+          response.message.isNotEmpty
+              ? response.message
+              : "Please connect your Stripe account to withdraw.",
           backgroundColor: const Color(0xFF3F592B),
           colorText: Colors.white,
           snackPosition: SnackPosition.TOP,
         );
 
+        await Get.to(
+          () => StripePaymentWebView(url: response.onboardingUrl!),
+          arguments: 'stripe_onboarding',
+        );
+
         await fetchWalletInfo();
-        await fetchWithdrawHistory();
+        return;
       }
+
+      Get.snackbar(
+        "Success",
+        response.message.isNotEmpty
+            ? response.message
+            : "Withdrawal request submitted successfully!",
+        backgroundColor: const Color(0xFF3F592B),
+        colorText: Colors.white,
+        snackPosition: SnackPosition.TOP,
+      );
+
+      await fetchWalletInfo();
+      await fetchWithdrawHistory();
     } catch (e) {
       debugPrint("❌ [CONTROLLER] Withdrawal Error: $e");
       Get.snackbar(

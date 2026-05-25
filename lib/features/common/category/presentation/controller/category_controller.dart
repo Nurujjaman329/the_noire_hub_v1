@@ -1,3 +1,5 @@
+// lib/features/common/category/presentation/controller/category_controller.dart
+
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import '../../../../../core/services/cache_service.dart';
@@ -11,6 +13,7 @@ class CategoryController extends GetxController {
 
   var categories = <Category>[].obs;
   var isLoading = false.obs;
+  var isMoreLoading = false.obs;
   var errorMessage = ''.obs;
   var currentPage = 1.obs;
   var totalPages = 0.obs;
@@ -27,7 +30,13 @@ class CategoryController extends GetxController {
     // String? categoryType,
     String? userId,
   }) async {
-    if (page == 1) isLoading.value = true;
+    if (page == 1) {
+      isLoading.value = true;
+      currentPage.value = 1;
+      hasMoreData.value = true;
+    } else {
+      isMoreLoading.value = true;
+    }
 
     currentUserId = userId;
 
@@ -54,17 +63,22 @@ class CategoryController extends GetxController {
         categories.addAll(response.data.attributes.results);
       }
 
-      // Update pagination logic here...
+      final attributes = response.data.attributes;
+      currentPage.value = attributes.page;
+      totalPages.value = attributes.totalPages;
+      totalResults.value = attributes.totalResults;
+      hasMoreData.value = currentPage.value < totalPages.value;
     } catch (e) {
       debugPrint("Load Error: $e");
     } finally {
       isLoading.value = false;
+      isMoreLoading.value = false;
     }
   }
 
   // Update this to maintain the ID during pagination
   Future<void> loadMoreCategories({int limit = 10}) async {
-    if (!hasMoreData.value || isLoading.value) return;
+    if (!hasMoreData.value || isLoading.value || isMoreLoading.value) return;
     await loadCategories(
       page: currentPage.value + 1,
       limit: limit,

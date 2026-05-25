@@ -1,3 +1,5 @@
+// lib/features/beautician/beauticianAddService/presentation/screen/beautician_add_service_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -24,6 +26,8 @@ class BeauticianAddServiceScreen extends StatefulWidget {
 }
 
 class _BeauticianAddServiceScreenState extends State<BeauticianAddServiceScreen> {
+  static const _loadMoreSubCategoryValue = '__load_more_subcategory__';
+
   // GetX Controllers
   final categoryController = Get.find<CategoryController>();
   final subCategoryController = Get.find<SubCategoryController>();
@@ -370,34 +374,57 @@ class _BeauticianAddServiceScreenState extends State<BeauticianAddServiceScreen>
   // --- UI HELPER METHODS ---
 
   Widget _buildSpecialtiesList() {
-    final cats = categoryController.categories;
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      physics: const BouncingScrollPhysics(),
-      child: Row(
-        children: cats.map((cat) {
-          bool isSelected = selectedCategoryId == cat.id;
-          return GestureDetector(
-            onTap: () {
-              setState(() { selectedCategoryId = cat.id; selectedSubCategoryId = null; });
-              subCategoryController.fetchSubCategories(categoryId: cat.id, id: CacheService.userId);
-            },
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 300),
-              width: 100.w, height: 110.h, margin: EdgeInsets.only(right: 15.w),
-              decoration: BoxDecoration(
-                color: isSelected ? AppColors.secondaryVariant : AppColors.primary.withValues(alpha:0.2),
-                borderRadius: BorderRadius.circular(25.r),
-              ),
-              child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Icon(isSelected ? Icons.check_circle : Icons.spa_outlined, color: isSelected ? Colors.white : AppColors.background, size: 30.sp),
-                CustomText(text: cat.name, fontSize: 11.sp, fontWeight: FontWeight.bold, color: isSelected ? Colors.white : AppColors.textPrimary, top: 8.h),
-              ]),
-            ),
-          );
-        }).toList(),
-      ),
-    );
+    return Obx(() {
+      final cats = categoryController.categories;
+      return NotificationListener<ScrollNotification>(
+        onNotification: (ScrollNotification scrollInfo) {
+          if (scrollInfo.metrics.pixels >= scrollInfo.metrics.maxScrollExtent - 80) {
+            categoryController.loadMoreCategories();
+          }
+          return false;
+        },
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
+          child: Row(
+            children: [
+              ...cats.map((cat) {
+                bool isSelected = selectedCategoryId == cat.id;
+                return GestureDetector(
+                  onTap: () {
+                    setState(() { selectedCategoryId = cat.id; selectedSubCategoryId = null; });
+                    subCategoryController.fetchSubCategories(categoryId: cat.id, id: CacheService.userId);
+                  },
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    width: 100.w, height: 110.h, margin: EdgeInsets.only(right: 15.w),
+                    decoration: BoxDecoration(
+                      color: isSelected ? AppColors.secondaryVariant : AppColors.primary.withValues(alpha:0.2),
+                      borderRadius: BorderRadius.circular(25.r),
+                    ),
+                    child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+                      Icon(isSelected ? Icons.check_circle : Icons.spa_outlined, color: isSelected ? Colors.white : AppColors.background, size: 30.sp),
+                      CustomText(text: cat.name, fontSize: 11.sp, fontWeight: FontWeight.bold, color: isSelected ? Colors.white : AppColors.textPrimary, top: 8.h),
+                    ]),
+                  ),
+                );
+              }),
+              if (categoryController.isMoreLoading.value)
+                SizedBox(
+                  width: 100.w,
+                  height: 110.h,
+                  child: const Center(
+                    child: CircularProgressIndicator(
+                      color: AppColors.primary,
+                      strokeWidth: 2,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      );
+    });
   }
 
   Widget _buildSubCategoryDropdown() {
@@ -409,8 +436,27 @@ class _BeauticianAddServiceScreenState extends State<BeauticianAddServiceScreen>
         child: DropdownButtonHideUnderline(child: DropdownButton<String>(
           value: selectedSubCategoryId, isExpanded: true,
           hint: CustomText(text: subCategoryController.isLoading.value ? "..." : "Type", fontSize: 11.sp),
-          items: subCats.map((e) => DropdownMenuItem(value: e.id, child: CustomText(text: e.name, fontSize: 11.sp))).toList(),
-          onChanged: (v) => setState(() => selectedSubCategoryId = v),
+          items: [
+            ...subCats.map((e) => DropdownMenuItem(value: e.id, child: CustomText(text: e.name, fontSize: 11.sp))),
+            if (subCategoryController.hasMoreData.value)
+              DropdownMenuItem(
+                value: _loadMoreSubCategoryValue,
+                enabled: !subCategoryController.isMoreLoading.value,
+                child: CustomText(
+                  text: subCategoryController.isMoreLoading.value ? "Loading..." : "Load more...",
+                  fontSize: 11.sp,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary,
+                ),
+              ),
+          ],
+          onChanged: (v) {
+            if (v == _loadMoreSubCategoryValue) {
+              subCategoryController.loadMore();
+              return;
+            }
+            setState(() => selectedSubCategoryId = v);
+          },
         )),
       );
     });
