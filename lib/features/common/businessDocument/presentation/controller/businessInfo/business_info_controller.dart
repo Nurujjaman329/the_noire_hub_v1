@@ -169,14 +169,16 @@ class BusinessInfoController extends GetxController with MapSearchMixin {
     updateLocation(selectedLatLng.value);
   }
 
-  Future<void> updateBusinessCategories(CategoryUpdatePostBody body) async {
+  Future<bool> updateBusinessCategories(CategoryUpdatePostBody body) async {
     isUpdating.value = true;
     try {
       await _service.updateCategories(body);
       AppSnackbar.success("Categories updated successfully!");
       await fetchBusinessInfo();
+      return true;
     } on AppException catch (e) {
       AppSnackbar.error(e.message);
+      return false;
     } finally {
       isUpdating.value = false;
     }

@@ -21,13 +21,15 @@ import '../../controller/businessInfo/business_info_controller.dart';
 class BusinessInfoTab extends StatelessWidget {
   const BusinessInfoTab({super.key});
 
+  static const Color _brandGreen = Color(0XFF627E4C);
+
   @override
   Widget build(BuildContext context) {
     final infoController = Get.find<BusinessInfoController>();
 
     return Obx(() {
       if (infoController.isLoading.value) {
-        return const Center(child: CircularProgressIndicator(color: Color(0XFF627E4C)));
+        return _buildCenterLoading(message: 'Loading business info...');
       }
 
       final data = infoController.businessData.value;
@@ -214,15 +216,13 @@ class BusinessInfoTab extends StatelessWidget {
                     onAddTap: () => _showCategorySelectionSheet(),
                   ),
                   SizedBox(height: 10.h),
-                  Obx(() => infoController.isUpdating.value
-                      ? const LinearProgressIndicator()
-                      : Wrap(
+                  Wrap(
                     spacing: 8.w,
                     runSpacing: 8.h,
                     children: data.categories
-                        .map((cat) => _buildTag(cat.category.name)) // Use .name
+                        .map((cat) => _buildTag(cat.category.name))
                         .toList(),
-                  )),
+                  ),
 
                   SizedBox(height: 20.h),
 
@@ -501,9 +501,7 @@ class BusinessInfoTab extends StatelessWidget {
             Expanded(
               child: Obx(() {
                 if (catController.isLoading.value) {
-                  return const Center(
-                    child: CircularProgressIndicator(color: Color(0XFF627E4C)),
-                  );
+                  return _buildCenterLoading(message: 'Loading categories...');
                 }
 
                 // Ensure subcategory updates rebuild this list.
@@ -528,13 +526,9 @@ class BusinessInfoTab extends StatelessWidget {
                         (catController.isMoreLoading.value ? 1 : 0),
                     itemBuilder: (context, index) {
                       if (index >= catController.categories.length) {
-                        return const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 16),
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              color: Color(0XFF627E4C),
-                            ),
-                          ),
+                        return Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16.h),
+                          child: _buildPaginationLoading(),
                         );
                       }
 
@@ -564,20 +558,25 @@ class BusinessInfoTab extends StatelessWidget {
             Padding(
               padding: EdgeInsets.all(20.w),
               child: Obx(() => CustomButton(
-                text: "Save Changes",
+                text: infoController.isUpdating.value
+                    ? 'Saving...'
+                    : 'Save Changes',
                 loading: infoController.isUpdating.value,
-                onTap: () {
-                  final body = CategoryUpdatePostBody(
-                    selectedCategories: tempSelection.entries
-                        .map((e) => SelectedCategory(
-                              category: e.key,
-                              subcategories: e.value,
-                            ))
-                        .toList(),
-                  );
-                  infoController.updateBusinessCategories(body);
-                  Get.back();
-                },
+                onTap: infoController.isUpdating.value
+                    ? null
+                    : () async {
+                        final body = CategoryUpdatePostBody(
+                          selectedCategories: tempSelection.entries
+                              .map((e) => SelectedCategory(
+                                    category: e.key,
+                                    subcategories: e.value,
+                                  ))
+                              .toList(),
+                        );
+                        final saved =
+                            await infoController.updateBusinessCategories(body);
+                        if (saved) Get.back();
+                      },
               )),
             ),
           ],
@@ -684,10 +683,7 @@ class BusinessInfoTab extends StatelessWidget {
     final isLoadingForCategory = subController.isLoading.value && isActiveCategory;
 
     if (isLoadingForCategory && subs.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 10),
-        child: LinearProgressIndicator(color: Color(0XFF627E4C)),
-      );
+      return _buildInlineSubcategoryLoading();
     }
 
     if (!isLoadingForCategory && subs.isEmpty) {
@@ -729,16 +725,9 @@ class BusinessInfoTab extends StatelessWidget {
             );
           }),
           if (subController.isMoreLoading.value && isActiveCategory)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              child: SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  color: Color(0XFF627E4C),
-                  strokeWidth: 2,
-                ),
-              ),
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 8.h),
+              child: _buildPaginationLoading(size: 24),
             ),
           if (subController.hasMoreData.value &&
               !subController.isMoreLoading.value &&
@@ -870,6 +859,58 @@ class BusinessInfoTab extends StatelessWidget {
         ),
         if (!hideDivider) Divider(color: AppColors.divider, thickness: 1),
       ],
+    );
+  }
+
+  Widget _buildCenterLoading({required String message}) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const CircularProgressIndicator(color: _brandGreen),
+          SizedBox(height: 12.h),
+          CustomText(
+            text: message,
+            fontSize: 13.sp,
+            color: Colors.black54,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInlineSubcategoryLoading() {
+    return Padding(
+      padding: EdgeInsets.only(left: 50.w, right: 15.w, bottom: 12.h, top: 4.h),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const LinearProgressIndicator(
+            color: _brandGreen,
+            backgroundColor: Color(0xFFE8E8E8),
+            minHeight: 3,
+          ),
+          SizedBox(height: 8.h),
+          CustomText(
+            text: 'Loading subcategories...',
+            fontSize: 11.sp,
+            color: Colors.black54,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaginationLoading({double size = 28}) {
+    return Center(
+      child: SizedBox(
+        width: size,
+        height: size,
+        child: const CircularProgressIndicator(
+          color: _brandGreen,
+          strokeWidth: 2,
+        ),
+      ),
     );
   }
 }
