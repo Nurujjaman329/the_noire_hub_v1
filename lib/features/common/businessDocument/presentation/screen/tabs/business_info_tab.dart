@@ -512,6 +512,7 @@ class BusinessInfoTab extends StatelessWidget {
                 subCatController.isMoreLoading.value;
                 subCatController.selectedCategoryId.value;
                 expandedCategoryId.value;
+                tempSelection.length;
 
                 return NotificationListener<ScrollNotification>(
                   onNotification: (ScrollNotification scrollInfo) {
@@ -540,6 +541,9 @@ class BusinessInfoTab extends StatelessWidget {
                       final category = catController.categories[index];
                       final isSelected = tempSelection.containsKey(category.id);
                       final isExpanded = expandedCategoryId.value == category.id;
+                      final selectedSubIds = isExpanded
+                          ? List<String>.from(tempSelection[category.id] ?? [])
+                          : const <String>[];
 
                       return _buildCategorySelectionRow(
                         categoryId: category.id,
@@ -550,6 +554,7 @@ class BusinessInfoTab extends StatelessWidget {
                         tempSelection: tempSelection,
                         expandedCategoryId: expandedCategoryId,
                         subCatController: subCatController,
+                        selectedSubIds: selectedSubIds,
                       );
                     },
                   ),
@@ -590,6 +595,7 @@ class BusinessInfoTab extends StatelessWidget {
     required RxMap<String, List<String>> tempSelection,
     required RxnString expandedCategoryId,
     required SubCategoryController subCatController,
+    required List<String> selectedSubIds,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -617,7 +623,8 @@ class BusinessInfoTab extends StatelessWidget {
                     value: isSelected,
                     onChanged: (val) {
                       if (val == true) {
-                        tempSelection[categoryId] = [];
+                        tempSelection[categoryId] = <String>[];
+                        tempSelection.refresh();
                         expandedCategoryId.value = categoryId;
                         subCatController.fetchSubCategories(
                           categoryId: categoryId,
@@ -625,6 +632,7 @@ class BusinessInfoTab extends StatelessWidget {
                         );
                       } else {
                         tempSelection.remove(categoryId);
+                        tempSelection.refresh();
                         if (expandedCategoryId.value == categoryId) {
                           expandedCategoryId.value = null;
                         }
@@ -657,6 +665,7 @@ class BusinessInfoTab extends StatelessWidget {
             categoryId,
             tempSelection,
             subCatController,
+            selectedSubIds,
           ),
         Divider(color: Colors.grey.shade200, height: 1),
       ],
@@ -668,6 +677,7 @@ class BusinessInfoTab extends StatelessWidget {
     String parentId,
     RxMap<String, List<String>> selection,
     SubCategoryController subController,
+    List<String> selectedSubIds,
   ) {
     final isActiveCategory = subController.selectedCategoryId.value == parentId;
     final subs = isActiveCategory ? subController.subCategories.toList() : <SubCategoryItem>[];
@@ -698,13 +708,13 @@ class BusinessInfoTab extends StatelessWidget {
         runSpacing: 8.h,
         children: [
           ...subs.map((sub) {
-            final isSubSelected = selection[parentId]?.contains(sub.id) ?? false;
+            final isSubSelected = selectedSubIds.contains(sub.id);
             return _buildSelectableChip(
               label: sub.name,
               selected: isSubSelected,
               onTap: () {
                 if (!selection.containsKey(parentId)) {
-                  selection[parentId] = [];
+                  selection[parentId] = <String>[];
                 }
 
                 final currentList = List<String>.from(selection[parentId]!);
@@ -714,6 +724,7 @@ class BusinessInfoTab extends StatelessWidget {
                   currentList.add(sub.id);
                 }
                 selection[parentId] = currentList;
+                selection.refresh();
               },
             );
           }),
@@ -753,23 +764,44 @@ class BusinessInfoTab extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(20.r),
-        splashColor: const Color(0XFF627E4C).withValues(alpha: 0.15),
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+        splashColor: const Color(0XFF627E4C).withValues(alpha: 0.2),
+        highlightColor: const Color(0XFF627E4C).withValues(alpha: 0.1),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
           decoration: BoxDecoration(
             color: selected ? const Color(0XFFCADA9F) : const Color(0xFFF3F3F3),
             borderRadius: BorderRadius.circular(20.r),
             border: Border.all(
               color: selected ? const Color(0XFF627E4C) : const Color(0xFFE0E0E0),
+              width: selected ? 1.5 : 1,
             ),
+            boxShadow: selected
+                ? [
+                    BoxShadow(
+                      color: const Color(0XFF627E4C).withValues(alpha: 0.15),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
           ),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 10.sp,
-              fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-              color: selected ? const Color(0XFF627E4C) : Colors.black87,
-            ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (selected) ...[
+                Icon(Icons.check_circle, size: 14.sp, color: const Color(0XFF627E4C)),
+                SizedBox(width: 4.w),
+              ],
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11.sp,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.normal,
+                  color: selected ? const Color(0XFF627E4C) : Colors.black87,
+                ),
+              ),
+            ],
           ),
         ),
       ),
