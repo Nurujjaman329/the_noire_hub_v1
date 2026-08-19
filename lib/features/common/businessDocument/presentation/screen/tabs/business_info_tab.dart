@@ -669,80 +669,77 @@ class BusinessInfoTab extends StatelessWidget {
     RxMap<String, List<String>> selection,
     SubCategoryController subController,
   ) {
-    return Obx(() {
-      final isActiveCategory = subController.selectedCategoryId.value == parentId;
-      final subs = isActiveCategory ? subController.subCategories.toList() : <SubCategoryItem>[];
-      final isLoadingForCategory =
-          subController.isLoading.value && isActiveCategory;
+    final isActiveCategory = subController.selectedCategoryId.value == parentId;
+    final subs = isActiveCategory ? subController.subCategories.toList() : <SubCategoryItem>[];
+    final isLoadingForCategory = subController.isLoading.value && isActiveCategory;
 
-      if (isLoadingForCategory && subs.isEmpty) {
-        return const Padding(
-          padding: EdgeInsets.symmetric(vertical: 10),
-          child: LinearProgressIndicator(color: Color(0XFF627E4C)),
-        );
-      }
+    if (isLoadingForCategory && subs.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 10),
+        child: LinearProgressIndicator(color: Color(0XFF627E4C)),
+      );
+    }
 
-      if (!isLoadingForCategory && subs.isEmpty) {
-        return Padding(
-          padding: EdgeInsets.only(left: 50.w, right: 15.w, bottom: 15.h),
-          child: CustomText(
-            text: 'No subcategories found',
-            fontSize: 11.sp,
-            color: Colors.black54,
-          ),
-        );
-      }
-
+    if (!isLoadingForCategory && subs.isEmpty) {
       return Padding(
         padding: EdgeInsets.only(left: 50.w, right: 15.w, bottom: 15.h),
-        child: Wrap(
-          spacing: 8.w,
-          runSpacing: 8.h,
-          children: [
-            ...subs.map((sub) {
-              final isSubSelected = selection[parentId]?.contains(sub.id) ?? false;
-              return _buildSelectableChip(
-                label: sub.name,
-                selected: isSubSelected,
-                onTap: () {
-                  if (!selection.containsKey(parentId)) {
-                    selection[parentId] = [];
-                  }
-
-                  final currentList = List<String>.from(selection[parentId]!);
-                  if (isSubSelected) {
-                    currentList.remove(sub.id);
-                  } else {
-                    currentList.add(sub.id);
-                  }
-                  selection[parentId] = currentList;
-                },
-              );
-            }),
-            if (subController.isMoreLoading.value && isActiveCategory)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 8),
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    color: Color(0XFF627E4C),
-                    strokeWidth: 2,
-                  ),
-                ),
-              ),
-            if (subController.hasMoreData.value &&
-                !subController.isMoreLoading.value &&
-                isActiveCategory)
-              ActionChip(
-                label: Text('Load more', style: TextStyle(fontSize: 10.sp)),
-                backgroundColor: const Color(0XFFCADA9F),
-                onPressed: subController.loadMore,
-              ),
-          ],
+        child: CustomText(
+          text: 'No subcategories found',
+          fontSize: 11.sp,
+          color: Colors.black54,
         ),
       );
-    });
+    }
+
+    return Padding(
+      padding: EdgeInsets.only(left: 50.w, right: 15.w, bottom: 15.h),
+      child: Wrap(
+        spacing: 8.w,
+        runSpacing: 8.h,
+        children: [
+          ...subs.map((sub) {
+            final isSubSelected = selection[parentId]?.contains(sub.id) ?? false;
+            return _buildSelectableChip(
+              label: sub.name,
+              selected: isSubSelected,
+              onTap: () {
+                if (!selection.containsKey(parentId)) {
+                  selection[parentId] = [];
+                }
+
+                final currentList = List<String>.from(selection[parentId]!);
+                if (isSubSelected) {
+                  currentList.remove(sub.id);
+                } else {
+                  currentList.add(sub.id);
+                }
+                selection[parentId] = currentList;
+              },
+            );
+          }),
+          if (subController.isMoreLoading.value && isActiveCategory)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  color: Color(0XFF627E4C),
+                  strokeWidth: 2,
+                ),
+              ),
+            ),
+          if (subController.hasMoreData.value &&
+              !subController.isMoreLoading.value &&
+              isActiveCategory)
+            ActionChip(
+              label: Text('Load more', style: TextStyle(fontSize: 10.sp)),
+              backgroundColor: const Color(0XFFCADA9F),
+              onPressed: subController.loadMore,
+            ),
+        ],
+      ),
+    );
   }
 
 

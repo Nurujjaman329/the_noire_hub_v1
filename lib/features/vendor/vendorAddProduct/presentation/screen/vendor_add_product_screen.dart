@@ -9,6 +9,7 @@ import '../../../../../core/services/cache_service.dart';
 import '../../../../../core/widgets/custom_text.dart';
 import '../../../../common/category/presentation/controller/category_controller.dart';
 import '../../../../common/subCategories/presentation/controller/sub_categories_controller.dart';
+import '../../../../common/subCategories/data/sub_categories_response_model.dart';
 import '../../../vendorEditProduct/presentation/widgets/vendor_manage_variants_sheet.dart';
 import '../../data/vendor_add_product_post_body.dart';
 import '../controller/vendor_add_product_controller.dart';
@@ -147,9 +148,7 @@ class _VendorAddProductScreenState extends State<VendorAddProductScreen> {
                     SizedBox(height: 25.h),
                     _buildSectionHeader("Product Category", "Select All types of Products you sell"),
 
-                    Obx(() => categoryController.isLoading.value
-                        ? const Center(child: CircularProgressIndicator())
-                        : _buildCategorySelection()),
+                    _buildCategorySelection(),
 
                     SizedBox(height: 30.h),
                     _buildAddProductHeader(),
@@ -162,7 +161,7 @@ class _VendorAddProductScreenState extends State<VendorAddProductScreen> {
 
                     SizedBox(height: 15.h),
                     _buildLabel("Select Subcategory"),
-                    Obx(() => _buildSubCategoryDropdown()),
+                    _buildSubCategoryDropdown(),
 
                     SizedBox(height: 15.h),
                     _buildWeightRow(),
@@ -251,6 +250,10 @@ class _VendorAddProductScreenState extends State<VendorAddProductScreen> {
 
   Widget _buildCategorySelection() {
     return Obx(() {
+      if (categoryController.isLoading.value) {
+        return const Center(child: CircularProgressIndicator());
+      }
+
       final cats = categoryController.categories;
       if (cats.isEmpty) return const Text("No categories found");
 
@@ -326,8 +329,31 @@ class _VendorAddProductScreenState extends State<VendorAddProductScreen> {
 
 
   Widget _buildSubCategoryDropdown() {
+    if (selectedCategoryId == null) {
+      return _buildInputWrapper(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 4.w),
+          child: Text(
+            'Select a category first',
+            style: TextStyle(fontSize: 13.sp, color: Colors.grey),
+          ),
+        ),
+      );
+    }
+
+    final activeCategoryId = selectedCategoryId!;
+
     return Obx(() {
-      final subCats = subCategoryController.subCategories;
+      subCategoryController.subCategories.length;
+      subCategoryController.isLoading.value;
+      subCategoryController.isMoreLoading.value;
+      subCategoryController.hasMoreData.value;
+
+      final isActiveCategory =
+          subCategoryController.selectedCategoryId.value == activeCategoryId;
+      final subCats = isActiveCategory
+          ? subCategoryController.subCategories.toList()
+          : const <SubCategoryItem>[];
 
       return Container(
         padding: EdgeInsets.symmetric(horizontal: 12.w),
@@ -338,7 +364,11 @@ class _VendorAddProductScreenState extends State<VendorAddProductScreen> {
         child: DropdownButtonHideUnderline(
           child: DropdownButton<String>(
             isExpanded: true,
-            hint: Text(subCategoryController.isLoading.value ? "Loading..." : "Select Subcategory"),
+            hint: Text(
+              subCategoryController.isLoading.value && isActiveCategory
+                  ? "Loading..."
+                  : "Select Subcategory",
+            ),
             value: selectedSubCategoryId,
             icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF1D3826)),
             items: [
@@ -346,12 +376,14 @@ class _VendorAddProductScreenState extends State<VendorAddProductScreen> {
                     value: e.id,
                     child: Text(e.name),
                   )),
-              if (subCategoryController.hasMoreData.value)
+              if (isActiveCategory && subCategoryController.hasMoreData.value)
                 DropdownMenuItem(
                   value: _loadMoreSubCategoryValue,
                   enabled: !subCategoryController.isMoreLoading.value,
                   child: Text(
-                    subCategoryController.isMoreLoading.value ? "Loading..." : "Load more...",
+                    subCategoryController.isMoreLoading.value
+                        ? "Loading..."
+                        : "Load more...",
                     style: const TextStyle(
                       color: Color(0xFF1D3826),
                       fontWeight: FontWeight.w600,

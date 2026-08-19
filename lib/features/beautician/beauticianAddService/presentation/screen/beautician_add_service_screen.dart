@@ -193,9 +193,7 @@ class _BeauticianAddServiceScreenState extends State<BeauticianAddServiceScreen>
 
                     // --- CATEGORY SECTION ---
                     _buildSectionTitle("Service Category", "Select the primary category for this service"),
-                    Obx(() => categoryController.isLoading.value
-                        ? const Center(child: CircularProgressIndicator())
-                        : _buildSpecialtiesList()),
+                    _buildSpecialtiesList(),
 
                     SizedBox(height: 30.h),
 
@@ -376,6 +374,10 @@ class _BeauticianAddServiceScreenState extends State<BeauticianAddServiceScreen>
 
   Widget _buildSpecialtiesList() {
     return Obx(() {
+      if (categoryController.isLoading.value) {
+        return const Center(child: CircularProgressIndicator());
+      }
+
       final cats = categoryController.categories;
       return NotificationListener<ScrollNotification>(
         onNotification: (ScrollNotification scrollInfo) {
@@ -433,17 +435,44 @@ class _BeauticianAddServiceScreenState extends State<BeauticianAddServiceScreen>
   }
 
   Widget _buildSubCategoryDropdown() {
+    if (selectedCategoryId == null) {
+      return Container(
+        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 12.h),
+        decoration: BoxDecoration(
+          color: AppColors.primary.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(10.r),
+          border: Border.all(color: AppColors.primary),
+        ),
+        child: CustomText(text: 'Select category first', fontSize: 11.sp, color: Colors.grey),
+      );
+    }
+
+    final activeCategoryId = selectedCategoryId!;
+
     return Obx(() {
-      final subCats = subCategoryController.subCategories;
+      subCategoryController.subCategories.length;
+      subCategoryController.isLoading.value;
+      subCategoryController.isMoreLoading.value;
+      subCategoryController.hasMoreData.value;
+
+      final isActiveCategory =
+          subCategoryController.selectedCategoryId.value == activeCategoryId;
+      final subCats = isActiveCategory
+          ? subCategoryController.subCategories.toList()
+          : const [];
+
       return Container(
         padding: EdgeInsets.symmetric(horizontal: 10.w),
         decoration: BoxDecoration(color: AppColors.primary.withValues(alpha:0.1), borderRadius: BorderRadius.circular(10.r), border: Border.all(color: AppColors.primary)),
         child: DropdownButtonHideUnderline(child: DropdownButton<String>(
           value: selectedSubCategoryId, isExpanded: true,
-          hint: CustomText(text: subCategoryController.isLoading.value ? "..." : "Type", fontSize: 11.sp),
+          hint: CustomText(
+            text: subCategoryController.isLoading.value && isActiveCategory ? "..." : "Type",
+            fontSize: 11.sp,
+          ),
           items: [
             ...subCats.map((e) => DropdownMenuItem(value: e.id, child: CustomText(text: e.name, fontSize: 11.sp))),
-            if (subCategoryController.hasMoreData.value)
+            if (isActiveCategory && subCategoryController.hasMoreData.value)
               DropdownMenuItem(
                 value: _loadMoreSubCategoryValue,
                 enabled: !subCategoryController.isMoreLoading.value,
