@@ -1,4 +1,6 @@
 
+import '../../../../core/utils/json_parse_utils.dart';
+
 class SubCategoryResponse {
   final int code;
   final String message;
@@ -12,12 +14,13 @@ class SubCategoryResponse {
 
   factory SubCategoryResponse.fromJson(Map<String, dynamic> json) {
     return SubCategoryResponse(
-      code: json['code'] ?? 0,
-      message: json['message'] ?? '',
+      code: JsonParseUtils.asInt(json['code']),
+      message: JsonParseUtils.asString(json['message']),
       data: SubCategoryData.fromJson(json['data'] ?? {}),
     );
   }
 }
+
 class SubCategoryData {
   final SubCategoryAttributes attributes;
 
@@ -29,8 +32,9 @@ class SubCategoryData {
     );
   }
 }
+
 class SubCategoryAttributes {
-  final List<SubCategory> results;
+  final List<SubCategoryItem> results;
   final int page;
   final int limit;
   final int totalPages;
@@ -47,51 +51,51 @@ class SubCategoryAttributes {
   factory SubCategoryAttributes.fromJson(Map<String, dynamic> json) {
     return SubCategoryAttributes(
       results: (json['results'] as List<dynamic>? ?? [])
-          .map((e) => SubCategory.fromJson(e))
+          .whereType<Map<String, dynamic>>()
+          .map(SubCategoryItem.fromJson)
           .toList(),
-      page: json['page'] ?? 0,
-      limit: json['limit'] ?? 0,
-      totalPages: json['totalPages'] ?? 0,
-      totalResults: json['totalResults'] ?? 0,
+      page: JsonParseUtils.asInt(json['page']),
+      limit: JsonParseUtils.asInt(json['limit']),
+      totalPages: JsonParseUtils.asInt(json['totalPages']),
+      totalResults: JsonParseUtils.asInt(json['totalResults']),
     );
   }
 }
-class SubCategory {
+
+class SubCategoryItem {
   final String id;
   final String name;
   final String image;
   final Category category;
   final String categoryType;
   final bool isActive;
-  final User createdBy;
   final DateTime? createdAt;
 
-  SubCategory({
+  SubCategoryItem({
     required this.id,
     required this.name,
     required this.image,
     required this.category,
     required this.categoryType,
     required this.isActive,
-    required this.createdBy,
     this.createdAt,
   });
 
-  factory SubCategory.fromJson(Map<String, dynamic> json) {
-    return SubCategory(
-      id: json['id'] ?? '',
-      name: json['name'] ?? '',
-      image: json['image'] ?? '',
+  factory SubCategoryItem.fromJson(Map<String, dynamic> json) {
+    return SubCategoryItem(
+      id: JsonParseUtils.asId(json),
+      name: JsonParseUtils.asString(json['name']),
+      image: JsonParseUtils.asString(json['image']),
       category: Category.fromJson(json['category'] ?? {}),
-      categoryType: json['categoryType'] ?? '',
-      isActive: json['isActive'] ?? false,
-      createdBy: User.fromJson(json['createdBy'] ?? {}),
+      categoryType: JsonParseUtils.asString(json['categoryType']),
+      isActive: JsonParseUtils.asBool(json['isActive']),
       createdAt: json['createdAt'] != null
-          ? DateTime.tryParse(json['createdAt'])
+          ? DateTime.tryParse(json['createdAt'].toString())
           : null,
     );
   }
 }
+
 class Category {
   final String id;
   final String name;
@@ -112,110 +116,19 @@ class Category {
   });
 
   factory Category.fromJson(Map<String, dynamic> json) {
+    final createdByRaw = json['createdBy'];
     return Category(
-      id: json['id'] ?? '',
-      name: json['name'] ?? '',
-      image: json['image'] ?? '',
-      categoryType: json['categoryType'] ?? '',
-      isActive: json['isActive'] ?? false,
-      createdBy: json['createdBy'] ?? '',
+      id: JsonParseUtils.asId(json),
+      name: JsonParseUtils.asString(json['name']),
+      image: JsonParseUtils.asString(json['image']),
+      categoryType: JsonParseUtils.asString(json['categoryType']),
+      isActive: JsonParseUtils.asBool(json['isActive']),
+      createdBy: createdByRaw is Map
+          ? JsonParseUtils.asId(Map<String, dynamic>.from(createdByRaw))
+          : JsonParseUtils.asString(createdByRaw),
       createdAt: json['createdAt'] != null
-          ? DateTime.tryParse(json['createdAt'])
+          ? DateTime.tryParse(json['createdAt'].toString())
           : null,
-    );
-  }
-}
-class User {
-  final String id;
-  final String fullName;
-  final String email;
-  final String businessName;
-  final String image;
-  final String role;
-  final bool isProfileCompleted;
-  final String bio;
-  final String shopImage;
-  final List<Address> addresses;
-
-  User({
-    required this.id,
-    required this.fullName,
-    required this.email,
-    required this.businessName,
-    required this.image,
-    required this.role,
-    required this.isProfileCompleted,
-    required this.bio,
-    required this.shopImage,
-    required this.addresses,
-  });
-
-  factory User.fromJson(Map<String, dynamic> json) {
-    return User(
-      id: json['id'] ?? '',
-      fullName: json['fullName'] ?? '',
-      email: json['email'] ?? '',
-      businessName: json['businessName'] ?? '',
-      image: json['image'] ?? '',
-      role: json['role'] ?? '',
-      isProfileCompleted: json['isProfileCompleted'] ?? false,
-      bio: json['bio'] ?? '',
-      shopImage: json['shopImage'] ?? '',
-      addresses: (json['addresses'] as List<dynamic>? ?? [])
-          .map((e) => Address.fromJson(e))
-          .toList(),
-    );
-  }
-}
-class Address {
-  final String id;
-  final String type;
-  final String street;
-  final String city;
-  final String state;
-  final String country;
-  final bool isDefault;
-  final Location location;
-
-  Address({
-    required this.id,
-    required this.type,
-    required this.street,
-    required this.city,
-    required this.state,
-    required this.country,
-    required this.isDefault,
-    required this.location,
-  });
-
-  factory Address.fromJson(Map<String, dynamic> json) {
-    return Address(
-      id: json['_id'] ?? '',
-      type: json['type'] ?? '',
-      street: json['street'] ?? '',
-      city: json['city'] ?? '',
-      state: json['state'] ?? '',
-      country: json['country'] ?? '',
-      isDefault: json['isDefault'] ?? false,
-      location: Location.fromJson(json['location'] ?? {}),
-    );
-  }
-}
-class Location {
-  final String type;
-  final List<double> coordinates;
-
-  Location({
-    required this.type,
-    required this.coordinates,
-  });
-
-  factory Location.fromJson(Map<String, dynamic> json) {
-    return Location(
-      type: json['type'] ?? '',
-      coordinates: (json['coordinates'] as List<dynamic>? ?? [])
-          .map((e) => (e as num?)?.toDouble() ?? 0.0)
-          .toList(),
     );
   }
 }

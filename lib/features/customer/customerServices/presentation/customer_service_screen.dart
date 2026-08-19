@@ -9,6 +9,7 @@ import 'package:shimmer/shimmer.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/category_type_constants.dart';
 import '../../../../core/constants/route_constants.dart';
 import '../../../../core/controllers/profile_controller.dart';
 import '../../../../core/services/cache_service.dart';
@@ -522,7 +523,7 @@ class CustomerServiceScreen extends StatelessWidget {
                       () {
                     subCtrl.fetchSubCategories(
                       categoryId: category.id,
-                      categoryType: 'service',
+                      categoryType: CategoryTypeConstants.service,
                     );
                     serviceCtrl.filterByCategory(category.id);
                   },

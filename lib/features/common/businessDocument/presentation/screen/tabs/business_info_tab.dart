@@ -6,13 +6,14 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../../../core/constants/api_constants.dart';
+import '../../../../../../core/constants/category_type_constants.dart';
 import '../../../../../../core/constants/app_colors.dart';
-import '../../../../../../core/services/cache_service.dart';
 import '../../../../../../core/widgets/custom_button.dart';
 import '../../../../../../core/widgets/custom_network_image.dart';
 import '../../../../../../core/widgets/custom_text.dart';
 import '../../../../category/presentation/controller/category_controller.dart';
 import '../../../../subCategories/presentation/controller/sub_categories_controller.dart';
+import '../../../../subCategories/data/sub_categories_response_model.dart';
 import '../../../data/businessInfo/categoryUpdate/category_update_post_body.dart';
 import '../../controller/businessInfo/business_info_controller.dart';
 
@@ -471,11 +472,9 @@ class BusinessInfoTab extends StatelessWidget {
     final catController = Get.find<CategoryController>();
     final subCatController = Get.find<SubCategoryController>();
 
-    // 1. Determine the category type based on role once
-    final String userType = CacheService.role;
-    final String activeCategoryType = userType == "vendor" ? "product" : "service";
-
+    final String activeCategoryType = CategoryTypeConstants.forCurrentBusinessRole();
     final RxMap<String, List<String>> tempSelection = <String, List<String>>{}.obs;
+    final RxnString expandedCategoryId = RxnString();
 
     final existingData = infoController.businessData.value;
     if (existingData != null) {
@@ -485,8 +484,7 @@ class BusinessInfoTab extends StatelessWidget {
       }
     }
 
-    // Use the dynamic category type for the main list
-    catController.loadCategories(page: 1,);
+    catController.loadCategories(page: 1);
 
     Get.bottomSheet(
       isScrollControlled: true,
@@ -503,12 +501,22 @@ class BusinessInfoTab extends StatelessWidget {
             Expanded(
               child: Obx(() {
                 if (catController.isLoading.value) {
-                  return const Center(child: CircularProgressIndicator(color: Color(0XFF627E4C)));
+                  return const Center(
+                    child: CircularProgressIndicator(color: Color(0XFF627E4C)),
+                  );
                 }
+
+                // Ensure subcategory updates rebuild this list.
+                subCatController.subCategories.length;
+                subCatController.isLoading.value;
+                subCatController.isMoreLoading.value;
+                subCatController.selectedCategoryId.value;
+                expandedCategoryId.value;
 
                 return NotificationListener<ScrollNotification>(
                   onNotification: (ScrollNotification scrollInfo) {
-                    if (scrollInfo.metrics.pixels >= scrollInfo.metrics.maxScrollExtent - 80) {
+                    if (scrollInfo.metrics.pixels >=
+                        scrollInfo.metrics.maxScrollExtent - 80) {
                       catController.loadMoreCategories();
                     }
                     return false;
@@ -522,64 +530,32 @@ class BusinessInfoTab extends StatelessWidget {
                         return const Padding(
                           padding: EdgeInsets.symmetric(vertical: 16),
                           child: Center(
-                            child: CircularProgressIndicator(color: Color(0XFF627E4C)),
+                            child: CircularProgressIndicator(
+                              color: Color(0XFF627E4C),
+                            ),
                           ),
                         );
                       }
 
                       final category = catController.categories[index];
-
-                    return Obx(() {
                       final isSelected = tempSelection.containsKey(category.id);
+                      final isExpanded = expandedCategoryId.value == category.id;
 
-                      return Theme(
-                        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-                        child: ExpansionTile(
-                          key: PageStorageKey(category.id),
-                          maintainState: true,
-                          onExpansionChanged: (expanded) {
-                            if (expanded) {
-                              // 2. USE activeCategoryType HERE
-                              subCatController.fetchSubCategories(
-                                  categoryId: category.id,
-                                  categoryType: activeCategoryType
-                              );
-                            }
-                          },
-                          leading: Checkbox(
-                            activeColor: const Color(0XFF627E4C),
-                            value: isSelected,
-                            onChanged: (val) {
-                              if (val == true) {
-                                tempSelection[category.id] = [];
-                                // 3. AND USE activeCategoryType HERE
-                                subCatController.fetchSubCategories(
-                                    categoryId: category.id,
-                                    categoryType: activeCategoryType
-                                );
-                              } else {
-                                tempSelection.remove(category.id);
-                              }
-                            },
-                          ),
-                          title: CustomText(
-                            text: category.name,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                            color: isSelected ? const Color(0XFF627E4C) : Colors.black,
-                          ),
-                          children: [
-                            _buildSubCategoryGrid(category.id, tempSelection, subCatController)
-                          ],
-                        ),
+                      return _buildCategorySelectionRow(
+                        categoryId: category.id,
+                        categoryName: category.name,
+                        isSelected: isSelected,
+                        isExpanded: isExpanded,
+                        activeCategoryType: activeCategoryType,
+                        tempSelection: tempSelection,
+                        expandedCategoryId: expandedCategoryId,
+                        subCatController: subCatController,
                       );
-                    });
-                  },
+                    },
                   ),
                 );
               }),
             ),
-
-            // Save Changes Button...
             Padding(
               padding: EdgeInsets.all(20.w),
               child: Obx(() => CustomButton(
@@ -587,9 +563,12 @@ class BusinessInfoTab extends StatelessWidget {
                 loading: infoController.isUpdating.value,
                 onTap: () {
                   final body = CategoryUpdatePostBody(
-                      selectedCategories: tempSelection.entries.map((e) =>
-                          SelectedCategory(category: e.key, subcategories: e.value)
-                      ).toList()
+                    selectedCategories: tempSelection.entries
+                        .map((e) => SelectedCategory(
+                              category: e.key,
+                              subcategories: e.value,
+                            ))
+                        .toList(),
                   );
                   infoController.updateBusinessCategories(body);
                   Get.back();
@@ -602,83 +581,203 @@ class BusinessInfoTab extends StatelessWidget {
     );
   }
 
-  // SubCategory Grid logic
-  Widget _buildSubCategoryGrid(String parentId, RxMap<String, List<String>> selection, SubCategoryController subController) {
-    return Obx(() {
-      final subs = subController.subCategories.where((s) => s.category.id == parentId).toList();
+  Widget _buildCategorySelectionRow({
+    required String categoryId,
+    required String categoryName,
+    required bool isSelected,
+    required bool isExpanded,
+    required String activeCategoryType,
+    required RxMap<String, List<String>> tempSelection,
+    required RxnString expandedCategoryId,
+    required SubCategoryController subCatController,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Material(
+          color: Colors.white,
+          child: InkWell(
+            onTap: () {
+              if (isExpanded) {
+                expandedCategoryId.value = null;
+              } else {
+                expandedCategoryId.value = categoryId;
+                subCatController.fetchSubCategories(
+                  categoryId: categoryId,
+                  categoryType: activeCategoryType,
+                );
+              }
+            },
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+              child: Row(
+                children: [
+                  Checkbox(
+                    activeColor: const Color(0XFF627E4C),
+                    value: isSelected,
+                    onChanged: (val) {
+                      if (val == true) {
+                        tempSelection[categoryId] = [];
+                        expandedCategoryId.value = categoryId;
+                        subCatController.fetchSubCategories(
+                          categoryId: categoryId,
+                          categoryType: activeCategoryType,
+                        );
+                      } else {
+                        tempSelection.remove(categoryId);
+                        if (expandedCategoryId.value == categoryId) {
+                          expandedCategoryId.value = null;
+                        }
+                      }
+                    },
+                  ),
+                  Expanded(
+                    child: CustomText(
+                      text: categoryName,
+                      fontWeight:
+                          isSelected ? FontWeight.bold : FontWeight.normal,
+                      color: isSelected
+                          ? const Color(0XFF627E4C)
+                          : Colors.black,
+                    ),
+                  ),
+                  Icon(
+                    isExpanded
+                        ? Icons.keyboard_arrow_up
+                        : Icons.keyboard_arrow_down,
+                    color: const Color(0XFF627E4C),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        if (isExpanded)
+          _buildSubCategoryGrid(
+            categoryId,
+            tempSelection,
+            subCatController,
+          ),
+        Divider(color: Colors.grey.shade200, height: 1),
+      ],
+    );
+  }
 
-      if (subController.isLoading.value && subController.selectedCategoryId == parentId) {
+  // SubCategory Grid logic
+  Widget _buildSubCategoryGrid(
+    String parentId,
+    RxMap<String, List<String>> selection,
+    SubCategoryController subController,
+  ) {
+    return Obx(() {
+      final isActiveCategory = subController.selectedCategoryId.value == parentId;
+      final subs = isActiveCategory ? subController.subCategories.toList() : <SubCategoryItem>[];
+      final isLoadingForCategory =
+          subController.isLoading.value && isActiveCategory;
+
+      if (isLoadingForCategory && subs.isEmpty) {
         return const Padding(
           padding: EdgeInsets.symmetric(vertical: 10),
           child: LinearProgressIndicator(color: Color(0XFF627E4C)),
         );
       }
 
-      return NotificationListener<ScrollNotification>(
-        onNotification: (ScrollNotification scrollInfo) {
-          if (subController.selectedCategoryId == parentId &&
-              scrollInfo.metrics.pixels >= scrollInfo.metrics.maxScrollExtent - 80) {
-            subController.loadMore();
-          }
-          return false;
-        },
-        child: SingleChildScrollView(
-          child: Container(
-            padding: EdgeInsets.only(left: 50.w, right: 15.w, bottom: 15.h),
-            width: double.infinity,
-            child: Wrap(
-              spacing: 8.w,
-              runSpacing: 8.h,
-              children: [
-                ...subs.map((sub) {
-                  final isSubSelected = selection[parentId]?.contains(sub.id) ?? false;
-                  return FilterChip(
-                    label: Text(sub.name, style: TextStyle(fontSize: 10.sp)),
-                    selected: isSubSelected,
-                    selectedColor: const Color(0XFFCADA9F),
-                    checkmarkColor: const Color(0XFF627E4C),
-                    onSelected: (val) {
-                      if (!selection.containsKey(parentId)) selection[parentId] = [];
-
-                      var currentList = List<String>.from(selection[parentId]!);
-                      if (val) {
-                        currentList.add(sub.id);
-                      } else {
-                        currentList.remove(sub.id);
-                      }
-                      selection[parentId] = currentList;
-                    },
-                  );
-                }),
-                if (subController.isMoreLoading.value &&
-                    subController.selectedCategoryId == parentId)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8),
-                    child: SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        color: Color(0XFF627E4C),
-                        strokeWidth: 2,
-                      ),
-                    ),
-                  ),
-                if (subController.hasMoreData.value &&
-                    !subController.isMoreLoading.value &&
-                    subController.selectedCategoryId == parentId)
-                  ActionChip(
-                    label: Text('Load more', style: TextStyle(fontSize: 10.sp)),
-                    backgroundColor: const Color(0XFFCADA9F),
-                    onPressed: () => subController.loadMore(),
-                  ),
-              ],
-            ),
+      if (!isLoadingForCategory && subs.isEmpty) {
+        return Padding(
+          padding: EdgeInsets.only(left: 50.w, right: 15.w, bottom: 15.h),
+          child: CustomText(
+            text: 'No subcategories found',
+            fontSize: 11.sp,
+            color: Colors.black54,
           ),
+        );
+      }
+
+      return Padding(
+        padding: EdgeInsets.only(left: 50.w, right: 15.w, bottom: 15.h),
+        child: Wrap(
+          spacing: 8.w,
+          runSpacing: 8.h,
+          children: [
+            ...subs.map((sub) {
+              final isSubSelected = selection[parentId]?.contains(sub.id) ?? false;
+              return _buildSelectableChip(
+                label: sub.name,
+                selected: isSubSelected,
+                onTap: () {
+                  if (!selection.containsKey(parentId)) {
+                    selection[parentId] = [];
+                  }
+
+                  final currentList = List<String>.from(selection[parentId]!);
+                  if (isSubSelected) {
+                    currentList.remove(sub.id);
+                  } else {
+                    currentList.add(sub.id);
+                  }
+                  selection[parentId] = currentList;
+                },
+              );
+            }),
+            if (subController.isMoreLoading.value && isActiveCategory)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    color: Color(0XFF627E4C),
+                    strokeWidth: 2,
+                  ),
+                ),
+              ),
+            if (subController.hasMoreData.value &&
+                !subController.isMoreLoading.value &&
+                isActiveCategory)
+              ActionChip(
+                label: Text('Load more', style: TextStyle(fontSize: 10.sp)),
+                backgroundColor: const Color(0XFFCADA9F),
+                onPressed: subController.loadMore,
+              ),
+          ],
         ),
       );
     });
   }
 
+
+  Widget _buildSelectableChip({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20.r),
+        splashColor: const Color(0XFF627E4C).withValues(alpha: 0.15),
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+          decoration: BoxDecoration(
+            color: selected ? const Color(0XFFCADA9F) : const Color(0xFFF3F3F3),
+            borderRadius: BorderRadius.circular(20.r),
+            border: Border.all(
+              color: selected ? const Color(0XFF627E4C) : const Color(0xFFE0E0E0),
+            ),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 10.sp,
+              fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+              color: selected ? const Color(0XFF627E4C) : Colors.black87,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   Widget _buildSheetHeader() {
     return Container(

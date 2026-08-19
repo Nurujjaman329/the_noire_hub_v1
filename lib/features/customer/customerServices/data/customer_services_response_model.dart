@@ -263,7 +263,17 @@ class Location {
 
   Location.fromJson(Map<String, dynamic> json)
       : type = json['type'] ?? '',
-        coordinates = (json['coordinates'] as List?)?.cast<double>() ?? [];
+        coordinates = _parseCoordinates(json['coordinates']);
+
+  static List<double> _parseCoordinates(dynamic raw) {
+    if (raw is! List) return const [];
+
+    return raw.map((entry) {
+      if (entry is num) return entry.toDouble();
+      if (entry is String) return double.tryParse(entry) ?? 0.0;
+      return 0.0;
+    }).toList();
+  }
 }
 
 class Vendor {

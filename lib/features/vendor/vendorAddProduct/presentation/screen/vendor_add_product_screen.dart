@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:the_noire_hub_v1/core/widgets/custom_app_bar.dart';
+import '../../../../../core/constants/category_type_constants.dart';
 import '../../../../../core/services/cache_service.dart';
 import '../../../../../core/widgets/custom_text.dart';
 import '../../../../common/category/presentation/controller/category_controller.dart';
@@ -276,6 +277,7 @@ class _VendorAddProductScreenState extends State<VendorAddProductScreen> {
                     // Fetch subcategories for this specific category
                     subCategoryController.fetchSubCategories(
                       categoryId: cat.id,
+                      categoryType: CategoryTypeConstants.product,
                       id: CacheService.userId,
                     );
                   },

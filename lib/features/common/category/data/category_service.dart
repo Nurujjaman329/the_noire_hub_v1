@@ -12,7 +12,6 @@ class CategoryService {
   Future<CategoryResponse> getCategories({
     int page = 1,
     int limit = 10,
-    String? categoryType,
     String? id,
   }) async {
     try {
@@ -20,10 +19,6 @@ class CategoryService {
         'page': page,
         'limit': limit,
       };
-
-      if (categoryType != null) {
-        queryParams['categoryType'] = categoryType;
-      }
 
       if (id != null && id.isNotEmpty) {
         queryParams['id'] = id;

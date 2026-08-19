@@ -96,22 +96,24 @@ class DashboardDrawer extends StatelessWidget {
 
   // ================== Drawer Item Widget ==================
   Widget _drawerItem(IconData icon, String title, VoidCallback onTap) {
-    return ListTile(
-      onTap: () {
-        // Close drawer and run action
-        Get.back();
-        onTap();
-      },
-      leading: Icon(icon, size: 22.sp, color: AppColors.primaryDark),
-      title: CustomText(
-        text: title,
-        fontSize: 16.sp,
-        fontWeight: FontWeight.w500,
-        color: const Color(0xB2000000),
-        textAlign: TextAlign.start,
+    return Material(
+      color: Colors.transparent,
+      child: ListTile(
+        onTap: () {
+          Get.back();
+          onTap();
+        },
+        leading: Icon(icon, size: 22.sp, color: AppColors.primaryDark),
+        title: CustomText(
+          text: title,
+          fontSize: 16.sp,
+          fontWeight: FontWeight.w500,
+          color: const Color(0xB2000000),
+          textAlign: TextAlign.start,
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.r)),
+        contentPadding: EdgeInsets.symmetric(horizontal: 10.w),
       ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.r)),
-      contentPadding: EdgeInsets.symmetric(horizontal: 10.w),
     );
   }
 }

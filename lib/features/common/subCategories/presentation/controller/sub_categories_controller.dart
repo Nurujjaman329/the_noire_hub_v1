@@ -1,39 +1,43 @@
 
 
 import 'package:get/get.dart';
-
-import '../../data/sub_categories_response_model.dart';
+import 'package:the_noire_hub_v1/core/constants/category_type_constants.dart';
+import 'package:the_noire_hub_v1/core/services/cache_service.dart';
+import 'package:the_noire_hub_v1/features/common/subCategories/data/sub_categories_response_model.dart';
 import '../../data/sub_categories_service.dart';
 
 class SubCategoryController extends GetxController {
   final SubCategoryService _service;
   SubCategoryController(this._service);
 
-  var subCategories = <SubCategory>[].obs;
+  var subCategories = <SubCategoryItem>[].obs;
   var isLoading = false.obs;
   var isMoreLoading = false.obs;
   var errorMessage = ''.obs;
 
   var currentPage = 1.obs;
   var hasMoreData = true.obs;
-  String? selectedCategoryId;
+  var selectedCategoryId = RxnString();
   String? categoryType;
   String? currentUserId;
 
+  /// [categoryType] — pass explicitly for registration before cache role exists.
+  /// When omitted, vendor/beautician session roles resolve to product/service automatically.
   Future<void> fetchSubCategories({
     String? categoryId,
     String? categoryType,
-    String? id, // This is your User/Vendor ID
-    bool isRefresh = true
+    String? id,
+    bool isRefresh = true,
   }) async {
+    final resolvedType = _resolveCategoryType(categoryType);
+
     if (isRefresh) {
       currentPage.value = 1;
       hasMoreData.value = true;
       isLoading.value = true;
 
-      // Maintain state for pagination
-      selectedCategoryId = categoryId;
-      this.categoryType = categoryType;
+      selectedCategoryId.value = categoryId;
+      this.categoryType = resolvedType;
       currentUserId = id;
     } else {
       isMoreLoading.value = true;
@@ -44,9 +48,9 @@ class SubCategoryController extends GetxController {
     try {
       final response = await _service.getSubCategories(
         page: currentPage.value,
-        categoryId: selectedCategoryId,
+        categoryId: selectedCategoryId.value,
         categoryType: this.categoryType,
-        id: currentUserId, // Always pass the stored state
+        id: currentUserId,
       );
 
       if (isRefresh) {
@@ -68,13 +72,22 @@ class SubCategoryController extends GetxController {
     }
   }
 
+  String? _resolveCategoryType(String? explicitType) {
+    if (explicitType != null && explicitType.isNotEmpty) {
+      return explicitType;
+    }
+    if (CategoryTypeConstants.isBusinessRole(CacheService.role)) {
+      return CategoryTypeConstants.forCurrentBusinessRole();
+    }
+    return null;
+  }
+
   Future<void> loadMore() async {
     if (!isLoading.value && !isMoreLoading.value && hasMoreData.value) {
-      // Pass categoryType: categoryType to maintain the product/service filter
       await fetchSubCategories(
-          categoryId: selectedCategoryId,
-          categoryType: categoryType,
-          isRefresh: false
+        categoryId: selectedCategoryId.value,
+        categoryType: categoryType,
+        isRefresh: false,
       );
     }
   }

@@ -37,15 +37,9 @@ class SubCategoryService {
       debugPrint('📥 Response Data Type: ${response.data.runtimeType}');
 
       if (response.statusCode == 200) {
+        final parsed = SubCategoryResponse.fromJson(response.data);
         debugPrint('✅ SubCategories Fetched Successfully');
-
-        // Safety check similar to what we discussed for Categories
-        if (response.data is List) {
-          debugPrint('⚠️ Warning: API returned a List, but Model expects a Map.');
-          // You might need to wrap this like we did for CategoryService
-        }
-
-        return SubCategoryResponse.fromJson(response.data);
+        return parsed;
       } else {
         debugPrint('⚠️ SubCategory Server Error: ${response.statusCode}');
         throw Exception('Failed to load subcategories');

@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../../core/constants/app_assets.dart';
 import '../../../../../core/constants/app_colors.dart';
+import '../../../../../core/constants/category_type_constants.dart';
 import '../../../../../core/services/cache_service.dart';
 import '../../../../../core/widgets/custom_button.dart';
 import '../../../../../core/widgets/custom_network_image.dart';
@@ -393,7 +394,11 @@ class _BeauticianAddServiceScreenState extends State<BeauticianAddServiceScreen>
                 return GestureDetector(
                   onTap: () {
                     setState(() { selectedCategoryId = cat.id; selectedSubCategoryId = null; });
-                    subCategoryController.fetchSubCategories(categoryId: cat.id, id: CacheService.userId);
+                    subCategoryController.fetchSubCategories(
+                      categoryId: cat.id,
+                      categoryType: CategoryTypeConstants.service,
+                      id: CacheService.userId,
+                    );
                   },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 300),

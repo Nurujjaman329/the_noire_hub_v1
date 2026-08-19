@@ -1,3 +1,5 @@
+import '../../../../../core/utils/json_parse_utils.dart';
+
 class CategoryResponse {
   final int code;
   final String message;
@@ -77,15 +79,18 @@ class Category {
   });
 
   factory Category.fromJson(Map<String, dynamic> json) {
+    final createdByRaw = json['createdBy'];
     return Category(
-      id: json['id'] ?? '',
-      name: json['name'] ?? '',
-      image: json['image'] ?? '',
-      categoryType: json['categoryType'] ?? '',
-      isActive: json['isActive'] ?? false,
-      createdBy: json['createdBy'] ?? '',
+      id: JsonParseUtils.asId(json),
+      name: JsonParseUtils.asString(json['name']),
+      image: JsonParseUtils.asString(json['image']),
+      categoryType: JsonParseUtils.asString(json['categoryType']),
+      isActive: JsonParseUtils.asBool(json['isActive']),
+      createdBy: createdByRaw is Map
+          ? JsonParseUtils.asId(Map<String, dynamic>.from(createdByRaw))
+          : JsonParseUtils.asString(createdByRaw),
       createdAt: json['createdAt'] != null
-          ? DateTime.tryParse(json['createdAt'])
+          ? DateTime.tryParse(json['createdAt'].toString())
           : null,
     );
   }

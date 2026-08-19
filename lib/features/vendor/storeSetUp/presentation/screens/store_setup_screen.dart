@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../../../core/constants/app_assets.dart';
+import '../../../../../core/constants/category_type_constants.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/widgets/custom_network_image.dart';
 import '../../../../../core/extensions/string_extensions.dart';
@@ -27,13 +28,6 @@ class StoreSetupScreen extends GetView<RegistrationController> {
     // bool isBeauticians = (userRole == "beautician");
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // 1. Get the chosen role from SelectionScreen via RegistrationController
-      // String role = controller.userRole.value;
-      //
-      // // 2. Map role to the API 'categoryType'
-      // String apiType = (role == 'vendor') ? 'product' : 'service';
-
-      // 3. Force the category load for THIS setup session only
       catCtrl.loadCategories();
     });
 
@@ -171,13 +165,12 @@ class StoreSetupScreen extends GetView<RegistrationController> {
                     SelectedCategoryRequest(category: cat.id, subcategories: [])
                   ]);
 
-                  // Determine type based on the initial SelectionScreen choice
-                  String apiType = (controller.userRole.value == 'vendor') ? 'product' : 'service';
+                  final apiType =
+                      CategoryTypeConstants.forVendorOrBeauticianRole(controller.userRole.value);
 
-                  // Fetch subcategories filtered by both ID and Type
                   subCtrl.fetchSubCategories(
-                      categoryId: cat.id,
-                      categoryType: apiType
+                    categoryId: cat.id,
+                    categoryType: apiType,
                   );
                 },
                 child: _specialtyCard(cat.name, cat.image, isSelected),

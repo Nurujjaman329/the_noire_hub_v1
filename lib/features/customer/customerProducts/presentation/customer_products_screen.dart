@@ -7,6 +7,7 @@ import 'package:the_noire_hub_v1/core/constants/api_constants.dart';
 import 'package:the_noire_hub_v1/features/customer/customerProducts/data/customer_products_response_model.dart';
 import '../../../../core/constants/app_assets.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/category_type_constants.dart';
 import '../../../../core/constants/route_constants.dart';
 import '../../../../core/controllers/profile_controller.dart';
 import '../../../../core/widgets/custom_network_image.dart';
@@ -512,7 +513,7 @@ class CustomerProductsScreen extends StatelessWidget {
                     // 1. Fetch subcategories for the UI
                     subCtrl.fetchSubCategories(
                       categoryId: category.id,
-                      categoryType: 'product',
+                      categoryType: CategoryTypeConstants.product,
                     );
                     // 2. Filter the product list
                     productCtrl.filterByCategory(category.id);

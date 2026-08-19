@@ -1,3 +1,5 @@
+import '../../../../core/utils/json_parse_utils.dart';
+
 class VendorProductsResponseModel {
   final int code;
   final String message;
@@ -216,10 +218,7 @@ class Location {
   factory Location.fromJson(Map<String, dynamic> json) {
     return Location(
       type: json['type'] ?? '',
-      coordinates: ((json['coordinates'] as List<dynamic>? ?? [])
-          .map((e) => (e ?? 0).toDouble())
-          .toList())
-          .cast<double>(),
+      coordinates: JsonParseUtils.asCoordinateList(json['coordinates']),
     );
   }
 }

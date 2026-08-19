@@ -1,3 +1,5 @@
+import '../../../../../core/utils/json_parse_utils.dart';
+
 class EarningResponseModel {
   final int code;
   final String message;
@@ -99,9 +101,9 @@ class ChartData {
 
   factory ChartData.fromJson(Map<String, dynamic> json) {
     return ChartData(
-      label: json['label'] ?? '',
-      date: json['date'] ?? '',
-      amount: json['amount'] ?? 0,
+      label: JsonParseUtils.asString(json['label']),
+      date: JsonParseUtils.asString(json['date']),
+      amount: JsonParseUtils.asDouble(json['amount']),
     );
   }
 }

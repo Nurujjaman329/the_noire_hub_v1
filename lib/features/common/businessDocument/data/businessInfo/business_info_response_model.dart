@@ -1,3 +1,4 @@
+import '../../../../../core/utils/json_parse_utils.dart';
 
 class BusinessInfoResponseModel {
   final int code;
@@ -63,15 +64,15 @@ class BusinessData {
           ?.map((e) => BusinessCategory.fromJson(e))
           .toList() ??
           [],
-      rating: (json['rating'] ?? 0).toDouble(),
-      documentApproved: json['documentApproved'] ?? false,
-      joinDate: json['joinDate'] ?? '',
+      rating: JsonParseUtils.asDouble(json['rating']),
+      documentApproved: JsonParseUtils.asBool(json['documentApproved']),
+      joinDate: JsonParseUtils.asString(json['joinDate']),
       annualDocumentApproveDate:
-      json['annualDocumentApproveDate'] ?? '',
-      totalProducts: json['totalProducts'] ?? 0,
-      completedOrders: json['completedOrders'] ?? 0,
-      mostPopularItem: json['mostPopularItem'] ?? '',
-      leastPopularItem: json['leastPopularItem'] ?? '',
+          JsonParseUtils.asString(json['annualDocumentApproveDate']),
+      totalProducts: JsonParseUtils.asInt(json['totalProducts']),
+      completedOrders: JsonParseUtils.asInt(json['completedOrders']),
+      mostPopularItem: JsonParseUtils.asString(json['mostPopularItem'], 'N/A'),
+      leastPopularItem: JsonParseUtils.asString(json['leastPopularItem'], 'N/A'),
     );
   }
 }
@@ -90,17 +91,13 @@ class BusinessAddress {
   });
 
   factory BusinessAddress.fromJson(Map<String, dynamic> json) {
-    final coordinates = json['coordinates'] as List? ?? [];
+    final coordinates = JsonParseUtils.asCoordinateList(json['coordinates']);
 
     return BusinessAddress(
-      city: json['city'] ?? '',
-      country: json['country'] ?? '',
-      longitude: coordinates.isNotEmpty
-          ? (coordinates[0] ?? 0).toDouble()
-          : 0.0,
-      latitude: coordinates.length > 1
-          ? (coordinates[1] ?? 0).toDouble()
-          : 0.0,
+      city: JsonParseUtils.asString(json['city']),
+      country: JsonParseUtils.asString(json['country']),
+      longitude: coordinates.isNotEmpty ? coordinates[0] : 0.0,
+      latitude: coordinates.length > 1 ? coordinates[1] : 0.0,
     );
   }
 }
@@ -140,10 +137,10 @@ class CategoryModel {
 
   factory CategoryModel.fromJson(Map<String, dynamic> json) {
     return CategoryModel(
-      id: json['_id'] ?? '',
-      name: json['name'] ?? '',
-      categoryType: json['categoryType'] ?? '',
-      image: json['image'] ?? '',
+      id: JsonParseUtils.asId(json),
+      name: JsonParseUtils.asString(json['name']),
+      categoryType: JsonParseUtils.asString(json['categoryType']),
+      image: JsonParseUtils.asString(json['image']),
     );
   }
 }
@@ -162,10 +159,10 @@ class SubcategoryModel {
 
   factory SubcategoryModel.fromJson(Map<String, dynamic> json) {
     return SubcategoryModel(
-      id: json['_id'] ?? '',
-      name: json['name'] ?? '',
-      categoryType: json['categoryType'] ?? '',
-      image: json['image'] ?? '',
+      id: JsonParseUtils.asId(json),
+      name: JsonParseUtils.asString(json['name']),
+      categoryType: JsonParseUtils.asString(json['categoryType']),
+      image: JsonParseUtils.asString(json['image']),
     );
   }
 }

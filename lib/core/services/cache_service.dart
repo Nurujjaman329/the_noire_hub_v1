@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../constants/category_type_constants.dart';
+
 class CacheService {
   static SharedPreferences? _prefs;
 
@@ -119,10 +121,7 @@ class CacheService {
     return role == "beautician" ? "beautician" : "vendor";
   }
 
-  static String get applicableFor {
-    final role = _prefs?.getString(_roleKey) ?? '';
-    return role == "beautician" ? "service" : "product";
-  }
+  static String get applicableFor => CategoryTypeConstants.forCurrentBusinessRole();
 
   // --- Setters ---
   static Future<void> saveSession({

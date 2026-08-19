@@ -2,7 +2,6 @@
 
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import '../../../../../core/services/cache_service.dart';
 import '../../data/category_response_model.dart';
 import '../../data/category_service.dart';
 
@@ -20,14 +19,12 @@ class CategoryController extends GetxController {
   var totalResults = 0.obs;
   var hasMoreData = true.obs;
 
-  String? categoryType;
-  String? currentUserId; // Store the ID if we are in a "User Specific" view
+  String? currentUserId;
 
-  // Added userId as an optional parameter
+  /// Loads all categories from `/categories` (no categoryType filter).
   Future<void> loadCategories({
     int page = 1,
     int limit = 10,
-    // String? categoryType,
     String? userId,
   }) async {
     if (page == 1) {
@@ -40,20 +37,10 @@ class CategoryController extends GetxController {
 
     currentUserId = userId;
 
-    // Logic change: Only auto-detect type if NO userId is provided
-    String? finalType = categoryType;
-    if (userId == null && finalType == null) {
-      final String role = CacheService.role.toLowerCase();
-      if (role.contains('vendor')) {
-        finalType = 'product';
-      } else if (role.contains('beautician')) finalType = 'service';
-    }
-
     try {
       final response = await _categoryService.getCategories(
         page: page,
         limit: limit,
-        // categoryType: finalType, // Could be null if userId is present
         id: userId,
       );
 
@@ -76,19 +63,21 @@ class CategoryController extends GetxController {
     }
   }
 
-  // Update this to maintain the ID during pagination
   Future<void> loadMoreCategories({int limit = 10}) async {
     if (!hasMoreData.value || isLoading.value || isMoreLoading.value) return;
     await loadCategories(
       page: currentPage.value + 1,
       limit: limit,
-      userId: currentUserId, // Keep the filter active
+      userId: currentUserId,
     );
   }
 
-  // Update this for pull-to-refresh
   Future<void> refreshCategories({int limit = 10}) async {
-    await loadCategories(page: 1, limit: limit, userId: currentUserId);
+    await loadCategories(
+      page: 1,
+      limit: limit,
+      userId: currentUserId,
+    );
   }
 
   void searchLocalCategories(String query) {

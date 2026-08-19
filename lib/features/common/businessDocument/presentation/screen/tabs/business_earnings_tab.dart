@@ -2,6 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import '../../../../../../core/utils/json_parse_utils.dart';
 import '../../../../../../core/constants/app_colors.dart';
 import '../../../../../../core/widgets/custom_text.dart';
 import '../../../../earning/presentation/controller/earning_controller.dart';
@@ -75,7 +76,9 @@ class BusinessEarningsTab extends StatelessWidget {
                   BarChartData(
                     alignment: BarChartAlignment.spaceAround,
                     // Dynamic Max Y based on data
-                    maxY: controller.chartData.map((e) => e.amount).fold(100.0, (prev, curr) => curr > prev! ? curr.toDouble() : prev),
+                    maxY: controller.chartData
+                        .map((e) => JsonParseUtils.asDouble(e.amount))
+                        .fold<double>(100.0, (prev, curr) => curr > prev ? curr : prev),
                     barTouchData: BarTouchData(enabled: true),
                     titlesData: FlTitlesData(
                       show: true,
@@ -105,7 +108,10 @@ class BusinessEarningsTab extends StatelessWidget {
                     borderData: FlBorderData(show: false),
                     // Dynamic Bar Groups from API
                     barGroups: controller.chartData.asMap().entries.map((entry) {
-                      return _makeGroupData(entry.key, entry.value.amount.toDouble());
+                      return _makeGroupData(
+                        entry.key,
+                        JsonParseUtils.asDouble(entry.value.amount),
+                      );
                     }).toList(),
                   ),
                 ),

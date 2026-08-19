@@ -5,6 +5,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:dio/dio.dart' as dio_instance;
+import '../json_parse_utils.dart';
 
 mixin MapSearchMixin on GetxController {
   final searchController = TextEditingController();
@@ -69,7 +70,10 @@ mixin MapSearchMixin on GetxController {
         final location = result['geometry']?['location'] as Map<String, dynamic>?;
         if (location == null) return;
 
-        final latLng = LatLng(location['lat'], location['lng']);
+        final latLng = LatLng(
+          JsonParseUtils.asDouble(location['lat']),
+          JsonParseUtils.asDouble(location['lng']),
+        );
 
         // Prefer authoritative address components from Place Details.
         final components = (result['address_components'] as List<dynamic>? ?? [])
