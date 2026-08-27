@@ -63,17 +63,56 @@ class ConversationsSingleScreen extends StatelessWidget {
       leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white), onPressed: () => Get.back()),
       title: Obx(() {
         final conv = controller.conversation.value;
-        final otherUser = conv?.users.firstWhere((u) => u.id != CacheService.userId, orElse: () => conv.users.first);
+        final users = conv?.users ?? [];
+        final otherUser = users.isEmpty
+            ? null
+            : users.firstWhere(
+                (u) => u.id != CacheService.userId,
+                orElse: () => users.first,
+              );
+        final imagePath = otherUser?.image.trim() ?? '';
+        final imageUrl = imagePath.isNotEmpty
+            ? '${ApiConstants.baseImageUrl}$imagePath'
+            : '';
+
         return Row(
           children: [
-            CircleAvatar(radius: 18.r, backgroundImage: CachedNetworkImageProvider('${ApiConstants.baseImageUrl}${otherUser?.image}')),
+            CircleAvatar(
+              radius: 18.r,
+              backgroundColor: AppColors.primaryContainer,
+              backgroundImage: imageUrl.isNotEmpty
+                  ? CachedNetworkImageProvider(imageUrl)
+                  : null,
+              child: imageUrl.isEmpty
+                  ? Icon(Icons.person, size: 18.sp, color: AppColors.primaryDark)
+                  : null,
+            ),
             SizedBox(width: 10.w),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(text: otherUser?.fullName ?? 'User', fontSize: 15.sp, fontWeight: FontWeight.bold, color: Colors.white),
-                if (conv?.contextId.name != null) CustomText(text: conv!.contextId.name, fontSize: 10.sp, color: AppColors.primary),
-              ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CustomText(
+                    text: (otherUser?.fullName.isNotEmpty ?? false)
+                        ? otherUser!.fullName
+                        : 'User',
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (conv != null && conv.contextId.name.isNotEmpty)
+                    CustomText(
+                      text: conv.contextId.name,
+                      fontSize: 10.sp,
+                      color: AppColors.primary,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                ],
+              ),
             ),
           ],
         );
@@ -119,14 +158,20 @@ class _MessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: EdgeInsets.symmetric(vertical: 4.h),
-        padding: EdgeInsets.all(12.r),
-        decoration: BoxDecoration(
-          color: isMe ? AppColors.primaryDark : Colors.white,
-          borderRadius: BorderRadius.circular(12.r),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: 0.75.sw),
+        child: Container(
+          margin: EdgeInsets.symmetric(vertical: 4.h),
+          padding: EdgeInsets.all(12.r),
+          decoration: BoxDecoration(
+            color: isMe ? AppColors.primaryDark : Colors.white,
+            borderRadius: BorderRadius.circular(12.r),
+          ),
+          child: Text(
+            message.text,
+            style: TextStyle(color: isMe ? Colors.white : Colors.black),
+          ),
         ),
-        child: Text(message.text, style: TextStyle(color: isMe ? Colors.white : Colors.black)),
       ),
     );
   }

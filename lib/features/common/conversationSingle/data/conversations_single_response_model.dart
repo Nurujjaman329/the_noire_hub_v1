@@ -114,7 +114,7 @@ class Conversation {
           .toList(),
       blockedBy: json['blockedBy'] ?? "",
       createdAt: json['createdAt'] ?? "",
-      id: json['id'] ?? "",
+      id: json['id'] ?? json['_id'] ?? "",
     );
   }
 
@@ -203,7 +203,7 @@ class Message {
           .map((e) => e.toString())
           .toList(),
       createdAt: json['createdAt'] ?? "",
-      id: json['id'] ?? "",
+      id: json['id'] ?? json['_id'] ?? "",
     );
   }
 
@@ -238,7 +238,7 @@ class User {
       fullName: json['fullName'] ?? "",
       image: json['image'] ?? "",
       role: json['role'] ?? "",
-      id: json['id'] ?? "",
+      id: json['id'] ?? json['_id'] ?? "",
     );
   }
 
@@ -264,7 +264,7 @@ class ContextId {
   factory ContextId.fromJson(Map<String, dynamic> json) {
     return ContextId(
       name: json['name'] ?? "",
-      id: json['id'] ?? "",
+      id: json['id'] ?? json['_id'] ?? "",
     );
   }
 

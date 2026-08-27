@@ -93,9 +93,14 @@ class _ConversationTile extends StatelessWidget {
   const _ConversationTile({required this.doc});
 
   ConversationUser _otherUser() {
-    return doc.users.isNotEmpty
-        ? doc.users.first
-        : ConversationUser(id: '', fullName: 'Unknown', image: '', role: '');
+    if (doc.users.isEmpty) {
+      return ConversationUser(id: '', fullName: 'Unknown', image: '', role: '');
+    }
+    final myId = CacheService.userId;
+    return doc.users.firstWhere(
+      (u) => u.id != myId,
+      orElse: () => doc.users.first,
+    );
   }
 
   String _timeLabel() {
@@ -175,6 +180,7 @@ class _ConversationTile extends StatelessWidget {
                           fontWeight: hasUnread ? FontWeight.bold : FontWeight.w600,
                           color: AppColors.textPrimary,
                           maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       CustomText(
@@ -198,12 +204,15 @@ class _ConversationTile extends StatelessWidget {
                           color: AppColors.secondaryVariant,
                         ),
                         SizedBox(width: 4.w),
-                        CustomText(
-                          text: doc.contextId!.name,
-                          fontSize: 10.sp,
-                          color: AppColors.secondaryVariant,
-                          fontWeight: FontWeight.w500,
-                          maxLines: 1,
+                        Expanded(
+                          child: CustomText(
+                            text: doc.contextId!.name,
+                            fontSize: 10.sp,
+                            color: AppColors.secondaryVariant,
+                            fontWeight: FontWeight.w500,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ],
                     ),
@@ -218,6 +227,7 @@ class _ConversationTile extends StatelessWidget {
                           color: hasUnread ? AppColors.textPrimary : AppColors.geryColor,
                           fontWeight: hasUnread ? FontWeight.w500 : FontWeight.normal,
                           maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       if (hasUnread) ...[
