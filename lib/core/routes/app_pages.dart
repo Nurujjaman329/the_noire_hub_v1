@@ -195,7 +195,7 @@ class AppPages {
     ),
     GetPage(
       name: RouteConstants.profileScreen,
-      page: () => const ProfileScreen(),
+      page: () => const ProfileScreen(showBackButton: true),
       transition: Transition.cupertino,
     ),
     GetPage(

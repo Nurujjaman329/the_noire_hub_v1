@@ -13,7 +13,10 @@ import '../../../../core/widgets/custom_text.dart';
 import '../../../authentication/login/presentation/controller/logout_controller.dart';
 
 class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+  /// Hide when profile is a bottom-nav tab; show when pushed from app bar, drawer, etc.
+  final bool showBackButton;
+
+  const ProfileScreen({super.key, this.showBackButton = false});
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +27,7 @@ class ProfileScreen extends StatelessWidget {
       appBar: CustomAppBar(
         title: "",
         bgColor: Colors.transparent,
-        showBackButton: true,
+        showBackButton: showBackButton,
         arrowColor: AppColors.white,
       ),
       body: Stack(
