@@ -418,8 +418,6 @@ class ServiceBookingScreen extends StatelessWidget {
       padding: EdgeInsets.fromLTRB(25.w, 10.h, 25.w, 35.h),
       color: Colors.white,
       child: Obx(() {
-        bool hasVariants = controller.selectedBookingItems.isNotEmpty;
-
         return CustomButton(
           text: "Book | \$${controller.currentPrice.toStringAsFixed(2)}",
           onTap: () {
@@ -448,8 +446,8 @@ class ServiceBookingScreen extends StatelessWidget {
               'img': "${ApiConstants.baseImageUrl}${controller.serviceAttributes.value?.images.first}",
               'bookingItems': controller.selectedBookingItems,
               'displayItems': displayItems,
-              // If variants are chosen, the "Main Price" row in confirmation should be 0 or Hidden
-              'basePrice': hasVariants ? 0.0 : controller.serviceAttributes.value?.discountedPrice,
+              // Always show main service amount; length/variants are added on top
+              'basePrice': controller.serviceAttributes.value?.discountedPrice,
               'date': controller.selectedDate.value.toString().split(' ')[0],
               'time': controller.selectedTime.value,
               'price': controller.currentPrice,

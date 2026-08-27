@@ -126,21 +126,20 @@ class ServiceBookingDetailsController extends GetxController {
   double get currentPrice {
     if (serviceAttributes.value == null) return 0.0;
 
-    // If user has NOT selected any variants, return the main discounted price
-    if (selectedBookingItems.isEmpty) {
-      return serviceAttributes.value!.discountedPrice.toDouble();
-    }
+    // Always start with the main discounted service price
+    double total = serviceAttributes.value!.discountedPrice.toDouble();
 
-    // If user HAS selected variants, calculate total of variants ONLY
-    double variantTotal = 0.0;
+    // Add any selected length / variant prices on top
     for (var selection in selectedBookingItems) {
-      var variant = serviceAttributes.value!.variants.firstWhere((v) => v.id == selection['variantId']);
+      var variant = serviceAttributes.value!.variants
+          .firstWhere((v) => v.id == selection['variantId']);
       for (var subId in (selection['subVariantIds'] as List)) {
-        var subVariant = variant.subVariants.firstWhere((sv) => sv.id == subId);
-        variantTotal += subVariant.price.toDouble();
+        var subVariant =
+            variant.subVariants.firstWhere((sv) => sv.id == subId);
+        total += subVariant.price.toDouble();
       }
     }
-    return variantTotal * quantity.value;
+    return total * quantity.value;
   }
 
 
