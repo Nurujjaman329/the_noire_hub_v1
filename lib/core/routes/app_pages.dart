@@ -332,6 +332,7 @@ class AppPages {
     GetPage(
       name: RouteConstants.addPromoScreen,
       page: () => const AddPromoScreen(),
+      binding: CustomerDealsPromosBindings(),
       transition: Transition.cupertino,
     ),
     GetPage(

@@ -4,10 +4,12 @@ import 'package:get/get.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/utils/app_snackbar.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_text.dart';
 import '../../../../core/widgets/custom_text_field.dart';
+import '../../serviceBookingScreen/presentation/controller/service_booking_details_controller.dart';
 
 class AddTipScreen extends StatefulWidget {
   const AddTipScreen({super.key});
@@ -28,16 +30,22 @@ class _AddTipScreenState extends State<AddTipScreen> {
     super.initState();
 
     final args = Get.arguments;
+    double initialTip = 0.0;
     if (args is Map) {
       subtotal = (args['subtotal'] as num?)?.toDouble() ?? 0.0;
-      final initialTip = (args['tip'] as num?)?.toDouble() ?? 0.0;
-      _restoreInitialSelection(initialTip);
+      initialTip = (args['tip'] as num?)?.toDouble() ?? 0.0;
     } else {
       subtotal = 0.0;
     }
 
+    // Prefer tip already stored on booking controller.
+    if (Get.isRegistered<ServiceBookingDetailsController>()) {
+      final stored = Get.find<ServiceBookingDetailsController>().tipAmount.value;
+      if (stored > 0 && initialTip <= 0) initialTip = stored;
+    }
+
     quickTips = [
-      _QuickTipOption(amount: 0, label: 'No Tip'),
+      const _QuickTipOption(amount: 0, label: 'No Tip'),
       _QuickTipOption(
         amount: AppConstants.roundMoney(subtotal * 0.05),
         label: '5%',
@@ -51,6 +59,8 @@ class _AddTipScreenState extends State<AddTipScreen> {
         label: '15%',
       ),
     ];
+
+    _restoreInitialSelection(initialTip);
   }
 
   void _restoreInitialSelection(double initialTip) {
@@ -59,14 +69,7 @@ class _AddTipScreenState extends State<AddTipScreen> {
       return;
     }
 
-    // Prefer matching a quick % option; otherwise treat as custom.
-    final matches = [
-      0.0,
-      AppConstants.roundMoney(subtotal * 0.05),
-      AppConstants.roundMoney(subtotal * 0.10),
-      AppConstants.roundMoney(subtotal * 0.15),
-    ];
-
+    final matches = quickTips.map((e) => e.amount).toList();
     final matchIndex = matches.indexWhere(
       (value) => (value - initialTip).abs() < 0.01,
     );
@@ -90,6 +93,22 @@ class _AddTipScreenState extends State<AddTipScreen> {
     return 0.0;
   }
 
+  void _saveAndReturn() {
+    final tip = _resolveTipAmount();
+    if (Get.isRegistered<ServiceBookingDetailsController>()) {
+      Get.find<ServiceBookingDetailsController>().setTipAmount(tip);
+    }
+    if (tip > 0) {
+      AppSnackbar.success(
+        'Tip \$${tip.toStringAsFixed(2)} added to booking',
+        title: 'Tip added',
+      );
+    } else {
+      AppSnackbar.info('No tip will be added', title: 'Tip');
+    }
+    Get.back(result: tip);
+  }
+
   @override
   void dispose() {
     _customTipController.dispose();
@@ -98,6 +117,8 @@ class _AddTipScreenState extends State<AddTipScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final previewTip = _resolveTipAmount();
+
     return Scaffold(
       backgroundColor: AppColors.white,
       appBar: CustomAppBar(
@@ -109,9 +130,40 @@ class _AddTipScreenState extends State<AddTipScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: 30.h),
+            SizedBox(height: 24.h),
+            CustomText(
+              text: "Say thanks with a tip. It will be added to your booking total.",
+              fontSize: 13.sp,
+              color: Colors.black54,
+            ),
+            SizedBox(height: 16.h),
 
-            // 1. Quick Tip Section
+            if (previewTip > 0)
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(14.r),
+                margin: EdgeInsets.only(bottom: 16.h),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1D3826).withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(14.r),
+                  border: Border.all(color: const Color(0xFF1D3826)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.check_circle, color: Color(0xFF1D3826)),
+                    SizedBox(width: 10.w),
+                    Expanded(
+                      child: CustomText(
+                        text: 'Tip \$${previewTip.toStringAsFixed(2)} ready',
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14.sp,
+                        color: const Color(0xFF1D3826),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
             CustomText(
               text: "Quick",
               fontSize: 16.sp,
@@ -122,7 +174,7 @@ class _AddTipScreenState extends State<AddTipScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: List.generate(quickTips.length, (index) {
-                bool isSelected = selectedIndex == index;
+                final isSelected = selectedIndex == index;
                 final tip = quickTips[index];
                 return GestureDetector(
                   onTap: () {
@@ -135,10 +187,15 @@ class _AddTipScreenState extends State<AddTipScreen> {
                     width: 78.w,
                     padding: EdgeInsets.symmetric(vertical: 15.h),
                     decoration: BoxDecoration(
-                      color: isSelected ? AppColors.primary : AppColors.cardUnselected,
+                      color: isSelected
+                          ? AppColors.primary
+                          : AppColors.cardUnselected,
                       borderRadius: BorderRadius.circular(15.r),
                       border: isSelected
-                          ? Border.all(color: AppColors.secondaryVariant, width: 2)
+                          ? Border.all(
+                              color: AppColors.secondaryVariant,
+                              width: 2,
+                            )
                           : null,
                     ),
                     child: Column(
@@ -161,9 +218,8 @@ class _AddTipScreenState extends State<AddTipScreen> {
               }),
             ),
 
-            SizedBox(height: 40.h),
+            SizedBox(height: 32.h),
 
-            // 2. Custom Tip Section
             CustomText(
               text: "Custom",
               fontSize: 16.sp,
@@ -173,26 +229,26 @@ class _AddTipScreenState extends State<AddTipScreen> {
             SizedBox(height: 15.h),
             CustomTextField(
               controller: _customTipController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              hintText: "Enter Tip",
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              hintText: "Enter tip amount",
               contenpaddingVertical: 12.h,
               onChanged: (val) {
-                if (val.isNotEmpty) {
-                  setState(() => selectedIndex = -1);
-                }
+                setState(() {
+                  if (val.isNotEmpty) selectedIndex = -1;
+                });
               },
             ),
 
             const Spacer(),
 
-            // 3. Save Button
             CustomButton(
-              text: "Save",
+              text: previewTip > 0
+                  ? "Add tip \$${previewTip.toStringAsFixed(2)}"
+                  : "Continue without tip",
               color: AppColors.secondaryVariant,
               textColor: AppColors.onPrimary,
-              onTap: () {
-                Get.back(result: _resolveTipAmount());
-              },
+              onTap: _saveAndReturn,
             ),
             SizedBox(height: 40.h),
           ],

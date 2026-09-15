@@ -1,8 +1,10 @@
 import 'package:get/get.dart';
+import '../../../../../core/constants/app_constants.dart';
 import '../../../../../core/widgets/payment/stripe_payment_webview.dart';
 import '../../../customerServices/data/create_booking_response_model.dart';
 import '../../../customerServices/data/customer_service_book_service.dart';
 import '../../../customerServices/data/customer_services_response_model.dart';
+import '../../../dealsPromos/data/promo_validate_response_model.dart';
 import '../../data/service_booking_details_response_model.dart';
 import 'package:flutter/material.dart';
 
@@ -22,12 +24,20 @@ class ServiceBookingDetailsController extends GetxController {
   // Store as [{"variantId": "...", "subVariantIds": ["id1", "id2"]}]
   var selectedBookingItems = <Map<String, dynamic>>[].obs;
 
+  /// Validated promo kept here so Pay Now always sends it.
+  final appliedPromo = Rxn<AppliedPromoResult>();
+
+  /// Tip kept here so Pay Now always sends it.
+  final tipAmount = 0.0.obs;
+
   /// Last create-booking response (checkoutUrl + priceBreakdown)
   final lastBookingResponse = Rxn<CreateBookingResponseModel>();
 
   @override
   void onInit() {
     super.onInit();
+    appliedPromo.value = null;
+    tipAmount.value = 0.0;
     String? serviceId;
     if (Get.arguments is String) {
       serviceId = Get.arguments as String;
@@ -37,6 +47,22 @@ class ServiceBookingDetailsController extends GetxController {
     if (serviceId != null && serviceId.isNotEmpty) {
       fetchServiceDetails(serviceId);
     }
+  }
+
+  void setAppliedPromo(AppliedPromoResult? promo) {
+    appliedPromo.value = promo;
+  }
+
+  void clearAppliedPromo() {
+    appliedPromo.value = null;
+  }
+
+  void setTipAmount(double tip) {
+    tipAmount.value = tip < 0 ? 0.0 : AppConstants.roundMoney(tip);
+  }
+
+  void clearTip() {
+    tipAmount.value = 0.0;
   }
 
   // --- API CALLS ---
@@ -66,14 +92,27 @@ class ServiceBookingDetailsController extends GetxController {
     String? promoCode,
   }) async {
     isLoading.value = true;
+    // Prefer explicit arg, else whatever was set on this booking flow.
+    final codeToSend = (promoCode != null && promoCode.trim().isNotEmpty)
+        ? promoCode.trim()
+        : appliedPromo.value?.code;
+    final tipToSend = (tip != null && tip > 0)
+        ? tip
+        : (tipAmount.value > 0 ? tipAmount.value : null);
+
+    debugPrint(
+      '📦 createBooking promoCode=$codeToSend tip=$tipToSend '
+      '(appliedPromo=${appliedPromo.value?.code}, tipAmount=${tipAmount.value})',
+    );
+
     try {
       final response = await _service.bookService(
         serviceId: serviceId,
         bookingItems: items,
         appointmentDate: date,
         appointmentTime: time,
-        tip: tip,
-        promoCode: promoCode,
+        tip: tipToSend,
+        promoCode: codeToSend,
       );
 
       lastBookingResponse.value = response;

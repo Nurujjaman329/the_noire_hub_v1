@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../../../core/constants/app_assets.dart';
 import '../../../../../core/constants/app_colors.dart';
-import '../../../../../core/widgets/custom_button.dart';
+import '../../../../../core/utils/app_snackbar.dart';
 import '../../../../../core/widgets/custom_network_image.dart';
 import '../../../../../core/widgets/custom_text.dart';
 
@@ -11,25 +12,35 @@ import 'package:intl/intl.dart';
 
 import '../controller/customer_deals_promos_controller.dart';
 
-
-class CustomerDealsPromosScreen extends StatelessWidget {
+class CustomerDealsPromosScreen extends StatefulWidget {
   const CustomerDealsPromosScreen({super.key});
 
+  @override
+  State<CustomerDealsPromosScreen> createState() =>
+      _CustomerDealsPromosScreenState();
+}
+
+class _CustomerDealsPromosScreenState extends State<CustomerDealsPromosScreen> {
   static String vendorStoreTop = AppAssets.registration;
+  late final CustomerDealsPromosController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = Get.find<CustomerDealsPromosController>();
+    controller.fetchPromos(clearFilters: true);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<CustomerDealsPromosController>();
-
     return Scaffold(
       backgroundColor: AppColors.primary,
       body: RefreshIndicator(
-        onRefresh: () => controller.fetchPromos(),
+        onRefresh: () => controller.fetchPromos(clearFilters: true),
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             children: [
-              // 1. Top Image Header
               Stack(
                 children: [
                   CustomNetworkImage(
@@ -48,42 +59,18 @@ class CustomerDealsPromosScreen extends StatelessWidget {
                           color: Colors.black26,
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(Icons.arrow_back_ios_new,
-                            color: Colors.white, size: 20.sp),
+                        child: Icon(
+                          Icons.arrow_back_ios_new,
+                          color: Colors.white,
+                          size: 20.sp,
+                        ),
                       ),
                     ),
                   ),
                 ],
               ),
-
-              // 2. History Section
-              // GestureDetector(
-              //   onTap: () => Get.toNamed(RouteConstants.dealsPromosHistory),
-              //   child: _buildWhiteCard(
-              //     margin: EdgeInsets.only(left: 25.w, right: 25.w, bottom: 20.h, top: 20.h),
-              //     child: ListTile(
-              //       leading: Container(
-              //         padding: EdgeInsets.all(8.r),
-              //         decoration: const BoxDecoration(
-              //             color: Colors.black, shape: BoxShape.circle),
-              //         child: Icon(Icons.percent, color: Colors.white, size: 20.sp),
-              //       ),
-              //       title: CustomText(
-              //           text: "History",
-              //           fontSize: 15.sp,
-              //           fontWeight: FontWeight.bold),
-              //       subtitle: CustomText(
-              //           text: "Your Used Promos & Deals",
-              //           fontSize: 11.sp,
-              //           color: Colors.grey),
-              //       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-              //     ),
-              //   ),
-              // ),
-
-              // 3. Available Promos List
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 25.w),
+                padding: EdgeInsets.symmetric(horizontal: 25.w, vertical: 20.h),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -93,8 +80,13 @@ class CustomerDealsPromosScreen extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                       color: AppColors.textPrimary,
                     ),
+                    SizedBox(height: 6.h),
+                    CustomText(
+                      text: "Copy a code and use it at checkout or booking.",
+                      fontSize: 12.sp,
+                      color: Colors.black54,
+                    ),
                     SizedBox(height: 15.h),
-
                     Obx(() {
                       if (controller.isListLoading.value) {
                         return const Center(child: CircularProgressIndicator());
@@ -104,7 +96,10 @@ class CustomerDealsPromosScreen extends StatelessWidget {
                         return Center(
                           child: Padding(
                             padding: EdgeInsets.symmetric(vertical: 20.h),
-                            child: CustomText(text: "No promos available", color: Colors.grey),
+                            child: CustomText(
+                              text: "No promos available",
+                              color: Colors.grey,
+                            ),
                           ),
                         );
                       }
@@ -115,25 +110,37 @@ class CustomerDealsPromosScreen extends StatelessWidget {
                           padding: EdgeInsets.zero,
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: controller.promoList.length,
-                          separatorBuilder: (context, index) => const Divider(color: AppColors.divider),
+                          separatorBuilder: (context, index) =>
+                              const Divider(color: AppColors.divider),
                           itemBuilder: (context, index) {
                             final promo = controller.promoList[index];
 
-                            // Parsing the String date from model
                             String formattedExpiry = "N/A";
                             if (promo.expiryDate.isNotEmpty) {
                               try {
-                                DateTime dateTime = DateTime.parse(promo.expiryDate);
-                                formattedExpiry = DateFormat('MM/dd/yyyy').format(dateTime);
-                              } catch (e) {
-                                formattedExpiry = promo.expiryDate; // Fallback to raw string
+                                final dateTime =
+                                    DateTime.parse(promo.expiryDate);
+                                formattedExpiry =
+                                    DateFormat('MM/dd/yyyy').format(dateTime);
+                              } catch (_) {
+                                formattedExpiry = promo.expiryDate;
                               }
                             }
 
+                            final seller = promo.createdBy?.businessName
+                                    .trim()
+                                    .isNotEmpty ==
+                                true
+                                ? promo.createdBy!.businessName
+                                : (promo.createdBy?.fullName ?? 'Seller');
+                            final typeLabel = _typeLabel(promo.applicableFor);
+
                             return _promoTile(
-                                "${promo.discountPercentage}% Discounts",
-                                promo.code,
-                                formattedExpiry
+                              title:
+                                  "${promo.discountPercentage}% OFF · ${promo.code}",
+                              subtitle:
+                                  "$seller · $typeLabel\nMin \$${promo.minPurchaseAmount} · Exp $formattedExpiry",
+                              code: promo.code,
                             );
                           },
                         ),
@@ -150,6 +157,19 @@ class CustomerDealsPromosScreen extends StatelessWidget {
     );
   }
 
+  String _typeLabel(String applicableFor) {
+    switch (applicableFor.toLowerCase()) {
+      case 'product':
+        return 'Products';
+      case 'service':
+        return 'Services';
+      case 'both':
+        return 'Products & Services';
+      default:
+        return applicableFor.isEmpty ? 'Offer' : applicableFor;
+    }
+  }
+
   Widget _buildWhiteCard({required Widget child, EdgeInsetsGeometry? margin}) {
     return Container(
       margin: margin,
@@ -162,111 +182,58 @@ class CustomerDealsPromosScreen extends StatelessWidget {
     );
   }
 
-  Widget _promoTile(String title, String code, String date) {
+  Widget _promoTile({
+    required String title,
+    required String subtitle,
+    required String code,
+  }) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 8.h),
       child: Row(
         children: [
-          // 1. Title and Subtitle Info
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    // Wrap text in Flexible to prevent overflow
-                    Flexible(
-                      child: CustomText(
-                        text: title,
-                        fontSize: 14.sp,
-                        fontWeight: FontWeight.bold,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    SizedBox(width: 8.w),
-                    // The Code Tag
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(6.r),
-                        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
-                      ),
-                      child: CustomText(
-                        text: code,
-                        fontSize: 10.sp,
-                        color: AppColors.background,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+                CustomText(
+                  text: title,
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.bold,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 SizedBox(height: 4.h),
                 CustomText(
-                  text: "Exp: $date",
+                  text: subtitle,
                   fontSize: 11.sp,
                   color: Colors.grey.shade600,
+                  maxLines: 2,
                 ),
               ],
             ),
           ),
-
-          // 2. Action Button
           SizedBox(width: 10.w),
           GestureDetector(
-            onTap: () => _showSuccessDialog(title),
+            onTap: () async {
+              await Clipboard.setData(ClipboardData(text: code));
+              AppSnackbar.success(
+                'Code $code copied. Use it at checkout or booking.',
+                title: 'Copied',
+              );
+            },
             child: Container(
               padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
               decoration: BoxDecoration(
-                  color: const Color(0xFF9BB575),
-                  borderRadius: BorderRadius.circular(12.r),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF9BB575).withValues(alpha: 0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    )
-                  ]
+                color: const Color(0xFF9BB575),
+                borderRadius: BorderRadius.circular(12.r),
               ),
               child: CustomText(
-                text: "Apply",
+                text: "Copy",
                 fontSize: 11.sp,
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showSuccessDialog(String promoName) {
-    Get.defaultDialog(
-      title: "",
-      contentPadding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-      radius: 20.r,
-      content: Column(
-        children: [
-          CustomText(
-            text: "Hooray!",
-            fontSize: 22.sp,
-            fontWeight: FontWeight.bold,
-            color: const Color(0xFF9BB575),
-          ),
-          SizedBox(height: 10.h),
-          CustomText(
-            text: "$promoName is applied to your account",
-            fontSize: 14.sp,
-            textAlign: TextAlign.center,
-            color: Colors.black54,
-          ),
-          SizedBox(height: 25.h),
-          CustomButton(
-            color: const Color(0xFF9BB575),
-            text: "Start Shopping",
-            onTap: () => Get.back(),
           ),
         ],
       ),

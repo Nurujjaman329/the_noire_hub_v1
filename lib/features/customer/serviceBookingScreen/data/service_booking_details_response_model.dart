@@ -213,7 +213,7 @@ class Beautician {
 
   factory Beautician.fromJson(Map<String, dynamic> json) {
     return Beautician(
-      id: json['_id'] ?? '',
+      id: json['_id'] ?? json['id'] ?? '',
       fullName: json['fullName'] ?? '',
       businessName: json['businessName'] ?? '',
       shopImage: json['shopImage'] ?? '',

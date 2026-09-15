@@ -3,6 +3,7 @@ import '../../../../core/api/api_exception.dart';
 import '../../../../core/constants/api_constants.dart';
 import 'package:flutter/material.dart';
 
+import '../../dealsPromos/data/promo_request_bodies.dart';
 import '../../serviceBookingScreen/data/service_booking_details_response_model.dart';
 import 'create_booking_response_model.dart';
 import 'customer_services_response_model.dart';
@@ -97,15 +98,14 @@ class CustomerServiceBookService {
     double? tip,
     String? promoCode,
   }) async {
-    final Map<String, dynamic> body = {
-      "serviceId": serviceId,
-      "appointmentDate": appointmentDate,
-      "appointmentTime": appointmentTime,
-      if (bookingItems.isNotEmpty) "bookingItems": bookingItems,
-      if (tip != null && tip > 0) "tip": tip,
-      if (promoCode != null && promoCode.trim().isNotEmpty)
-        "promoCode": promoCode.trim(),
-    };
+    final Map<String, dynamic> body = PromoRequestBodies.booking(
+      serviceId: serviceId,
+      appointmentDate: appointmentDate,
+      appointmentTime: appointmentTime,
+      bookingItems: bookingItems,
+      tip: tip,
+      promoCode: promoCode,
+    );
 
     debugPrint('🚀 [POST] Request to: ${ApiConstants.customerBookings}');
     debugPrint('Body: $body');

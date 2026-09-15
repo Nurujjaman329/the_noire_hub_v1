@@ -33,6 +33,7 @@ class ApiConstants {
   static const String categoryUpdate = "users/self/selected-categories";
   static const String promoCode = "promo-codes";
   static const String promoCodeCustomer = "promo-codes/all";
+  static const String promoCodeValidate = "promo-codes/validate";
   static const String feedback = "feedback";
   static const String inviteLink = "invite/link";
   static const String cart = "cart";

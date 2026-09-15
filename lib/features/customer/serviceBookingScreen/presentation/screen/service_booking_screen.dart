@@ -451,6 +451,7 @@ class ServiceBookingScreen extends StatelessWidget {
               'date': controller.selectedDate.value.toString().split(' ')[0],
               'time': controller.selectedTime.value,
               'price': controller.currentPrice,
+              'beauticianId': controller.serviceAttributes.value?.beautician?.id ?? '',
             });
           },
           textColor: const Color(0XFFF1F0B2),

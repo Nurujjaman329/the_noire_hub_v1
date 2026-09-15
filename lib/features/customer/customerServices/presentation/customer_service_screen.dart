@@ -275,7 +275,7 @@ class CustomerServiceScreen extends StatelessWidget {
           ),
           GestureDetector(
             onTap: () {
-              Get.toNamed(RouteConstants.serviceDealsPromos);
+              Get.toNamed(RouteConstants.dealsPromos);
             },
             child: _buildGridActionCard(
               title: "Deals & Promos",

@@ -161,12 +161,14 @@ class CreatedByModel {
   String businessName;
   String phoneNumber;
   String id;
+  String role;
 
   CreatedByModel({
     required this.fullName,
     required this.businessName,
     required this.phoneNumber,
     required this.id,
+    this.role = '',
   });
 
   factory CreatedByModel.fromJson(Map<String, dynamic> json) {
@@ -174,7 +176,8 @@ class CreatedByModel {
       fullName: json['fullName'] ?? '',
       businessName: json['businessName'] ?? '',
       phoneNumber: json['phoneNumber'] ?? '',
-      id: json['id'] ?? '',
+      id: json['id'] ?? json['_id'] ?? '',
+      role: json['role'] ?? '',
     );
   }
 
@@ -183,5 +186,6 @@ class CreatedByModel {
     "businessName": businessName,
     "phoneNumber": phoneNumber,
     "id": id,
+    "role": role,
   };
 }
