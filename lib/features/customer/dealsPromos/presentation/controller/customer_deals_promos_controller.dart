@@ -2,9 +2,11 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../../core/api/api_exception.dart';
+import '../../../../../core/services/cache_service.dart';
 import '../../../../../core/utils/app_snackbar.dart';
 import '../../data/customer_deals_promos_response_model.dart';
 import '../../data/customer_deals_promos_service.dart';
+import '../../data/promo_list_filter.dart';
 import '../../data/promo_validate_response_model.dart';
 
 class CustomerDealsPromosController extends GetxController {
@@ -44,11 +46,27 @@ class CustomerDealsPromosController extends GetxController {
 
       if (response.data?.attributes != null) {
         final results = response.data!.attributes!.results;
-        // Client-side filters: type + hide expired/inactive.
-        promoList.value = _filterUsablePromos(results, this.applicableFor);
+        // Hide expired / inactive / usage-limit / wrong seller / already used.
+        var usable = PromoListFilter.usableOnly(
+          results,
+          applicableFor: this.applicableFor,
+          createdById: this.createdBy,
+          currentUserId: CacheService.userId,
+        );
+
+        // List API can still return codes that validate rejects (e.g. code
+        // collision / wrong seller). Drop those before showing checkout list.
+        if (this.createdBy != null && this.createdBy!.trim().isNotEmpty) {
+          usable = await _dropCodesInvalidForSeller(usable);
+        }
+
+        promoList.value = usable;
         debugPrint(
-          "✅ Loaded ${promoList.length} promos"
-          "${this.applicableFor != null ? ' (filtered: ${this.applicableFor})' : ''}",
+          "✅ Loaded ${promoList.length} usable promos"
+          "${this.applicableFor != null ? ' (filtered: ${this.applicableFor})' : ''}"
+          "${this.createdBy != null ? ' (seller: ${this.createdBy})' : ''}"
+          " from ${results.length} raw"
+          " → [${promoList.map((e) => e.code).join(', ')}]",
         );
       } else {
         promoList.clear();
@@ -58,34 +76,6 @@ class CustomerDealsPromosController extends GetxController {
       debugPrint("❌ PromoCodeController fetchPromos error: $e");
     } finally {
       isListLoading.value = false;
-    }
-  }
-
-  List<CustomerPromoCodeModel> _filterUsablePromos(
-    List<CustomerPromoCodeModel> list,
-    String? applicableFor,
-  ) {
-    return list.where((p) {
-      if (!_isPromoCurrentlyValid(p)) return false;
-      if (applicableFor == null || applicableFor.trim().isEmpty) return true;
-      final type = p.applicableFor.trim().toLowerCase();
-      final wanted = applicableFor.trim().toLowerCase();
-      if (type.isEmpty || type == 'both') return true;
-      return type == wanted;
-    }).toList();
-  }
-
-  /// Hide inactive or expired codes from customer lists.
-  bool _isPromoCurrentlyValid(CustomerPromoCodeModel promo) {
-    if (!promo.isActive) return false;
-    if (promo.expiryDate.trim().isEmpty) return true;
-    try {
-      final expiry = DateTime.parse(promo.expiryDate).toLocal();
-      final endOfExpiryDay = DateTime(expiry.year, expiry.month, expiry.day, 23, 59, 59);
-      return !DateTime.now().isAfter(endOfExpiryDay);
-    } catch (_) {
-      // If date is unreadable, keep it and let validate API decide.
-      return true;
     }
   }
 
@@ -123,6 +113,7 @@ class CustomerDealsPromosController extends GetxController {
         final msg = response.message.isNotEmpty
             ? response.message
             : _friendlyReason(attrs?.reason);
+        _hideIfPermanentlyUnusable(trimmed, message: msg, reason: attrs?.reason);
         AppSnackbar.error(msg, title: 'Promo not valid');
         return null;
       }
@@ -149,6 +140,7 @@ class CustomerDealsPromosController extends GetxController {
       }
       return result;
     } on AppException catch (e) {
+      _hideIfPermanentlyUnusable(trimmed, message: e.message);
       AppSnackbar.error(e.message, title: 'Promo not valid');
       return null;
     } catch (e) {
@@ -159,6 +151,75 @@ class CustomerDealsPromosController extends GetxController {
       return null;
     } finally {
       isValidating.value = false;
+    }
+  }
+
+  /// Quiet validate pass so checkout/booking lists only show codes that work
+  /// for this seller. Skips MIN_PURCHASE failures (cart may still qualify).
+  Future<List<CustomerPromoCodeModel>> _dropCodesInvalidForSeller(
+    List<CustomerPromoCodeModel> list,
+  ) async {
+    final sellerId = createdBy?.trim() ?? '';
+    if (sellerId.isEmpty || list.isEmpty) return list;
+
+    final forService =
+        (applicableFor ?? '').trim().toLowerCase() == 'service';
+
+    final checked = await Future.wait(list.map((promo) async {
+      try {
+        final probeSubtotal =
+            promo.minPurchaseAmount > 0 ? promo.minPurchaseAmount * 10.0 : 99999.0;
+        final response = await _service.validatePromo(
+          code: promo.code,
+          subtotal: probeSubtotal < 1 ? 99999.0 : probeSubtotal,
+          vendorId: forService ? null : sellerId,
+          beauticianId: forService ? sellerId : null,
+        );
+        final attrs = response.attributes;
+        if (attrs != null && attrs.valid) return promo;
+        final msg = response.message;
+        final reason = attrs?.reason;
+        if (PromoListFilter.isPermanentlyUnusableFailure(
+          message: msg,
+          reason: reason,
+        )) {
+          debugPrint('🚫 Dropping promo ${promo.code} from list: $msg');
+          return null;
+        }
+        // e.g. MIN_PURCHASE — still show; apply-time will check cart total.
+        return promo;
+      } on AppException catch (e) {
+        if (PromoListFilter.isPermanentlyUnusableFailure(message: e.message)) {
+          debugPrint('🚫 Dropping promo ${promo.code} from list: ${e.message}');
+          return null;
+        }
+        return promo;
+      } catch (_) {
+        // Network/parse — keep and let user try.
+        return promo;
+      }
+    }));
+
+    return checked.whereType<CustomerPromoCodeModel>().toList();
+  }
+
+  void _hideIfPermanentlyUnusable(
+    String code, {
+    String? message,
+    String? reason,
+  }) {
+    if (!PromoListFilter.isPermanentlyUnusableFailure(
+      message: message,
+      reason: reason,
+    )) {
+      return;
+    }
+    final before = promoList.length;
+    promoList.removeWhere(
+      (p) => p.code.toUpperCase() == code.trim().toUpperCase(),
+    );
+    if (promoList.length != before) {
+      debugPrint('🚫 Removed $code from promo list after validate failure');
     }
   }
 

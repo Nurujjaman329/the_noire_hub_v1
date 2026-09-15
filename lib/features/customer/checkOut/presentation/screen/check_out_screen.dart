@@ -468,78 +468,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
               SizedBox(height: 25.h),
 
-              // --- 5. PROMO SECTION ---
+              // --- 5. PROMO SECTION (same pattern as booking confirm) ---
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                    text: "Offers & Promos",
+                    text: "Promo (optional)",
                     fontSize: 16.sp,
                     fontWeight: FontWeight.bold,
-                    bottom: 12.h,
+                    color: AppColors.iconPrimary,
+                    bottom: 8.h,
                   ),
-                  GestureDetector(
-                    onTap: isValidatingPromo ? null : () => _showPromoBottomSheet(),
-                    child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
-                      decoration: BoxDecoration(
-                        color: validatedPromo != null
-                            ? AppColors.primary.withValues(alpha: 0.05)
-                            : Colors.white,
-                        borderRadius: BorderRadius.circular(15.r),
-                        border: Border.all(
-                          color: promoErrorMessage != null
-                              ? AppColors.error
-                              : validatedPromo != null
-                                  ? AppColors.primary
-                                  : Colors.grey.shade200,
-                          width: 1.5,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.confirmation_number_outlined,
-                            color: validatedPromo != null
-                                ? AppColors.primary
-                                : Colors.grey,
-                          ),
-                          SizedBox(width: 12.w),
-                          Expanded(
-                            child: CustomText(
-                              text: isValidatingPromo
-                                  ? "Checking promo..."
-                                  : validatedPromo != null
-                                      ? validatedPromo!.successLabel
-                                      : "Select or enter promo code",
-                              fontSize: 14.sp,
-                              fontWeight: validatedPromo != null
-                                  ? FontWeight.bold
-                                  : FontWeight.w500,
-                              color: validatedPromo != null
-                                  ? AppColors.primary
-                                  : Colors.black54,
-                            ),
-                          ),
-                          if (validatedPromo != null)
-                            GestureDetector(
-                              onTap: _clearPromo,
-                              child: const Icon(
-                                Icons.cancel,
-                                color: AppColors.error,
-                                size: 20,
-                              ),
-                            )
-                          else
-                            const Icon(
-                              Icons.arrow_forward_ios,
-                              size: 14,
-                              color: Colors.grey,
-                            ),
-                        ],
-                      ),
-                    ),
+                  CustomText(
+                    text: validatedPromo != null
+                        ? "Selected — included in total. Change anytime."
+                        : "Skip if you want — or tap below to add a store code.",
+                    fontSize: 12.sp,
+                    color: AppColors.textSecondary,
+                    bottom: 10.h,
                   ),
+                  _buildCheckoutPromoCard(),
                   if (promoErrorMessage != null) ...[
                     SizedBox(height: 8.h),
                     CustomText(
@@ -726,7 +674,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       },
       instructions: instructionController.text.trim(),
       tip: _getCalculatedTip(),
-      promoCode: validatedPromo?.code,
+      promoCode: validatedPromo?.code ?? checkoutController.appliedPromo.value?.code,
     );
   }
 
@@ -736,6 +684,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       validatedPromo = null;
       promoErrorMessage = null;
     });
+    checkoutController.clearAppliedPromo();
   }
 
   Future<void> _applyPromoCode(String code) async {
@@ -757,6 +706,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       isValidatingPromo = false;
       if (result != null) {
         validatedPromo = result;
+        checkoutController.setAppliedPromo(result);
         try {
           selectedPromo = promoController.promoList.firstWhere(
             (p) => p.code.toUpperCase() == result.code.toUpperCase(),
@@ -768,9 +718,89 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       } else {
         validatedPromo = null;
         selectedPromo = null;
+        checkoutController.clearAppliedPromo();
         promoErrorMessage = 'This promo could not be applied. Try another code.';
       }
     });
+  }
+
+  Widget _buildCheckoutPromoCard() {
+    final hasPromo = validatedPromo != null;
+    return GestureDetector(
+      onTap: isValidatingPromo ? null : _showPromoBottomSheet,
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 14.h),
+        decoration: BoxDecoration(
+          color: hasPromo
+              ? AppColors.primary.withValues(alpha: 0.35)
+              : AppColors.surfaceVariant,
+          borderRadius: BorderRadius.circular(16.r),
+          border: Border.all(
+            color: promoErrorMessage != null
+                ? AppColors.error
+                : hasPromo
+                    ? AppColors.iconPrimary
+                    : AppColors.cardBorder,
+            width: 1.4,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              isValidatingPromo
+                  ? Icons.hourglass_top
+                  : hasPromo
+                      ? Icons.check_circle
+                      : Icons.local_offer_outlined,
+              color: AppColors.iconPrimary,
+              size: 22.sp,
+            ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    text: isValidatingPromo
+                        ? "Checking promo..."
+                        : hasPromo
+                            ? validatedPromo!.successLabel
+                            : "Add promo code",
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.iconPrimary,
+                  ),
+                  SizedBox(height: 2.h),
+                  CustomText(
+                    text: hasPromo
+                        ? "Ready to use on payment"
+                        : "Tap to select or enter a code",
+                    fontSize: 11.sp,
+                    color: AppColors.textSecondary,
+                  ),
+                ],
+              ),
+            ),
+            if (hasPromo)
+              GestureDetector(
+                onTap: _clearPromo,
+                child: const Icon(
+                  Icons.cancel,
+                  color: AppColors.error,
+                  size: 20,
+                ),
+              )
+            else
+              const Icon(
+                Icons.arrow_forward_ios,
+                size: 14,
+                color: AppColors.navigationInactive,
+              ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildSummaryRow(IconData icon, String text, {VoidCallback? onTap}) {
@@ -838,7 +868,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         if (discount > 0)
           _priceRow("Promo Discount", "-${discount.toStringAsFixed(2)}", isDiscount: true),
 
-        if (tip > 0) _priceRow("Driver Tip", tip.toStringAsFixed(2)),
+        if (tip > 0) _priceRow("Tip", tip.toStringAsFixed(2)),
 
         SizedBox(height: 10.h),
         Row(
@@ -917,134 +947,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   void _showPromoBottomSheet() {
-    final enterController = TextEditingController(
-      text: validatedPromo?.code ?? '',
-    );
-
     Get.bottomSheet(
-      SafeArea(
-        child: Container(
-          padding: EdgeInsets.all(20.r),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(25.r)),
-          ),
-          child: Obx(() {
-            final list = promoController.promoList;
-            final validating = promoController.isValidating.value;
-
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(width: 40.w, height: 4.h, color: Colors.grey.shade300),
-                SizedBox(height: 16.h),
-                CustomText(
-                  text: "Add promo code",
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.bold,
-                ),
-                SizedBox(height: 6.h),
-                CustomText(
-                  text: "Pick a store offer or paste a code. We'll check it before pay.",
-                  fontSize: 12.sp,
-                  color: Colors.black54,
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: 16.h),
-                CustomTextField(
-                  controller: enterController,
-                  hintText: "Enter promo code",
-                  contenpaddingVertical: 12.h,
-                ),
-                SizedBox(height: 12.h),
-                CustomButton(
-                  text: validating ? "Checking..." : "Apply code",
-                  height: 44.h,
-                  onTap: validating
-                      ? () {}
-                      : () async {
-                          final code = enterController.text.trim();
-                          if (code.isEmpty) {
-                            AppSnackbar.error(
-                              'Please enter a promo code',
-                              title: 'Promo',
-                            );
-                            return;
-                          }
-                          Get.back();
-                          await _applyPromoCode(code);
-                        },
-                ),
-                if (list.isNotEmpty) ...[
-                  SizedBox(height: 18.h),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: CustomText(
-                      text: "Available for this store",
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  SizedBox(height: 8.h),
-                  ConstrainedBox(
-                    constraints: BoxConstraints(maxHeight: 220.h),
-                    child: ListView.separated(
-                      shrinkWrap: true,
-                      itemCount: list.length,
-                      separatorBuilder: (_, _) =>
-                          Divider(color: Colors.grey.shade200),
-                      itemBuilder: (context, index) {
-                        final promo = list[index];
-                        return ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          leading: const Icon(
-                            Icons.local_offer,
-                            color: AppColors.primary,
-                          ),
-                          title: CustomText(
-                            text: promo.code,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          subtitle: CustomText(
-                            text:
-                                "${promo.discountPercentage}% off · min \$${promo.minPurchaseAmount}",
-                            fontSize: 12.sp,
-                          ),
-                          trailing: validating
-                              ? SizedBox(
-                                  width: 18.w,
-                                  height: 18.w,
-                                  child: const CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : null,
-                          onTap: validating
-                              ? null
-                              : () async {
-                                  Get.back();
-                                  await _applyPromoCode(promo.code);
-                                },
-                        );
-                      },
-                    ),
-                  ),
-                ] else ...[
-                  SizedBox(height: 16.h),
-                  CustomText(
-                    text: "No listed offers — you can still paste a code above.",
-                    fontSize: 12.sp,
-                    color: Colors.black54,
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-                SizedBox(height: 12.h),
-              ],
-            );
-          }),
-        ),
+      _CheckoutPromoSheet(
+        initialCode: validatedPromo?.code ?? '',
+        promoController: promoController,
+        onApply: (code) async {
+          Get.back();
+          await _applyPromoCode(code);
+        },
       ),
       isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25.r)),
+      ),
     );
   }
 
@@ -1367,4 +1283,173 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
 
+}
+
+/// Owns TextEditingController so it is never disposed while the sheet is open.
+class _CheckoutPromoSheet extends StatefulWidget {
+  const _CheckoutPromoSheet({
+    required this.initialCode,
+    required this.promoController,
+    required this.onApply,
+  });
+
+  final String initialCode;
+  final CustomerDealsPromosController promoController;
+  final Future<void> Function(String code) onApply;
+
+  @override
+  State<_CheckoutPromoSheet> createState() => _CheckoutPromoSheetState();
+}
+
+class _CheckoutPromoSheetState extends State<_CheckoutPromoSheet> {
+  late final TextEditingController enterController;
+
+  @override
+  void initState() {
+    super.initState();
+    enterController = TextEditingController(text: widget.initialCode);
+  }
+
+  @override
+  void dispose() {
+    enterController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.all(20.r),
+        child: Obx(() {
+          final list = widget.promoController.promoList;
+          final validating = widget.promoController.isValidating.value;
+
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40.w,
+                height: 4.h,
+                color: AppColors.cardBorder,
+              ),
+              SizedBox(height: 16.h),
+              CustomText(
+                text: "Add promo code",
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold,
+                color: AppColors.iconPrimary,
+              ),
+              SizedBox(height: 6.h),
+              CustomText(
+                text:
+                    "Pick a store offer or paste a code. We'll check it before pay.",
+                fontSize: 12.sp,
+                color: AppColors.textSecondary,
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 16.h),
+              CustomTextField(
+                controller: enterController,
+                hintText: "Enter promo code",
+                contenpaddingVertical: 12.h,
+              ),
+              SizedBox(height: 12.h),
+              CustomButton(
+                text: validating ? "Checking..." : "Apply to order",
+                height: 44.h,
+                color: AppColors.buttonPrimary,
+                textColor: AppColors.textOnDark,
+                onTap: validating
+                    ? () {}
+                    : () async {
+                        final code = enterController.text.trim();
+                        if (code.isEmpty) {
+                          AppSnackbar.error(
+                            'Please enter a promo code',
+                            title: 'Promo',
+                          );
+                          return;
+                        }
+                        await widget.onApply(code);
+                      },
+              ),
+              if (list.isNotEmpty) ...[
+                SizedBox(height: 18.h),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: CustomText(
+                    text: "Available for this store",
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.iconPrimary,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                ConstrainedBox(
+                  constraints: BoxConstraints(maxHeight: 220.h),
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: list.length,
+                    separatorBuilder: (_, _) =>
+                        const Divider(color: AppColors.divider),
+                    itemBuilder: (context, index) {
+                      final promo = list[index];
+                      return ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: const Icon(
+                          Icons.local_offer_outlined,
+                          color: AppColors.iconPrimary,
+                        ),
+                        title: CustomText(
+                          text: promo.code,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary,
+                        ),
+                        subtitle: CustomText(
+                          text:
+                              "${promo.discountPercentage}% off · min \$${promo.minPurchaseAmount}",
+                          fontSize: 12.sp,
+                          color: AppColors.textSecondary,
+                        ),
+                        trailing: validating
+                            ? SizedBox(
+                                width: 18.w,
+                                height: 18.w,
+                                child: const CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : CustomText(
+                                text: "Use",
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.iconPrimary,
+                              ),
+                        onTap: validating
+                            ? null
+                            : () async {
+                                enterController.text = promo.code;
+                                await widget.onApply(promo.code);
+                              },
+                      );
+                    },
+                  ),
+                ),
+              ] else ...[
+                SizedBox(height: 16.h),
+                CustomText(
+                  text: "No listed offers — you can still paste a code above.",
+                  fontSize: 12.sp,
+                  color: AppColors.textSecondary,
+                  textAlign: TextAlign.center,
+                ),
+              ],
+              SizedBox(height: 12.h),
+            ],
+          );
+        }),
+      ),
+    );
+  }
 }
