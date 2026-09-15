@@ -2,47 +2,51 @@
 
 Sellers create = OK. Below is only what the user should see.
 
----
+### Flutter status
 
-## 1) Deals & Promos (Profile list)
-
-```
-HAS (now)                         NEED (UI)
-─────────────────────────         ─────────────────────────
-[ 10% Discounts ]                 [ 10% OFF · SAVE10 ]
-  SAVE10                            🏪 Glow Store · Products
-  Exp: 12/31/2026                   Min $50 · Exp 12/31/2026
-[ Apply ]  → fake “applied!”      [ Copy code ]
-                                  (no “applied to account”)
-```
+| Screen | Status |
+|--------|--------|
+| Product checkout promo | **DONE** |
+| Service booking promo | **DONE** |
+| Deals & Promos (Copy) | **DONE** |
+| Cart delete / clear | **DONE** — see `docs/customer-cart-api-flow.md` |
 
 ---
 
-## 2) Product checkout
+## 1) Deals & Promos (Profile list) — **DONE**
 
 ```
-HAS                               NEED
+HAS (now)                         STATUS
 ─────────────────────────         ─────────────────────────
-“Select or enter promo”           “Select promo”  OR  real Enter box
- ↓ list pick only                  ↓ pick OR paste
-Shows −$ locally                   After select:
-                                   ✓ SAVE10 · −$10
-                                   (or red: “Not valid for this store”)
-Pay → sends promoCode ✅           Same + optional Validate preview
+Browse list + Copy code           ✅ DONE
+Hint: use at checkout/booking     ✅ DONE
+No “applied to account” fake      ✅ DONE
+```
+
+Optional polish: show store/beautician + Products/Services badge when API fields exist.
+
+---
+
+## 2) Product checkout — **DONE**
+
+```
+HAS                               STATUS
+─────────────────────────         ─────────────────────────
+Select / enter promo              ✅ wired
+Validate preview                  ✅ ✓ CODE · −$X  or red error
+Pay → sends promoCode             ✅ DONE
 ```
 
 ---
 
-## 3) Service booking confirm
+## 3) Service booking confirm — **DONE**
 
 ```
-HAS                               NEED
+HAS                               STATUS
 ─────────────────────────         ─────────────────────────
-[ Add Promo Code ]                [ Add Promo Code ]
-  → text field                      → pick beautician codes
-  → Redeem = nothing ❌               OR paste code
-Total: no promo line                ✓ CODE · −$X on breakdown
-Pay: no promoCode sent ❌           Pay: include promoCode ✅
+[ Add Promo Code ]                ✅ pick / paste
+Validate + breakdown line         ✅ DONE
+Pay: include promoCode            ✅ DONE
 ```
 
 ---
@@ -53,8 +57,10 @@ Pay: no promoCode sent ❌           Pay: include promoCode ✅
 HAS                               NEED
 ─────────────────────────         ─────────────────────────
 Tap offer → looks selected          Tap → [ Copy ] only
-(not used at checkout) ❌           “Use this code at checkout”
+(not used at checkout)              “Use this code at checkout”
 ```
+
+Optional polish — real apply still only at checkout.
 
 ---
 
@@ -63,8 +69,8 @@ Tap offer → looks selected          Tap → [ Copy ] only
 ```
 HAS                               NEED
 ─────────────────────────         ─────────────────────────
-Success, maybe no promo line        Paid $90
-                                    Promo SAVE10 (−$10)
+Success                           Optional polish:
+                                  Promo SAVE10 (−$10)
 ```
 
 ---
@@ -74,8 +80,8 @@ Success, maybe no promo line        Paid $90
 ```
 SEE          →    PREVIEW         →    PAY           →    DONE
 Deals list        Checkout/           Stripe              Success
-(copy only)       Booking confirm     (discounted $)      “Promo used”
-                  ✓ / ✗ message
+(copy only) ✅    Booking confirm ✅  (discounted $)      “Promo used”
+                  ✓ / ✗ message ✅                        (optional UI)
 ```
 
 ---
@@ -93,6 +99,6 @@ Deals list        Checkout/           Stripe              Success
 
 ## UI-only summary
 
-Browse = info + copy  
-Checkout / booking = select/paste + green/red preview  
-Success = show promo used
+Browse = info + copy ✅  
+Checkout / booking = select/paste + green/red preview ✅  
+Success = show promo used (optional polish)

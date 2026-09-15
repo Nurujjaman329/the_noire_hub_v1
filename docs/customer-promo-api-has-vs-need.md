@@ -2,6 +2,14 @@
 
 Same pages as the UI doc. Sellers create APIs = OK (not listed below).
 
+### Flutter implementation status
+
+| Flow | Status |
+|------|--------|
+| Product checkout promo | **DONE** (list → validate → `promoCode` on order) |
+| Service booking promo | **DONE** (list → validate → `promoCode` on booking) |
+| Cart remove (single + clear) | **DONE** — `docs/customer-cart-api-flow.md` |
+
 ---
 
 ## 1) Deals & Promos (Profile list)
@@ -14,54 +22,50 @@ GET /promo-codes/all               Same API is enough
                                     role, product/service label)
 
 NO apply API needed here           Do NOT call /promo-codes/apply
-                                   UI only: Copy code
+                                   UI only: Copy code  ✅ DONE
 ```
 
 **Human meaning:** User only browses. One list API is enough. No “use promo” API on this page.
 
 ---
 
-## 2) Product checkout
+## 2) Product checkout — **DONE (Flutter)**
 
 ```
-HAS (already)                      NEED
+HAS (already)                      STATUS
 ─────────────────────────          ─────────────────────────
 GET /promo-codes/all
-  ?createdBy={vendorId}            Keep — show this vendor’s codes
+  ?createdBy={vendorId}            ✅ used
 
 POST /product-orders
-  + promoCode                      Keep — real apply at Pay
+  + promoCode                      ✅ sent on Pay
 
-(missing)                          NEW:
-                                   POST /promo-codes/validate
-                                   → check code before Pay
+POST /promo-codes/validate         ✅ called before Pay
                                    → show ✓ −$ or ✗ reason
                                    → does NOT use up the code
 ```
 
-**Human meaning:** List + place order already work. Add one “check code” API so user sees if it’s valid before paying.
+**Human meaning:** List + validate + place order with `promoCode` are wired.
 
 ---
 
-## 3) Service booking confirm
+## 3) Service booking confirm — **DONE (Flutter)**
 
 ```
-HAS (already)                      NEED
+HAS (already)                      STATUS
 ─────────────────────────          ─────────────────────────
 POST /bookings
-  (can accept promoCode)           Flutter MUST send promoCode
-                                   (UI exists, API field not sent)
+  + promoCode                      ✅ Flutter sends promoCode
+                                   (+ tip when selected)
 
-(missing list on this page)        GET /promo-codes/all
-                                   ?createdBy={beauticianId}
-                                   &applicableFor=service
+GET /promo-codes/all
+  ?createdBy={beauticianId}
+  &applicableFor=service           ✅ used on Add Promo
 
-(missing)                          NEW:
-                                   POST /promo-codes/validate
-                                   → same as product checkout
+POST /promo-codes/validate         ✅ same as product checkout
 ```
 
-**Human meaning:** Backend can take the code on booking. App must list that beautician’s codes, check code, then send it when user taps Pay.
+**Human meaning:** App lists that beautician’s codes, validates, then sends `promoCode` when user taps Pay.
 
 ---
 
@@ -89,11 +93,11 @@ HAS (already)                      NEED
 Stripe pay + webhook
 (backend marks promo used)         No new Flutter API call
 
-Success screen may hide promo      UI: show “Promo SAVE10 (−$10)”
+Success screen may hide promo      Optional: show “Promo SAVE10 (−$10)”
                                    from booking/order response
 ```
 
-**Human meaning:** Code is “taken” after successful pay (backend). App only needs to show it on the success screen.
+**Human meaning:** Code is “taken” after successful pay (backend). App can still polish success-line UI.
 
 ---
 
@@ -101,32 +105,33 @@ Success screen may hide promo      UI: show “Promo SAVE10 (−$10)”
 
 ```
 SEE (Deals list)
-  → GET /promo-codes/all                 ✅ already has
+  → GET /promo-codes/all                 ✅ already has / Flutter DONE
 
 PREVIEW (Checkout / Booking)
-  → GET /promo-codes/all?createdBy=...   ✅ already has
-  → POST /promo-codes/validate           ❌ NEED (new)
+  → GET /promo-codes/all?createdBy=...   ✅ DONE
+  → POST /promo-codes/validate           ✅ DONE (Flutter)
 
 PAY
-  → POST /product-orders + promoCode     ✅ already has
-  → POST /bookings + promoCode           ✅ backend has / Flutter NEED send
+  → POST /product-orders + promoCode     ✅ DONE
+  → POST /bookings + promoCode           ✅ DONE (Flutter sends)
 
 DONE (after Stripe success)
   → webhook consumes promo               ✅ backend already
-  → show promo on success UI             ❌ Flutter NEED show
+  → show promo on success UI             ⬜ optional polish
 ```
 
 ---
 
 ## Short table (easy for humans)
 
-| Page | Already has | Need |
-|------|-------------|------|
-| Deals list | `GET /promo-codes/all` | No new API (UI copy only) |
-| Product checkout | List + `POST /product-orders` | **Validate** API |
-| Service booking | `POST /bookings` can take code | List + **Validate** + **send** `promoCode` |
-| Product details | Product payload offers | No new API |
-| After pay | Webhook uses promo | Show on success UI |
+| Page | Already has | Flutter status |
+|------|-------------|----------------|
+| Deals list | `GET /promo-codes/all` | **DONE** — Copy only |
+| Product checkout | List + validate + `POST /product-orders` | **DONE** |
+| Service booking | List + validate + `POST /bookings` + `promoCode` | **DONE** |
+| Product details | Product payload offers | Copy / polish optional |
+| After pay | Webhook uses promo | Success line optional |
+| Cart | GET /cart, PATCH qty | **DONE** DELETE single + clear |
 
 ---
 
@@ -139,5 +144,5 @@ Use **validate** before pay instead.
 
 ## One line
 
-**Already have:** list + create order/booking with `promoCode` + use after pay.  
-**Need:** one new **validate** API, and Flutter must **send/show** promo on booking + success.
+**Done (Flutter):** product + service promo (list → validate → `promoCode` on create) + cart DELETE.  
+**Optional:** richer Deals labels + promo line on success screens.

@@ -5,6 +5,16 @@
 
 **Rule for production:** Prefer **add / fix wire-up**. Do **not** redesign seller CRUD, cart, Stripe Checkout, or wallet.
 
+### Flutter status (updated)
+
+| Area | Status |
+|------|--------|
+| **Product checkout** promo (list → validate → `promoCode` on order) | **DONE** |
+| **Service booking** promo (list → validate → `promoCode` on booking + tip) | **DONE** |
+| Deals & Promos browse (Copy only; no fake Apply / no `/apply`) | **DONE** |
+| Cart remove (single item + clear all) | **DONE** — see `docs/customer-cart-api-flow.md` |
+| Success screens “Promo X (−$Y)” line | Optional polish (still nice-to-have) |
+
 ---
 
 ## 1. Target user flow (keep this)
@@ -39,14 +49,15 @@ See promo → Validate (before pay, no burn) → Attach on create order/booking
 | `POST /api/v1/bookings` + `promoCode` | OK / ready | Inline apply at create |
 | Payment webhook consume usage | OK idea | Keep: usage after pay |
 
-### Flutter (keep as-is where possible)
+### Flutter (current)
 
 | Page / feature | Status |
 |----------------|--------|
 | Profile → **Add Promo Code** (`AddDealsPomosScreen`) | Works — seller CRUD |
-| Product **Checkout** (`CheckOutScreen`) | Works — picks vendor promo, sends `promoCode` |
-| Customer **Deals & Promos** screen | List UI exists (Apply is fake) |
-| Booking confirm → **Add Promo** | UI exists but **not wired** |
+| Product **Checkout** (`CheckOutScreen`) | **DONE** — list → validate → send `promoCode` on `POST /product-orders` |
+| Customer **Deals & Promos** screen | **DONE** — browse + Copy; no fake Apply |
+| Booking confirm → **Add Promo** | **DONE** — validate → send `promoCode` (+ tip) on `POST /bookings` |
+| Cart delete (single + entire) | **DONE** — see `docs/customer-cart-api-flow.md` |
 
 ---
 
@@ -73,11 +84,11 @@ See promo → Validate (before pay, no burn) → Attach on create order/booking
 |------|--------|
 | **Flutter page** | Profile → Deals & Promos → `CustomerDealsPromosScreen` |
 | **Route** | `dealsPromos` |
-| **What happens now** | `GET /promo-codes/all` (no filter). Apply shows fake “applied to account” |
-| **What should happen** | Browse only. Show **who** (store/beautician) + **product vs service**. Button = **Copy code** or **Use at checkout/booking** — not “applied to account” |
+| **What happens now** | **DONE** — `GET /promo-codes/all`, Copy code, hint to use at checkout/booking (no fake Apply) |
+| **What should happen** | Same; optional enrich who/role when backend adds fields |
 | **API call** | `GET /promo-codes/all` (optional filters later) |
 | **Backend need (small, additive)** | Enrich each item with clear creator info (see §5). **Do not remove fields.** |
-| **Flutter need** | Show `businessName` / role / `applicableFor`. Stop fake Apply dialog. |
+| **Flutter need** | **Done** for Copy / no `/apply`. Optional: richer seller labels when API fields exist. |
 
 **Production note:** This page must **not** call `/promo-codes/apply`.
 
@@ -89,27 +100,25 @@ See promo → Validate (before pay, no burn) → Attach on create order/booking
 |------|--------|
 | **Flutter page** | Cart → Checkout → `CheckOutScreen` |
 | **Route** | `checkOutScreen` |
-| **What happens now** | Load promos for vendor → pick from list → local % discount UI → `POST /product-orders` with `promoCode` → Stripe WebView |
-| **What should happen** | Same, plus optional validate before pay + optional paste code |
-| **APIs** | 1) `GET /promo-codes/all?createdBy={vendorId}`  2) *(new)* `POST /promo-codes/validate`  3) `POST /product-orders` `{ ..., promoCode }` |
-| **Backend need** | Add **validate** (new). Keep product-order create as-is. |
-| **Flutter need** | Call validate when user selects/enters code. Keep sending `promoCode` on place order (already done). Fix copy “Select or enter” (add text field **or** remove “enter”). |
+| **What happens now** | **DONE** — list vendor promos → validate → show preview → `POST /product-orders` with `promoCode` → Stripe |
+| **APIs** | 1) `GET /promo-codes/all?createdBy={vendorId}`  2) `POST /promo-codes/validate`  3) `POST /product-orders` `{ ..., promoCode }` |
+| **Backend need** | Keep **validate** + product-order create as-is. |
+| **Flutter need** | **Done** — validate before pay; send `promoCode` on place order. |
 
 **Do not change:** Stripe Checkout URL flow, cart structure, multi-vendor one-order-per-vendor.
 
 ---
 
-### D) Customer — Service booking (broken today — wire only)
+### D) Customer — Service booking (**DONE** — wired)
 
 | Item | Detail |
 |------|--------|
 | **Flutter pages** | Confirm booking → `CustomerConfirmBookings` → Add Promo → `AddPromoScreen` |
 | **Routes** | confirm booking flow + `addPromoScreen` |
-| **What happens now** | Promo UI exists; Redeem = empty; `POST /bookings` **does not send** `promoCode` |
-| **What should happen** | Load that beautician’s codes → pick/paste → validate → show discount → create booking with `promoCode` → Stripe |
-| **APIs** | 1) `GET /promo-codes/all?createdBy={beauticianId}&applicableFor=service`  2) *(new)* `POST /promo-codes/validate`  3) `POST /bookings` `{ ..., promoCode, tip? }` |
-| **Backend need** | Confirm booking body accepts `promoCode` (+ `tip` if used). Add **validate**. No new booking payment redesign. |
-| **Flutter need** | Wire Redeem; pass code back to confirm; include `promoCode` (and `tip`) in create booking body. |
+| **What happens now** | **DONE** — load beautician codes → pick/paste → validate → show discount → `POST /bookings` with `promoCode` (+ tip) → Stripe |
+| **APIs** | 1) `GET /promo-codes/all?createdBy={beauticianId}&applicableFor=service`  2) `POST /promo-codes/validate`  3) `POST /bookings` `{ ..., promoCode, tip? }` |
+| **Backend need** | Keep booking `promoCode` / `tip` + validate. No payment redesign. |
+| **Flutter need** | **Done**. |
 
 **Do not change:** date/slot selection, Stripe WebView success/cancel URL handling (unless already broken).
 
@@ -249,16 +258,16 @@ See promo → Validate (before pay, no burn) → Attach on create order/booking
 
 ## 6. Flutter work (minimal / production-safe)
 
-### Must do
+### Must do — **DONE** (Flutter)
 
-| Priority | Page | Change |
-|----------|------|--------|
-| P0 | Booking confirm + `AddPromoScreen` | Wire Redeem → validate → return code → send `promoCode` on `POST /bookings` |
-| P0 | Booking confirm | Send `tip` if user selected tip (if backend supports) |
-| P0 | Deals & Promos | Remove fake “applied to account”; use Copy / info only |
-| P1 | Product checkout | Call **validate** before place order; keep existing `promoCode` on create |
-| P1 | Product checkout | Fix “Select or enter” (add field or change copy) |
-| P1 | Home Deals tile | Route to existing `dealsPromos` |
+| Priority | Page | Change | Status |
+|----------|------|--------|--------|
+| P0 | Booking confirm + `AddPromoScreen` | Wire Redeem → validate → return code → send `promoCode` on `POST /bookings` | **DONE** |
+| P0 | Booking confirm | Send `tip` if user selected tip (if backend supports) | **DONE** |
+| P0 | Deals & Promos | Remove fake “applied to account”; use Copy / info only | **DONE** |
+| P1 | Product checkout | Call **validate** before place order; keep existing `promoCode` on create | **DONE** |
+| P1 | Product checkout | Fix “Select or enter” (add field or change copy) | **DONE** / as shipped |
+| P1 | Home Deals tile | Route to existing `dealsPromos` | Check / polish if still needed |
 
 ### Should do
 
@@ -319,19 +328,20 @@ See promo → Validate (before pay, no burn) → Attach on create order/booking
 - [ ] Do **not** break existing seller CRUD or product-order `promoCode`
 
 ### Flutter engineer
-- [ ] Booking: send `promoCode` on create
-- [ ] Booking: validate before pay
-- [ ] Product checkout: validate before pay (keep create as-is)
-- [ ] Deals page: no fake apply; show seller/type when API has fields
-- [ ] Never call `/promo-codes/apply`
-- [ ] Fix home Deals navigation to `dealsPromos`
+- [x] Booking: send `promoCode` on create
+- [x] Booking: validate before pay
+- [x] Product checkout: validate before pay (keep create as-is)
+- [x] Deals page: no fake apply; Copy only (seller/type when API has fields)
+- [x] Never call `/promo-codes/apply`
+- [ ] Fix home Deals navigation to `dealsPromos` (verify if still needed)
+- [x] Cart: single remove + clear entire cart (`docs/customer-cart-api-flow.md`)
 
 ---
 
 ## 10. One-sentence summary
 
-**Backend:** add a safe validate API + clearer list fields; keep create-order/booking + pay-then-consume.  
-**Flutter:** wire booking promo for real, validate before pay on both checkouts, and stop lying “Apply” buttons — without rewriting production payment flow.
+**Backend:** keep validate + create-order/booking + pay-then-consume.  
+**Flutter (done):** product + service promo wired (list → validate → `promoCode` on pay); Deals is Copy-only; cart DELETE single + clear also shipped.
 
 ---
 

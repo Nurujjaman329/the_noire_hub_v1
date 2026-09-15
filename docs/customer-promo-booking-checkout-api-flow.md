@@ -7,6 +7,8 @@
 **Audience:** Backend + Flutter  
 **Goal:** Same contract for how user **sees**, **validates**, and **uses** promo on product checkout and service booking — without breaking production Stripe flow.
 
+**Flutter status:** Product checkout promo **DONE** · Service booking promo **DONE** · Cart DELETE **DONE** (`docs/customer-cart-api-flow.md`)
+
 **Sellers create promo = OK** (not covered here).
 
 ---
@@ -338,8 +340,7 @@ Suggested `reason` values (for app logic + message):
 ```
 
 **HAS (backend):** can accept `promoCode` and return breakdown.  
-**NEED (Flutter):** actually send `promoCode` (+ `tip` if selected).  
-**NEED (both):** validate before step 6.
+**Flutter:** **DONE** — sends `promoCode` (+ `tip` if selected) and validates before pay.
 
 ---
 
@@ -348,7 +349,7 @@ Suggested `reason` values (for app logic + message):
 | Step | Who | What |
 |------|-----|------|
 | Stripe success | Backend webhook | Set payment paid (booking) / save PI (order); **then** `usedBy` + `currentUsageCount` |
-| Success UI | Flutter | Show `Promo SAVE10 (−$10)` from create response or refreshed booking/order |
+| Success UI | Flutter | Optional polish: show `Promo SAVE10 (−$10)` from create response or refreshed booking/order |
 | Pay cancel/fail | Both | Promo **not** used; user can try again |
 
 No new Flutter API for “consume”. Webhook already owns that.
@@ -359,11 +360,11 @@ No new Flutter API for “consume”. Webhook already owns that.
 
 | Step | Product checkout | Service booking |
 |------|------------------|-----------------|
-| See list | **HAS** `GET .../all?createdBy=vendorId` | **NEED Flutter call** same with beauticianId |
-| Validate | **NEED NEW** `POST .../validate` | **NEED NEW** same |
-| Attach + pay | **HAS** `POST /product-orders` + `promoCode` | **HAS backend** / **NEED Flutter send** `POST /bookings` + `promoCode` |
+| See list | **DONE** `GET .../all?createdBy=vendorId` | **DONE** beauticianId + `applicableFor=service` |
+| Validate | **DONE** `POST .../validate` | **DONE** same |
+| Attach + pay | **DONE** `POST /product-orders` + `promoCode` | **DONE** `POST /bookings` + `promoCode` |
 | Consume | **HAS** webhook | **HAS** webhook |
-| Show after | **NEED Flutter UI** | **NEED Flutter UI** |
+| Show after | Optional Flutter UI | Optional Flutter UI |
 
 ---
 
@@ -383,7 +384,7 @@ Do not mix: validate uses `code`; create uses `promoCode`.
 
 ## 8. Backend checklist (for this doc)
 
-- [ ] Add `POST /promo-codes/validate` (no usage increment)
+- [ ] Add / keep `POST /promo-codes/validate` (no usage increment)
 - [ ] Clear error `message` + optional `reason`
 - [ ] Enrich `GET /promo-codes/all` with `createdBy.role` (additive)
 - [ ] Keep create order/booking + webhook consume as today
@@ -391,17 +392,20 @@ Do not mix: validate uses `code`; create uses `promoCode`.
 
 ## 9. Flutter checklist (for this doc)
 
-- [ ] Checkout: list → validate → create with `promoCode`
-- [ ] Booking: list → validate → create with `promoCode` (+ tip)
-- [ ] Show validate result on confirm UI before Stripe
-- [ ] Show promo on success from `priceBreakdown`
-- [ ] Deals list: Copy only; never `/apply`
+- [x] Checkout: list → validate → create with `promoCode`
+- [x] Booking: list → validate → create with `promoCode` (+ tip)
+- [x] Show validate result on confirm UI before Stripe
+- [ ] Show promo on success from `priceBreakdown` (optional polish)
+- [x] Deals list: Copy only; never `/apply`
+- [x] Cart DELETE single + clear — see `docs/customer-cart-api-flow.md`
 
 ---
 
 ## 10. One line
 
 **User sees codes from list → validate checks without using them → create booking/order applies discount on Stripe → webhook marks used → success UI shows the promo.**
+
+**Flutter shipped:** product + service promo paths + cart remove/clear.
 
 ---
 

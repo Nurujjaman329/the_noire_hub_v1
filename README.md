@@ -16,9 +16,9 @@ The Noire Hub is a comprehensive Flutter-based mobile application that transform
 - **Product Marketplace**: Browse, search, and filter beauty products with advanced filters (category, subcategory, distance, rating, price range, offers)
 - **Service Discovery**: Explore beauty services with location-based recommendations
 - **Service Booking**: Book appointments with beauticians, confirm bookings, and manage reservations
-- **Shopping Cart**: Multi-vendor cart with checkout flow and order management
+- **Shopping Cart**: Multi-vendor cart with checkout; remove one item (`DELETE /cart/items/{id}`) or clear all (`DELETE /cart`)
 - **Favorites**: Save preferred products and services for quick access
-- **Deals & Promos**: Browse active promotions and apply promo codes
+- **Deals & Promos**: Browse/copy codes; validate and apply on **product checkout** and **service booking**
 - **Reviews & Ratings**: Rate products and services after purchase/booking
 - **Order History**: Track past and current product orders
 - **Booking History**: View all service bookings and their status
