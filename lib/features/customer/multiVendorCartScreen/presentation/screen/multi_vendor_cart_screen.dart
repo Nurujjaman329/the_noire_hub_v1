@@ -23,6 +23,22 @@ class MultiVendorCartScreen extends StatelessWidget {
       backgroundColor: AppColors.white,
       appBar: CustomAppBar(
         title: "All Cart",
+        actions: [
+          Obx(() {
+            if (controller.isCartEmpty || controller.isUpdating.value) {
+              return const SizedBox.shrink();
+            }
+            return TextButton(
+              onPressed: () => controller.clearEntireCart(),
+              child: CustomText(
+                text: "Clear",
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w600,
+                color: AppColors.error,
+              ),
+            );
+          }),
+        ],
       ),
       body: Obx(() {
         // 2. Show loading state

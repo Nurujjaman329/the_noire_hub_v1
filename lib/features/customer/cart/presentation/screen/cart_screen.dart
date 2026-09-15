@@ -8,6 +8,7 @@ import '../../../../../core/widgets/custom_app_bar.dart';
 import '../../../../../core/widgets/custom_button.dart';
 import '../../../../../core/widgets/custom_network_image.dart';
 import '../../../../../core/widgets/custom_text.dart';
+import '../../../multiVendorCartScreen/data/cart_api_paths.dart';
 import '../../../multiVendorCartScreen/data/multi_vendor_cart_response_model.dart';
 import '../../../multiVendorCartScreen/presentation/controller/multi_vendor_cart_controller.dart';
 
@@ -28,7 +29,8 @@ class CartScreen extends GetView<MultiVendorCartController> {
       bottomNavigationBar: Obx(() {
         final currentVendor = controller.cartAttributes.value?.vendors
             .firstWhereOrNull((v) => v.vendor.id == vendorData.vendor.id);
-        final subtotal = currentVendor?.subtotal ?? vendorData.subtotal;
+        final subtotal = currentVendor?.subtotal ?? 0.0;
+        final canCheckout = currentVendor != null && currentVendor.items.isNotEmpty;
 
         return Container(
           padding: EdgeInsets.fromLTRB(20.w, 16.h, 20.w, 30.h),
@@ -65,10 +67,12 @@ class CartScreen extends GetView<MultiVendorCartController> {
               SizedBox(height: 16.h),
               CustomButton(
                 text: "Go to checkout",
-                onTap: () => Get.toNamed(
-                    RouteConstants.checkOutScreen,
-                    arguments: currentVendor ?? vendorData
-                ),
+                onTap: canCheckout
+                    ? () => Get.toNamed(
+                          RouteConstants.checkOutScreen,
+                          arguments: currentVendor,
+                        )
+                    : () {},
               ),
             ],
           ),
@@ -81,7 +85,20 @@ class CartScreen extends GetView<MultiVendorCartController> {
             Obx(() {
               final currentVendor = controller.cartAttributes.value?.vendors
                   .firstWhereOrNull((v) => v.vendor.id == vendorData.vendor.id);
-              final displayItems = currentVendor?.items ?? vendorData.items;
+              final displayItems = currentVendor?.items ?? const <CartItem>[];
+
+              if (displayItems.isEmpty) {
+                return Padding(
+                  padding: EdgeInsets.symmetric(vertical: 48.h),
+                  child: Center(
+                    child: CustomText(
+                      text: "No items in this cart",
+                      fontSize: 14.sp,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                );
+              }
 
               return ListView.builder(
                 shrinkWrap: true,
@@ -142,10 +159,24 @@ class CartScreen extends GetView<MultiVendorCartController> {
             ),
             child: Row(
               children: [
-                // Decrement
+                // Decrement / delete (qty 1 → DELETE /cart/items/{id})
                 GestureDetector(
-                  onTap: () => controller.updateItemQuantity(item.cartItemId, item.quantity - 1),
-                  child: Icon(item.quantity <= 1 ? Icons.delete_outline : Icons.remove, size: 18.sp),
+                  onTap: () {
+                    if (controller.isUpdating.value) return;
+                    if (CartApiPaths.shouldRemoveOnDecrement(item.quantity)) {
+                      controller.removeCartItem(item.cartItemId);
+                    } else {
+                      controller.updateItemQuantity(
+                        item.cartItemId,
+                        item.quantity - 1,
+                      );
+                    }
+                  },
+                  child: Icon(
+                    item.quantity <= 1 ? Icons.delete_outline : Icons.remove,
+                    size: 18.sp,
+                    color: item.quantity <= 1 ? AppColors.error : null,
+                  ),
                 ),
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: 12.w),

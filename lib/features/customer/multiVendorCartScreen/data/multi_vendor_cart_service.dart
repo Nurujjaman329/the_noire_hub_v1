@@ -1,7 +1,7 @@
-
 import 'package:flutter/material.dart';
 import 'package:the_noire_hub_v1/core/constants/api_constants.dart';
 import '../../../../core/api/api_client.dart';
+import 'cart_api_paths.dart';
 import 'multi_vendor_cart_response_model.dart';
 
 class MultiVendorCartService {
@@ -34,9 +34,8 @@ class MultiVendorCartService {
     }
   }
 
-  // New Quantity Update Method
   Future<void> updateQuantity(String cartItemId, int quantity) async {
-    final String url = "${ApiConstants.cartItems}/$cartItemId";
+    final String url = CartApiPaths.updateItem(cartItemId);
     final Map<String, dynamic> body = {"quantity": quantity};
 
     debugPrint('🚀 [PATCH] Request to: $url');
@@ -51,6 +50,36 @@ class MultiVendorCartService {
       debugPrint('Response: ${response.data}');
     } catch (e) {
       debugPrint('❌ [PATCH] Error at: $url');
+      rethrow;
+    }
+  }
+
+  /// DELETE /cart/items/{id}
+  Future<void> removeItem(String cartItemId) async {
+    final String url = CartApiPaths.removeItem(cartItemId);
+    debugPrint('🚀 [DELETE] Request to: $url');
+
+    try {
+      final response = await _apiClient.delete(url);
+      debugPrint('✅ [DELETE] Success: $url');
+      debugPrint('Response: ${response.data}');
+    } catch (e) {
+      debugPrint('❌ [DELETE] Error at: $url');
+      rethrow;
+    }
+  }
+
+  /// DELETE /cart
+  Future<void> clearCart() async {
+    final String url = CartApiPaths.clearCart();
+    debugPrint('🚀 [DELETE] Request to: $url');
+
+    try {
+      final response = await _apiClient.delete(url);
+      debugPrint('✅ [DELETE] Success: $url');
+      debugPrint('Response: ${response.data}');
+    } catch (e) {
+      debugPrint('❌ [DELETE] Error at: $url');
       rethrow;
     }
   }
