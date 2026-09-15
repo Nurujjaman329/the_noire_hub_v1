@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/route_constants.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_network_image.dart';
@@ -8,8 +9,16 @@ import '../../../../core/widgets/custom_text.dart';
 import '../../serviceBookingScreen/presentation/controller/service_booking_details_controller.dart';
 
 
-class CustomerConfirmBookings extends StatelessWidget {
+class CustomerConfirmBookings extends StatefulWidget {
   const CustomerConfirmBookings({super.key});
+
+  @override
+  State<CustomerConfirmBookings> createState() => _CustomerConfirmBookingsState();
+}
+
+class _CustomerConfirmBookingsState extends State<CustomerConfirmBookings> {
+  double tipAmount = 0.0;
+  String? appliedPromoCode;
 
   @override
   Widget build(BuildContext context) {
@@ -30,10 +39,12 @@ class CustomerConfirmBookings extends StatelessWidget {
     final List<dynamic> displayItems = args['displayItems'] ?? [];
     final List<dynamic> bookingItems = args['bookingItems'] ?? [];
 
-    // Calculations
-    const double serviceFee = 4.00;
-    final double taxes = subtotal * 0.05; // 5% Tax example
-    final double total = subtotal + serviceFee + taxes;
+    // Amount (service + selected lengths) → Service fee 4% + GST/Tax 5% + tip
+    final double serviceFee = AppConstants.serviceFeeFor(subtotal);
+    final double taxes = AppConstants.gstTaxFor(subtotal);
+    final double total = AppConstants.roundMoney(
+      AppConstants.totalWithFeesAndTax(subtotal) + tipAmount,
+    );
 
     return Scaffold(
       backgroundColor: const Color(0xFFCADA9F),
@@ -87,21 +98,42 @@ class CustomerConfirmBookings extends StatelessWidget {
                       "+\$${(item['price'] ?? 0.0).toStringAsFixed(2)}",
                     )),
 
-                    // 3. Static Fees
-                    _buildPriceRow("Service Fee", "\$${serviceFee.toStringAsFixed(2)}"),
+                    // 3. Fees & tax (same rule as product checkout)
+                    _buildPriceRow(
+                      "Service Fee (4%)",
+                      "\$${serviceFee.toStringAsFixed(2)}",
+                    ),
+                    _buildPriceRow(
+                      "GST/Tax (5%)",
+                      "\$${taxes.toStringAsFixed(2)}",
+                    ),
+                    if (tipAmount > 0)
+                      _buildPriceRow(
+                        "Tip",
+                        "\$${tipAmount.toStringAsFixed(2)}",
+                      ),
+                    if (appliedPromoCode != null)
+                      _buildPriceRow(
+                        "Promo",
+                        appliedPromoCode!,
+                      ),
 
                     SizedBox(height: 10.h),
 
                     _buildSummaryRow(
                         Icons.brightness_5_outlined,
-                        "Add Promo Code",
-                        onTap: () => Get.toNamed(RouteConstants.addPromoScreen)
+                        appliedPromoCode != null
+                            ? "Promo | $appliedPromoCode"
+                            : "Add Promo Code",
+                        onTap: () => _openPromoScreen(),
                     ),
 
                     _buildSummaryRow(
                         Icons.payments_outlined,
-                        "Add a Tip | 5% of subtotal",
-                        onTap: () => Get.toNamed(RouteConstants.addTipScreen)
+                        tipAmount > 0
+                            ? "Tip | \$${tipAmount.toStringAsFixed(2)}"
+                            : "Add a Tip | 5% of subtotal",
+                        onTap: () => _openTipScreen(subtotal),
                     ),
 
                     const Divider(thickness: 3, color: Color(0xFFC4C99A)),
@@ -141,6 +173,37 @@ class CustomerConfirmBookings extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _openTipScreen(double subtotal) async {
+    final result = await Get.toNamed(
+      RouteConstants.addTipScreen,
+      arguments: {
+        'subtotal': subtotal,
+        'tip': tipAmount,
+      },
+    );
+
+    if (result is num) {
+      setState(() {
+        tipAmount = AppConstants.roundMoney(result.toDouble());
+      });
+    }
+  }
+
+  Future<void> _openPromoScreen() async {
+    final result = await Get.toNamed(
+      RouteConstants.addPromoScreen,
+      arguments: {
+        'promoCode': appliedPromoCode,
+      },
+    );
+
+    if (result is String) {
+      setState(() {
+        appliedPromoCode = result.trim().isEmpty ? null : result.trim();
+      });
+    }
   }
 
   // --- UI Helpers ---
@@ -250,6 +313,8 @@ class CustomerConfirmBookings extends StatelessWidget {
             items: List<Map<String, dynamic>>.from(items),
             date: date,
             time: time,
+            tip: tipAmount > 0 ? tipAmount : null,
+            promoCode: appliedPromoCode,
           );
         },
         textColor: const Color(0XFFF1F0B2),

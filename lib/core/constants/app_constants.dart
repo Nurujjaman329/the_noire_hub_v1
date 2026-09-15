@@ -29,6 +29,23 @@ class AppConstants {
   static const double defaultMargin = 16.0;
   static const double borderRadius = 8.0;
   static const double buttonHeight = 48.0;
+
+  /// Shared checkout / booking fees (service + product).
+  /// Example: amount 100 → fee 4 + GST 5 → total 109.
+  static const double serviceFeeRate = 0.04; // 4%
+  static const double gstTaxRate = 0.05; // 5%
+
+  static double roundMoney(double value) =>
+      double.parse(value.toStringAsFixed(2));
+
+  static double serviceFeeFor(double amount) =>
+      roundMoney(amount * serviceFeeRate);
+
+  static double gstTaxFor(double amount) =>
+      roundMoney(amount * gstTaxRate);
+
+  static double totalWithFeesAndTax(double amount) =>
+      roundMoney(amount + serviceFeeFor(amount) + gstTaxFor(amount));
   
   // Network timeouts (in milliseconds)
   static const int connectTimeout = 30000;

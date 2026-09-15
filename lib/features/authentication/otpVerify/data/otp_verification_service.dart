@@ -2,6 +2,7 @@ import '../../../../core/api/api_client.dart';
 import '../../../../core/api/api_exception.dart';
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/services/cache_service.dart';
+import '../../../../core/utils/auth_role_guard.dart';
 import 'package:flutter/foundation.dart';
 import 'otp_verification_response_model.dart';
 
@@ -27,6 +28,9 @@ class OtpVerificationService {
       if (flowType != "forgot_password") {
         final attributes = verificationResponse.data.attributes;
         final user = attributes.user;
+
+        AuthRoleGuard.ensureAllowed(user.role);
+
         debugPrint(
           '📥 [OTP_VERIFY_RES] userId=${user.id}, role=${user.role}, email=${user.email}, '
           'addressesCount=${user.addresses.length}',

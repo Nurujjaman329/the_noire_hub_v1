@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 
 import '../../../../../core/constants/route_constants.dart';
 import '../../../../../core/controllers/profile_controller.dart';
+import '../../../../../core/utils/auth_role_guard.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/otp_verification_service.dart';
@@ -59,17 +60,11 @@ class OtpVerificationController extends GetxController {
         // This ensures all screens immediately see updated location, address, etc.
         final profileController = Get.find<ProfileController>();
         profileController.refreshProfile();
-        
-        // Navigate to Home
-        final userRole = response.data.attributes.user.role.toLowerCase();
-        if (userRole.contains('vendor') || userRole.contains('beautician')) {
-          Get.offAllNamed(RouteConstants.vendorMainContainer);
-        } else {
-          Get.offAllNamed(RouteConstants.customerMainContainer);
-        }
+
+        AuthRoleGuard.navigateToHomeForRole(response.data.attributes.user.role);
       }
     } catch (e) {
-      String errorMsg = e.toString().replaceFirst('Exception: ', '');
+      final errorMsg = e.toString().replaceFirst('Exception: ', '');
       Get.snackbar("Error", errorMsg, backgroundColor: Colors.redAccent, colorText: Colors.white);
     } finally {
       isLoading.value = false;

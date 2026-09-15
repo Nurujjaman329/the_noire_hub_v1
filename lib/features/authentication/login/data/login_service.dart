@@ -5,6 +5,7 @@ import '../../../../core/constants/api_constants.dart';
 import '../../../../core/controllers/profile_controller.dart';
 import '../../../../core/services/cache_service.dart';
 import '../../../../core/services/push_notification_service.dart';
+import '../../../../core/utils/auth_role_guard.dart';
 import 'login_response_model.dart';
 
 class LoginService {
@@ -31,6 +32,9 @@ class LoginService {
       final loginResponse = LoginResponseModel.fromJson(response.data);
       final attr = loginResponse.data.attributes;
       final user = attr.user;
+
+      AuthRoleGuard.ensureAllowed(user.role);
+
       double? latitude;
       double? longitude;
 

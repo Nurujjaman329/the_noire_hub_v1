@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import '../../../../../core/widgets/payment/stripe_payment_webview.dart';
+import '../../../customerServices/data/create_booking_response_model.dart';
 import '../../../customerServices/data/customer_service_book_service.dart';
 import '../../../customerServices/data/customer_services_response_model.dart';
 import '../../data/service_booking_details_response_model.dart';
@@ -20,6 +21,9 @@ class ServiceBookingDetailsController extends GetxController {
 
   // Store as [{"variantId": "...", "subVariantIds": ["id1", "id2"]}]
   var selectedBookingItems = <Map<String, dynamic>>[].obs;
+
+  /// Last create-booking response (checkoutUrl + priceBreakdown)
+  final lastBookingResponse = Rxn<CreateBookingResponseModel>();
 
   @override
   void onInit() {
@@ -52,12 +56,14 @@ class ServiceBookingDetailsController extends GetxController {
     }
   }
 
-  /// NEW: Finalize the booking
+  /// Finalize the booking — optional tip + promoCode
   Future<void> createBooking({
     required String serviceId,
     required List<Map<String, dynamic>> items,
     required String date,
     required String time,
+    double? tip,
+    String? promoCode,
   }) async {
     isLoading.value = true;
     try {
@@ -66,19 +72,19 @@ class ServiceBookingDetailsController extends GetxController {
         bookingItems: items,
         appointmentDate: date,
         appointmentTime: time,
+        tip: tip,
+        promoCode: promoCode,
       );
 
-      // Extract checkoutUrl from the response structure you provided
-      // data -> attributes -> checkoutUrl
-      String? checkoutUrl = response['data']?['attributes']?['checkoutUrl'];
+      lastBookingResponse.value = response;
+
+      final String? checkoutUrl = response.data?.attributes?.checkoutUrl;
 
       if (checkoutUrl != null && checkoutUrl.isNotEmpty) {
-        // Navigate to WebView Screen
         Get.to(() => StripePaymentWebView(url: checkoutUrl));
       } else {
         Get.snackbar("Error", "Payment link not found");
       }
-
     } catch (e) {
       debugPrint("Booking Error: $e");
       Get.snackbar(

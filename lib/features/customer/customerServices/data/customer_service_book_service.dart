@@ -4,6 +4,7 @@ import '../../../../core/constants/api_constants.dart';
 import 'package:flutter/material.dart';
 
 import '../../serviceBookingScreen/data/service_booking_details_response_model.dart';
+import 'create_booking_response_model.dart';
 import 'customer_services_response_model.dart';
 
 class CustomerServiceBookService {
@@ -88,17 +89,22 @@ class CustomerServiceBookService {
   }
 
 
-  Future<dynamic> bookService({
+  Future<CreateBookingResponseModel> bookService({
     required String serviceId,
-    required List<Map<String, dynamic>> bookingItems,
     required String appointmentDate,
     required String appointmentTime,
+    List<Map<String, dynamic>> bookingItems = const [],
+    double? tip,
+    String? promoCode,
   }) async {
     final Map<String, dynamic> body = {
       "serviceId": serviceId,
-      "bookingItems": bookingItems,
       "appointmentDate": appointmentDate,
       "appointmentTime": appointmentTime,
+      if (bookingItems.isNotEmpty) "bookingItems": bookingItems,
+      if (tip != null && tip > 0) "tip": tip,
+      if (promoCode != null && promoCode.trim().isNotEmpty)
+        "promoCode": promoCode.trim(),
     };
 
     debugPrint('🚀 [POST] Request to: ${ApiConstants.customerBookings}');
@@ -111,7 +117,9 @@ class CustomerServiceBookService {
       );
 
       debugPrint('✅ [POST] Success Booking: ${response.data}');
-      return response.data;
+      return CreateBookingResponseModel.fromJson(
+        response.data as Map<String, dynamic>,
+      );
     } catch (e) {
       debugPrint('❌ [POST] Error at Booking: $e');
       rethrow;

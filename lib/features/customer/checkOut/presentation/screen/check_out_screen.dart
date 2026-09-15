@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import '../../../../../core/constants/app_colors.dart';
+import '../../../../../core/constants/app_constants.dart';
 import '../../../../../core/widgets/custom_button.dart';
 import '../../../../../core/widgets/custom_text.dart';
 import '../../../../../core/widgets/custom_text_field.dart';
@@ -536,6 +537,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               // --- 6. PRICE DETAILS ---
               SizedBox(height: 25.h),
               _priceRow("Subtotal", vendorData.subtotal.toStringAsFixed(2)),
+              _priceRow(
+                "Service Fee (4%)",
+                AppConstants.serviceFeeFor(vendorData.subtotal).toStringAsFixed(2),
+              ),
+              _priceRow(
+                "GST/Tax (5%)",
+                AppConstants.gstTaxFor(vendorData.subtotal).toStringAsFixed(2),
+              ),
               _priceRow("Delivery Fee", _getSelectedDeliveryPrice().toStringAsFixed(2)),
 
               SizedBox(height: 15.h),
@@ -718,9 +727,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     double deliveryPrice = _getSelectedDeliveryPrice(); // This will be 0 if free shipping applies
     double freeShippingSaved = _getFreeShippingDiscount();
     double discount = _getDiscountAmount();
+    final double serviceFee = AppConstants.serviceFeeFor(vendorData.subtotal);
+    final double gstTax = AppConstants.gstTaxFor(vendorData.subtotal);
 
-    // Final Total calculation
-    double total = (vendorData.subtotal + deliveryPrice + tip) - discount;
+    // Final Total: subtotal + 4% fee + 5% GST + delivery + tip - discount
+    double total = (vendorData.subtotal + serviceFee + gstTax + deliveryPrice + tip) - discount;
 
     return Column(
       children: [

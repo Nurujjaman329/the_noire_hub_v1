@@ -5,6 +5,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/services/cache_service.dart';
+import '../../../core/utils/app_snackbar.dart';
+import '../../../core/utils/auth_role_guard.dart';
 import '../../../core/constants/app_assets.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/route_constants.dart';
@@ -37,23 +39,15 @@ class _SplashScreenState extends State<SplashScreen> {
     final String role = CacheService.role;
 
     if (token.isNotEmpty && role.isNotEmpty) {
-      // User is authenticated and we know their role
-      _navigateBasedOnRole(role);
+      if (AuthRoleGuard.isAllowed(role)) {
+        AuthRoleGuard.navigateToHomeForRole(role);
+      } else {
+        await CacheService.clear();
+        Get.offAllNamed(RouteConstants.login);
+        AppSnackbar.error(AuthRoleGuard.blockedMessage(role));
+      }
     } else {
-      // Not logged in or cache was cleared
       Get.offAllNamed(RouteConstants.login);
-    }
-  }
-
-  void _navigateBasedOnRole(String role) {
-    final String userRole = role.toLowerCase();
-    debugPrint("🚀 Navigating user with role: $userRole");
-
-    if (userRole.contains('vendor') || userRole.contains('beautician')) {
-      Get.offAllNamed(RouteConstants.vendorMainContainer);
-    } else {
-      // Default to customer container for 'user/customer'
-      Get.offAllNamed(RouteConstants.customerMainContainer);
     }
   }
 

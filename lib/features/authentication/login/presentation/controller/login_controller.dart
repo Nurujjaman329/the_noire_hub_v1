@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
-import 'package:the_noire_hub_v1/core/constants/route_constants.dart';
 import '../../../../../core/api/api_exception.dart';
 import '../../../../../core/utils/app_snackbar.dart';
+import '../../../../../core/utils/auth_role_guard.dart';
 import '../../../login/data/login_service.dart';
 import 'package:flutter/material.dart';
 
@@ -44,17 +44,7 @@ class LoginController extends GetxController {
       isLoggedInStatus.value = true;
       AppSnackbar.success("Welcome back!");
 
-      final userRole = response.data.attributes.user.role.toLowerCase();
-
-      // --- Navigate safely ---
-      if (userRole.contains('vendor') || userRole.contains('beautician')) {
-        Get.offAllNamed(
-          RouteConstants.vendorMainContainer,
-          arguments: {'role': userRole},
-        );
-      } else {
-        Get.offAllNamed(RouteConstants.customerMainContainer);
-      }
+      AuthRoleGuard.navigateToHomeForRole(response.data.attributes.user.role);
 
     } on AppException catch (e) {
       if (isClosed) return;
